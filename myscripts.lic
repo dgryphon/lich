@@ -1,0 +1,45 @@
+=begin
+	Lists installed scripts. Must be trusted. ;trust myscripts
+
+	Usage:
+	;myscripts - lists all scripts
+	;myscripts scriptname - lists scripts with the given argument. One word, will check if it is found anywhere in the script name.
+	;myscripts ? or ;myscripts help - prints this message
+	
+	--Xanus
+	
+# Name: myscripts
+# Author: Xanus
+# Tags: scripts, help, utility
+=end
+
+require "ftools"
+
+case script.vars[0]
+when nil
+	Dir.chdir("scripts")
+	respond Dir.glob("*.lic")
+	Dir.chdir("..")
+when "help"
+	respond "Lists installed scripts. Must be trusted. ;trust myscripts"
+	respond ""
+	respond "Usage:"
+	respond ";myscripts - lists all scripts"
+	respond ""
+	respond ";myscripts scriptname - lists scripts with the given argument. One word, will check if it is found anywhere in the script name."
+	respond ""
+	respond ";myscripts ? or ;myscripts help - prints this message"
+when "?"
+	respond "Lists installed scripts. Must be trusted. ;trust myscripts"
+	respond ""
+	respond "Usage:"
+	respond ";myscripts - lists all scripts"
+	respond ""
+	respond ";myscripts scriptname - lists scripts with the given argument. One word, will check if it is found anywhere in the script name."
+	respond ""
+	respond ";myscripts ? or ;myscripts help - prints this message"
+else
+	Dir.chdir("scripts")
+	respond Dir.glob("*" + script.vars[0] + "*.lic")
+	Dir.chdir("..")
+end

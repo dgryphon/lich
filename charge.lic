@@ -1,0 +1,730 @@
+# watches you charge and tracks the charges added to each item
+# http://forum.gsplayers.com/showthread.php?t=57123
+
+def main
+
+	default_settings = "oaken wand,108|blue crystal,117|ruby amulet,140|white crystal,509|black crystal,511|bloodwood wand,701|twisted wand,702|bone wand,705|thanot wand,708|silver wand,901|iron wand,901|aquamarine wand,903|golden wand,906|metal wand,907|glass amulet,916|gold coin,1701|granite triangle,1706|amber wand,1708|blue wand,1709|crystal wand,1710|quartz orb,1711|small statue,1712"
+	
+	args = variable[0]
+
+	# process arguments
+
+	if(args != nil && args !~ /verbose/)
+	
+		if(args =~ /^set[a-zA-Z]*$/)
+					
+			setting = Settings["chargeables"]
+			puts ""
+			puts "Current settings: #{setting}"
+			puts ""
+			
+		elsif(args == "reset")
+		
+			Settings["chargeables"] = default_settings
+			puts ""
+			puts "Resetting to default settings: #{default_settings}"
+			puts ""
+			
+		elsif(args =~ /^help$|^halp$/)
+		
+			puts ""
+			respond "Usage:"
+			respond ";charge settings       - displays current item list"
+			respond ";charge [new settings] - updates item list to new settings"
+			respond ";charge reset          - reset item list to default"
+			respond ";charge verbose        - engage charge watcher in verbose mode"
+			respond ";charge                - engage charge watcher"
+			respond ";cstatus               - send status message to charge (must be downloaded)"
+			respond "                         equivalent to: ;e send_to_script(\"charge\", \"status\")"
+			puts ""
+		
+		else
+		
+			Settings["chargeables"] = args
+			puts ""
+			puts "Updated settings to: #{args}"
+			puts ""
+			
+		end
+	
+	else
+	
+		if(args =~ /verbose/)
+		
+			verbose = true
+		
+		end
+		
+		# no arguments, go into watching mode
+	
+		chargeable_items = Settings["chargeables"]
+	
+		if(chargeable_items == nil) 
+	
+			# chargeables not set, setting with defaults
+			
+			puts ""
+			puts "Adding chargeables variable, use ;charge new chargeables list - format:  item,spell#|item2,spell2#|...|itemX,spellX# to update"
+			puts "Use ;charge settings to view the current list"
+			puts "e.g  blue crystal,117|small statue,1712|dull coin,1701"
+			puts ""
+			Settings["chargeables"] = default_settings
+		
+		end
+	
+		chargeable_items = Settings["chargeables"]
+		
+		charging_watcher(chargeable_items,verbose)
+	
+	end
+	
+end
+
+def find_item_info(item_name,item_id,chargeable_items,tracked_items)
+
+	# return: target_spell,charges_added
+	# -2 no item
+	# -1 item not listed as chargeable
+	
+	# see if item exists
+	
+	if(item_id == nil)
+	
+		return "-2"
+	
+	end
+	
+	# see if this item is in our list of chargeables
+	
+	chargeables_split = chargeable_items.split("|")
+	chargeables_split.each { |charge_info|
+	
+		info_split = charge_info.split(",")
+		info_name = info_split[0]
+		info_spell = info_split[1].to_i
+		
+		if(item_name == info_name)
+		
+			# item is valid, see if it's tracked
+			tracked_info = tracked_items.find { |item| item.index(item_id) }
+			if(tracked_info != nil)
+			
+				# tracked, returning info
+				tracked_split = tracked_info.split(",")
+				charges_added = tracked_split[2]
+				return "#{info_spell},#{charges_added}"
+			
+			else
+			
+				# no charges, return basic info
+				return "#{info_spell},31337"
+			
+			end
+		
+		end
+	
+	
+	}
+	
+	return "-1"
+	
+
+end
+
+def get_mana_cost(target_spell)
+
+	emc_reduction = (Skills.emc - (Skills.emc % 5)) / 5
+
+	# determine circle mana cost multiplier
+
+	multiplier = 1
+	if(target_spell < 300 || target_spell > 1000)
+
+		multiplier = 3
+
+	elsif((target_spell > 300 && target_spell < 400) || (target_spell > 500 && target_spell < 900))
+
+		multiplier = 2	
+
+	end
+
+	# get mana cost per charge
+
+	spell_level = target_spell - (target_spell - (target_spell % 100))
+
+	base_mana_cost = spell_level * multiplier
+
+	mana_cost = base_mana_cost - emc_reduction
+
+	if(mana_cost < spell_level)
+
+		mana_cost = spell_level
+
+	end
+	
+	return mana_cost	
+
+end
+
+def charging_watcher(chargeable_items,verbose)
+
+	tracked_items = Array.new
+	tracked_rubs = Array.new
+
+	rub_index = 0
+	tracking_index = 0
+	
+	total_mana = 0
+	
+	previous_charges = 0.0
+	target_spell = 0
+	target_charges = 0.0
+	target_name = ""
+	target_id = 0
+	emc_reduction = (Skills.emc - (Skills.emc % 5)) / 5
+
+	# see if we've started the script with something in our hand
+
+	item_info = find_item_info(GameObj.right_hand.name,GameObj.right_hand.id,chargeable_items,tracked_items)
+	
+	if(item_info == "-1")
+	
+		if(verbose)
+		
+			puts ""
+			puts "Not tracking #{GameObj.right_hand.name} - ;charge settings to change."
+		
+		end
+	
+	elsif(item_info == "-2")
+	
+		# do nothing
+	
+	else
+	
+		item_split = item_info.split(",")
+		
+		target_spell = item_split[0].to_i
+		target_charges = item_split[1].to_i	
+	
+		target_name = GameObj.right_hand.name
+		target_id = GameObj.right_hand.id
+		
+		# find current tracking status
+
+		if(target_charges == 31337)
+		
+			# item is not tracked, add it			
+			tracked_items[tracking_index] = "#{target_id},#{target_name},0"
+			tracking_index = tracking_index + 1
+			target_charges = 0.0
+			
+		end
+	
+		mana_cost = get_mana_cost(target_spell)	
+	
+		puts ""
+		puts "Tracking #{target_name}, (#{target_spell}) #{Spell[target_spell].name}, currently with +#{target_charges} charges, #{mana_cost}mp to add a charge."
+	
+	end
+	
+	charging = true
+	new_mana = checkmana
+	
+	while(charging)
+	
+		line = get
+		
+		# track any change in mana
+		
+		old_mana = new_mana
+		new_mana = checkmana
+		spirit = checkspirit				
+		
+		if(line =~ /^Status/i)
+		
+			puts ""
+			puts "Item status:"
+			
+			max_name_length = 0
+			max_charge_length = 0
+			
+			tracked_items.each { |item|
+			
+				
+				item_split = item.split(",")
+				item_name = item_split[1]
+				item_charge = item_split[2]
+				
+				if(item_name.length > max_name_length) 
+				
+					max_name_length = item_name.length
+				
+				end
+				
+				if(item_charge.length > max_charge_length)
+				
+					max_charge_length = item_charge.length
+				
+				end
+			
+			}
+		
+			tracked_items.each { |item|
+			
+				item_split = item.split(",")
+				item_id = item_split[0]
+				item_name = item_split[1]
+				item_charge = item_split[2]
+
+				item_padding = max_name_length - item_name.length
+				charge_padding = max_charge_length - item_charge.length
+			
+				response_str = "  #{item_name} "
+				
+				for x in 0..(item_padding + charge_padding)
+				
+					response_str = response_str + " "
+				
+				end
+				
+				response_str = response_str + "+#{item_charge} charges (id: #{item_id})"
+				
+				respond response_str
+			
+			}
+			
+			puts ""
+			puts "  Total mana used: #{total_mana}"
+			puts ""
+		
+		end
+		
+		if(line =~ /^Rub data/i)
+		
+			puts ""
+			puts "Rub data:"
+			puts ""
+			
+			max_lengths = Array.new
+			
+			tracked_rubs.each { |item|
+			
+				item_split = item.split(",")
+				
+				for x in 0..item_split.length
+				
+					max_lengths[x] = 0
+				
+				end
+				
+				for x in 0..item_split.length
+				
+					if(item_split[x].length > max_lengths[x])
+					
+						max_lengths[x] = item_split[x].length
+					
+					end
+				
+				end
+			
+			}
+				
+			if(tracked_rubs.length > 0)
+				
+			for rub in 0..tracked_rubs.length - 1
+			
+				padding = Array.new
+				
+				item = tracked_rubs[rub]
+			
+				item_split = item.split(",")
+				item_name = item_split[0]
+				item_spell = item_split[1]
+				encumb = item_split[2].to_i
+				old_mana = item_split[3].to_i
+				new_mana = item_split[4].to_i
+				max_mana = item_split[5].to_i
+				spirit = item_split[6].to_i
+				max_spirit = item_split[7].to_i
+				old_charges = item_split[8].to_i
+				new_charges = item_split[9].to_i
+				outcome = item_split[10].to_i
+
+				for x in 0..item_split.length - 1
+				
+					padding[x] = max_lengths[x] - item_split[x].length
+					if(padding[x] < 0)
+					
+						padding[x] = 0
+					
+					end
+				
+				end		
+
+				response_str = "Rub ##{rub}"
+				
+				response_str = pad_string(response_str, padding[0])
+
+				response_str = response_str + " #{item_name}"
+			
+				response_str = pad_string(response_str, padding[1])
+
+				response_str = response_str + " #{item_spell} Encumb:"
+				
+				response_str = pad_string(response_str, padding[2])								
+
+				response_str = response_str + " #{encumb}% MP:"
+				
+				response_str = pad_string(response_str, padding[3] + padding[5]) 
+							
+				response_str = response_str + " #{old_mana}/#{max_mana} (#{round((old_mana * 1.0) / (max_mana * 1.0) * 100, 2)})% ->"
+				
+				response_str = pad_string(response_str, padding[4] + padding[5]) 
+				
+				response_str = response_str + " #{new_mana}/#{max_mana} (#{round((new_mana * 1.0) / (max_mana * 1.0) * 100, 2)})% SP:"
+
+				response_str = pad_string(response_str, padding[6] + padding[7])
+				
+				response_str = response_str + " #{spirit}/#{max_spirit} (#{round(spirit / (max_spirit * 1.0) * 100, 2)})% Charges:"
+				
+				response_str = pad_string(response_str, padding[8])
+
+				response_str = response_str + " #{old_charges} ->"
+				
+				response_str = pad_string(response_str, padding[9])								
+
+				response_str = response_str + " #{new_charges} "				
+				
+				if(outcome > -1)
+				
+					response_str = pad_string(response_str, padding[10])			
+
+					response_str = response_str + " +#{outcome} charges"
+					
+				elsif(outcome == -1)
+				
+					response_str = response_str + " Minor failure - unable to properly channel flows"
+
+				elsif(outcome == -2)
+
+					response_str = response_str + " Minor screwup - didn't have enough mana to charge item"
+
+				elsif(outcome == -3)
+
+					response_str = response_str + " Unable to add more charges - item is full or at max charges for skill level"			
+				
+				elsif(outcome == -4)
+
+					response_str = response_str + " Major failure - item was greened or destroyed"			
+				
+				elsif(outcome == -5)
+				
+					response_str = response_str + " Minor failure - didn't add charges & lost all mana"			
+				
+				elsif(outcome == -6)
+
+					response_str = response_str + " Minor failure - item is probably not chargeable"			
+					
+				end
+				
+				respond response_str
+			
+			end
+			
+			puts ""
+			puts "  STR: #{Stats.str[0]} (#{Stats.str[1]})  CON: #{Stats.con[0]} (#{Stats.con[1]})  DEX: #{Stats.dex[0]} (#{Stats.dex[1]})  AGI: #{Stats.agi[0]} (#{Stats.agi[1]})  DIS: #{Stats.dis[0]} (#{Stats.dis[1]})"
+			puts "  AUR: #{Stats.aur[0]} (#{Stats.aur[1]})  LOG: #{Stats.log[0]} (#{Stats.log[1]})  INT: #{Stats.int[0]} (#{Stats.int[1]})  WIS: #{Stats.wis[0]} (#{Stats.wis[1]})  INF: #{Stats.inf[0]} (#{Stats.inf[1]})"
+			puts "  Level: #{Stats.level}  EMC: #{Skills.emc}  HP: #{Skills.harnesspower}  MIU: #{Skills.magicitemuse}  MjE: #{Spells.majorelemental} Encumb: #{percentencumbrance}"
+			puts "  Total mana used: #{total_mana}"			
+			puts ""
+			
+			else
+			
+				puts ""
+				puts "  No rubs tracked yet."
+				puts ""
+			
+			end			
+		
+		end
+		
+		if(line =~ /^Rub csv/i)
+
+			puts ""
+			puts "Rub data:"
+			puts ""
+					
+			puts ""
+			puts "STR,#{Stats.str[0]},#{Stats.str[1]}"
+			puts "CON,#{Stats.con[0]},#{Stats.con[1]}"
+			puts "DEX,#{Stats.dex[0]},#{Stats.dex[1]}"
+			puts "AGI,#{Stats.agi[0]},#{Stats.agi[1]}"
+			puts "DIS,#{Stats.dis[0]},#{Stats.dis[1]}"
+			puts "AUR,#{Stats.aur[0]},#{Stats.aur[1]}"
+			puts "LOG,#{Stats.log[0]},#{Stats.log[1]}"
+			puts "INT,#{Stats.int[0]},#{Stats.int[1]}"
+			puts "WIS,#{Stats.wis[0]},#{Stats.wis[1]}"
+			puts "INF,#{Stats.inf[0]},#{Stats.inf[1]}"
+			puts "Level,#{Stats.level}"
+			puts "EMC,#{Skills.emc}"
+			puts "HP,#{Skills.harnesspower}"
+			puts "MIU,#{Skills.magicitemuse}"
+			puts "MjE,#{Spells.majorelemental}"
+			puts "Encumb,#{percentencumbrance}"
+			puts "Totalmana,#{total_mana}"			
+			puts ""	
+					
+			if(tracked_rubs.length > 0)
+
+			puts "rub,item_name,item_spell,encumbrance,prerub_mana,postrub_mana,max_mana,spirit,max_spirit,prerub_charges,postrub_charges,outcome desc"			
+				
+			for rub in 0..tracked_rubs.length - 1
+			
+				item = tracked_rubs[rub]
+			
+				item_split = item.split(",")
+				item_name = item_split[0]
+				item_spell = item_split[1]
+				encumb = item_split[2].to_i
+				old_mana = item_split[3].to_i
+				new_mana = item_split[4].to_i
+				max_mana = item_split[5].to_i
+				spirit = item_split[6].to_i
+				max_spirit = item_split[7].to_i
+				old_charges = item_split[8].to_i
+				new_charges = item_split[9].to_i
+				outcome = item_split[10].to_i
+
+				response_str = "#{rub},#{item_name},#{item_spell},#{encumb},#{old_mana},#{new_mana},#{max_mana},#{spirit},#{max_spirit},#{old_charges},#{new_charges}"
+
+				if(outcome > -1)
+					response_str = response_str + ",+#{outcome} charges"
+					
+				elsif(outcome == -1)
+				
+					response_str = response_str + ",Minor failure - unable to properly channel flows"
+
+				elsif(outcome == -2)
+
+					response_str = response_str + ",Minor screwup - didn't have enough mana to charge item"
+
+				elsif(outcome == -3)
+
+					response_str = response_str + ",Unable to add more charges - item is full or at max charges for skill level"			
+				
+				elsif(outcome == -4)
+
+					response_str = response_str + ",Major failure - item was greened or destroyed"			
+				
+				elsif(outcome == -5)
+				
+					response_str = response_str + ",Minor failure - didn't add charges & lost all mana"			
+				
+				elsif(outcome == -6)
+
+					response_str = response_str + ",Minor failure - item is probably not chargeable"			
+					
+				end
+				
+				respond response_str
+			
+			end
+			
+			else
+			
+				puts ""
+				puts "  No rubs tracked yet."
+				puts ""
+			
+			end			
+		
+		end		
+		
+		if(line =~ /^Close/i)
+		
+			charging = false
+		
+		end
+		
+		# watch for hand status changing
+				
+		if(line =~ /^You get|^You take|^You pick up|^You swap|^You put|^You remove|^You drop|^You accept|^[A-Za-z]* accepts your offer/)
+		
+			# update our item status
+			
+			sleep 0.25
+			item_info = find_item_info(GameObj.right_hand.name,GameObj.right_hand.id,chargeable_items,tracked_items)
+			
+			if(item_info == "-1")
+
+				if(verbose)
+				
+					puts ""
+					puts "Not tracking #{GameObj.right_hand.name} - ;charge settings to change."
+					
+				end
+				target_spell = 0
+				target_charges = 0.0
+				target_name = ""
+				target_id = 0
+
+			elsif(item_info == "-2")
+
+				target_spell = 0
+				target_charges = 0.0
+				target_name = ""
+				target_id = 0
+				# do nothing
+
+			else
+
+				item_split = item_info.split(",")
+
+				target_spell = item_split[0].to_i
+				target_charges = item_split[1].to_i
+
+				target_name = GameObj.right_hand.name
+				target_id = GameObj.right_hand.id
+
+				# find current tracking status
+				if(target_charges == 31337)
+		
+					# item is not tracked, add it
+					tracked_items[tracking_index] = "#{target_id},#{target_name},0"
+					tracking_index = tracking_index + 1
+					target_charges = 0.0
+			
+				end
+				
+				mana_cost = get_mana_cost(target_spell)	
+
+				puts ""
+				puts "Tracking #{target_name}, (#{target_spell}) #{Spell[target_spell].name}, currently with +#{target_charges} charges, #{mana_cost}mp to add a charge."
+
+			end
+		
+		end
+		
+		if(line =~ /^You gesture over the pulsating orb while holding/)
+		
+			# watch for success/failure messages
+			
+			charge_line = ""
+			
+			while(charge_line !~ /glows with a bright hue as the fingers of essence caress it\.$|You are unable to properly channel the flows\.$|You are unable to add any more charges\.$|It flares a sickening green and then goes dim\.$|You feel terribly drained!$|^Nothing else seems to happen|^You do not have enough mana|begins to shake violently and then suddenly disintegrates/)
+			
+				charge_line = get
+			
+			end
+			
+			# got result, handled failures first
+			
+			# get mana cost, needed for rub tracking
+				
+			mana_cost = get_mana_cost(target_spell)
+			
+			if(charge_line =~ /You are unable to properly channel the flows/)
+			
+				puts ""
+				puts "Minor failure, you did not add any charges to your #{target_name}."
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-1"
+			
+			elsif(charge_line =~ /You do not have enough mana/)
+			
+				puts ""
+				puts "Need moar mana to charge this item."
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-2"
+
+			
+			elsif(charge_line =~ /You are unable to add any more charges/)
+			
+				puts ""
+				puts "Your #{target_name} is already fully charged."
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-3"
+
+				
+			elsif(charge_line =~ /It flares a sickening green and then goes dim|begins to shake violently and then suddenly disintegrates/)
+			
+				puts ""
+				puts "Major failure, sorry brah.  Your #{target_name} is ruined/destroyed.  I hope it wasn't valuable."
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-4"
+				
+				
+			elsif(charge_line =~ /You feel terribly drained!/)
+			
+				puts ""
+				puts "Minor failure, did not add any charges to your #{target_name}, and you lost all your mana."
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-5"
+				
+
+			elsif(charge_line =~ /Nothing else seems to happen/)
+			
+				puts ""
+				puts "Item may not be chargeable?"
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},-6"
+				
+				
+			elsif(charge_line =~ /glows with a bright hue as the fingers of essence caress it/)
+						
+				# see how much mana was ejac... used
+
+				diff = old_mana - new_mana
+
+				total_mana = total_mana + diff
+
+				charges = diff / (mana_cost * 1.0)
+				previous_charges = target_charges			
+				target_charges = target_charges + charges
+				
+				puts ""
+				puts "You add #{charges} charges of (#{target_spell}) #{Spell[target_spell].name} to your #{target_name} (now: +#{target_charges})."
+
+				# store rub info
+				
+				tracked_rubs[rub_index] = "#{target_name},#{target_spell},#{percentencumbrance},#{old_mana},#{new_mana},#{maxmana},#{spirit},#{maxspirit},#{previous_charges},#{target_charges},#{charges}"
+
+				# update tracked info
+
+				target_info = tracked_items.find { |item| item.index(target_id) }
+				target_index = tracked_items.index(target_info)
+				if(target_index != nil)
+
+					tracked_items[target_index] = "#{target_id},#{target_name},#{target_charges}"
+
+				else
+
+					puts ""
+					puts "Some weird error! With charge tracking!"
+
+				end
+			
+			end
+			
+			rub_index = rub_index + 1
+			
+		end
+	
+	end
+
+end
+
+def round(num,decimals)
+
+	return (num * (10.0 ** decimals)).round * (10.0 ** (-decimals))
+
+end
+
+def pad_string(strang,padding_length)
+
+	for x in 0..padding_length - 1
+	
+		strang = strang + " "
+	
+	end
+	
+	return strang
+
+end
+
+main

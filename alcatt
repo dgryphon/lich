@@ -1,0 +1,24 @@
+=begin
+#alcatt.lic
+#attacks + skins with alchemy
+# --Dgry
+# email: dgry@hotmail.com
+=end
+
+  put 'stance off'  
+  line = get  
+  until (line =~ /one last time and dies/)
+    waitcastrt
+    put 'incant 908'
+    line = get    
+  end
+  put 'stance def'
+  put 'stow staff'
+  waitfor 'you put'
+  put 'get my dagger'
+  for npc in checknpcs
+   	put "skin #{npc}"
+  end  
+  fetchloot
+  put 'get staff'
+  

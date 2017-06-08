@@ -1,0 +1,1003 @@
+=begin
+	Gibreficul's Crafting/Forging rankup script, version 2.5
+	SUGGESTED/Required PIGGY BACK SCRIPT:  countranks.lic
+	Release date:  12-12-2010
+	Update:  1-7-2011
+
+	USAGE:
+		;autoforge
+	ALTERNATE USAGES:
+		;autoforge debug
+		;autoforge help
+		;autoforge info
+		;autoforge bugs
+
+	Oh, and go fuck yourself.  :-)
+=end
+class Apron
+	def check
+		if ginv("crafter.*? apron")
+		elsif gfind("crafter.*? apron")
+			fput '_drag ##{gfind("crafter.*? apron").id} wear'
+		else
+			mymove "bank"
+			withdraw
+		   	mymove "forge"
+		   	multifput("order 1","buy", "wear my apron")
+		end
+	end
+	def withdraw(x = 5000)
+		fput "depo all"
+		fput "with #{x} silver"
+		result = matchwait /have that much in the account|hands you|here ye go|The local debt collector|ye be havin'enough/
+		if result =~ /have that much|ye be havin' enough/
+			mymove 'town'
+			msg "SCRIPT HAS DETERMINED THAT YOU ARE PISS FUCKIN BROKE"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm fucking broke IRL too!"
+			else
+				msg "I bet you're fucking broke IRL too, aren't ya?"
+			end
+			exit
+		elsif result =~ /debt collector/
+			put "depo all"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm a fucking deadbeat IRL too!"
+			else
+				msg "You're a fucking deadbeat IRL too, aren't ya?"
+			end
+			withdraw(x)
+		end
+	end
+end
+class Crafter
+	attr_accessor :waitfried
+	def initialize(param1 = false, param2 = 3)
+		@waitfried = param1
+		@matnum = param2
+	end
+	def load
+		return(artskills.find{|a, b, c| a =~ /crafting/i})
+	end
+	def sethands
+		if rhand("block") && lhand("block")
+			stashright
+		elsif lhand("block") && !rhand
+		elsif rhand("block") && !lhand
+			fput "swap"
+		else
+			stashright
+			stashleft
+			if gfind("block")
+				fput "_drag ##{gfind('block').id} left"
+			else
+				return(false)
+			end
+		end
+		return(true)
+	end
+	def get_block
+		unless sethands
+			mymove "forge"
+			fput "order 3"
+			fput "buy"
+			matchtimeout(1, 'silvers')
+			unless rhand("block")
+				bankrun
+				return(get_block)
+			end
+		end
+	end
+	def bankrun
+		mymove "bank"
+		withdraw
+	end
+	def withdraw(x = 5000)
+		fput "depo all"
+		fput "with #{x} silver"
+		result = matchwait /have that much in the account|hands you|here ye go|The local debt collector|ye be havin'enough/
+		if result =~ /have that much|ye be havin' enough/
+			mymove 'town'
+			msg "SCRIPT HAS DETERMINED THAT YOU ARE PISS FUCKIN BROKE"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm fucking broke IRL too!"
+			else
+				msg "I bet you're fucking broke IRL too, aren't ya?"
+			end
+			exit
+		elsif result =~ /debt collector/
+			put "depo all"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm a fucking deadbeat IRL too!"
+			else
+				msg "You're a fucking deadbeat IRL too, aren't ya?"
+			end
+			withdraw(x)
+		end
+	end
+	def payrent
+		mymove("forge") unless [9007, 11015, 5039, 13270, 10394, 1954, 8618, 9422].include?(Room.current.id)
+		fput "stop 916" if Char.prof == 'Wizard' && invisible?
+		fput "go work"
+		x = false
+		x = matchtimeout(3, "have enough silver", "the clerk collects", "you still have some time")
+		payrent unless x
+		if x =~ /have enough silver/i
+			bankrun
+			payrent
+		end
+	end
+	def trace
+		unless checkroom =~ /workshop\]/i
+			payrent
+		end
+		fput "swap" if rhand("block") && !lhand
+		fput "stare handle"
+		x = false
+		x = matchtimeout(1, "realize it is too small\.","Your material is marked","Your left hand is empty")
+		return unless x
+		waitrt?
+		if x =~ /left hand|realize it is too small\./
+			fput "_drag ##{lhand.id} ##{GameObj.loot.find{|thing| thing.noun =~ /bin|barrel|waste|tube|recep|well/}.id}" if x =~ /realize it is too small\./
+			get_block
+			return(trace)
+		end
+		waitrt?
+	end
+	def grind
+		return if !rhand && !lhand
+		stashright if rhand("slab")
+		fput "_drag ##{rhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" if rhand
+		fput "turn grind"
+		y = false
+		y = matchtimeout(1, "is using the grinder", "The grinding wheel doesn\'t budge\!","You give the grinding wheel a powerful shove to get it spinning\,","material you intend to shape has not been scribed with a pattern", "did you think you were going to do")
+		return(grind) unless y
+		if y =~ /did you think you were going to do|The grinding wheel doesn\'t budge\!/i
+			payrent
+			return
+		elsif y =~ /material you intend to shape has not been scribed with a pattern/
+		elsif y =~ /is using the grinder/
+			return
+		else
+			result = matchwait("You nod, satisfied with the piece you've create","You smile as you realize that this piece is the very best that you can create.","the safest thing to do now","grinding wheel chews into","mutter a few choice words")
+		end
+		waitrt?
+		if rhand
+			fput "_drag ##{rhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" unless rhand("block")
+		end
+		fput "_drag ##{lhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" if lhand
+		fput "swap" if rhand("block")
+		return
+	end
+	def craft
+		skillz = artskills
+		while skillz.find{|a, b, c| a =~ /crafting/i && (c <=> 500) < 0 } || !skillz.flatten.include?("crafting")
+			break if load[-1] == 500
+			get_block
+			trace
+			grind
+			skillz = artskills
+		end
+		sleep 1
+		#msg "LOOP BROKEN, CHECKING SKILLS ONE MORE TIME BEFORE MOVING ON TO HAMMER"
+		craft unless artskills.find{|a, b, c| a =~ /crafting/i && b == 'master' && (c <=> 500) ==  0} || !artskills.flatten.include?("crafting")
+	end
+end
+class Hammer
+	def initialize(a = 1, b = 2)
+	end
+	def withdraw(x = 5000)
+		fput "depo all"
+		fput "with #{x} silver"
+		result = matchwait /have that much in the account|hands you|here ye go|The local debt collector|ye be havin'enough/
+		if result =~ /have that much|ye be havin' enough/
+			mymove 'town'
+			msg "SCRIPT HAS DETERMINED THAT YOU ARE PISS FUCKIN BROKE"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm fucking broke IRL too!"
+			else
+				msg "I bet you're fucking broke IRL too, aren't ya?"
+			end
+			exit
+		elsif result =~ /debt collector/
+			put "depo all"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm a fucking deadbeat IRL too!"
+			else
+				msg "You're a fucking deadbeat IRL too, aren't ya?"
+			end
+			withdraw(x)
+		end
+	end
+	def sethands(nam)
+		if rhand(nam) && lhand(nam)
+			stashright
+		elsif lhand(nam) && !rhand
+		elsif rhand(nam) && !lhand
+			fput "swap"
+		else
+			stashright
+			stashleft
+			if gfind(nam)
+				fput "_drag ##{gfind(nam).id} left"
+			else
+				return(false)
+			end
+		end
+		return(true)
+	end
+	def get_block(num, nam)
+		unless sethands(nam)
+			mymove "forge"
+			fput "order #{num}"
+			fput "buy"
+			matchtimeout(1, 'silvers')
+			unless rhand(nam)
+				bankrun
+				return(get_block(num, nam))
+			end
+		end
+	end
+	def bankrun
+		mymove "bank"
+		withdraw(20000)
+	end
+	def payrent
+		mymove("forge") unless [9007, 11015, 5039, 13270, 10394, 1954, 8618, 9422].include?(Room.current.id)
+		fput "stop 916" if Char.prof == 'Wizard' && invisible?
+		fput "go work"
+		x = false
+		x = matchtimeout(3, "have enough silver", "the clerk collects", "you still have some time")
+		payrent unless x
+		if x =~ /have enough silver/i
+			bankrun
+			payrent
+		end
+	end
+	def trace(x, num, nam)
+		unless checkroom =~ /workshop\]/i
+			payrent
+		end
+		fput "swap" if rhand(nam) && !lhand
+		fput "stare #{x}"
+		y = false
+		y = matchtimeout(1, "realize it is too small\.","Your material is marked","Your left hand is empty")
+		trace(x, num, nam) unless y
+		waitrt?
+		if y =~ /left hand|realize it is too small\./
+			fput "_drag ##{lhand.id} ##{GameObj.loot.find{|thing| thing.noun =~ /bin|barrel|waste|tube|recep|well/}.id}" if y =~ /realize it is too small\./
+			get_block(num, nam)
+			return(trace(x, num, nam))
+		end
+		waitrt?
+		return(grind(nam))
+	end
+	def grind(nam)
+		return if !rhand && !lhand
+		stashright if rhand(nam)
+		fput "_drag ##{rhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" if rhand
+		fput "turn grind"
+		y = false
+		y = matchtimeout(3, "is using the grinder", "The grinding wheel doesn\'t budge\!","You give the grinding wheel a powerful shove to get it spinning\,","material you intend to shape has not been scribed with a pattern", "did you think you were going to do")
+		grind(nam) unless y
+		if y =~ /did you think you were going to do|The grinding wheel doesn\'t budge\!/i
+			waitrt?
+			payrent
+			return
+		elsif y =~ /material you intend to shape has not been scribed with a pattern/
+		elsif y =~ /is using the grinder/
+			return
+		else
+			result = matchwait("You nod, satisfied with the piece you've create","You smile as you realize that this piece is the very best that you can create","the safest thing to do now","grinding wheel chews into","mutter a few choice words")
+			waitrt?
+			if result =~ /very best/
+				msg "BEST PART MADE"
+				msg "##############"
+				stashright
+				stashleft
+			end
+		end
+		waitrt?
+		if rhand
+			fput "_drag ##{rhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" unless rhand(nam)
+		end
+		fput "_drag ##{lhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}" if lhand
+		fput "swap" if rhand
+		return
+	end
+	def makehandle
+		return if gfind('hammer-handle')
+		@handles += 1
+		get_block(3, 'block')
+		trace('handle-glyph', 3, 'block')
+		makehandle unless gfind('hammer-handle')
+	end
+	def makehead
+		return if gfind('hammer-head')
+		@heads += 1
+		get_block(9, "slab")
+		trace('head-glyph', 9, 'slab')
+		makehead unless gfind('hammer-head')
+	end
+	def assemble
+		return unless gfind("hammer-handle") && gfind("hammer-head")
+		waitrt?
+		stashright
+		stashleft
+		fput "_drag ##{gfind('hammer-handle').id} left"
+		polish
+		stashleft
+		fput "_drag ##{gfind('hammer-head').id} left"
+		polish
+		stashleft
+		fput "_drag ##{gfind('hammer-head').id} left"
+		fput "_drag ##{gfind('hammer-handle').id} right"
+		vice
+	end
+	def polish
+		waitrt?
+		fput "lean polish"
+		x = matchwait /rent on this workshop has expired|is using the polisher right|need to grind it to|What did you think you were going to do with the polisher|no one can polish an item with both hands full|need to hold it in your left hand|already moving rocker pedal and begin pumping/
+		if x =~ /already moving rocker|is using the polisher/
+			waitrt?
+			fput "glance"
+			result = matchwait /finished|polished|rough/
+			polish unless result =~ /finished/i
+		elsif x =~ /need to grind it to/i
+			echo "THIS SHOULD NEVER COME UP"
+			stashleft
+		elsif x =~ /rent on this workshop has expired/
+			payrent
+			polish
+		else
+			polish
+		end
+	end
+	def vice
+		@assemblies += 1
+		fput "turn vise"
+		result = matchwait("The vise doesn't budge!  Most likely the rent on this workshop has expired.", "You nod, satisfied with the piece you've create","You smile as you realize that this piece is probably the best that you can create", "You smile as you realize that this piece is the very best that you can create.","mutter a few choice words","You need to be holding the blade or head part in your left hand in order to use the vise successfully.", "...wait")
+		waitrt?
+		return(vice) if result =~ /\.\.\.wait/
+		if result =~ /vise doesn't budge/i
+			payrent
+			vice
+		elsif result =~ /the best|very best/
+			msg "PERFECT FORGING HAMMER CREATED, CONGRATULATIONS, EXITING AND STARTING TO FORGE"
+			fput "wear forging"
+		elsif result =~ /to use the vise/
+			fput "swap"
+			vice
+		else
+			fput "_drag ##{rhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}"
+			sleep 1
+			if rhand
+				msg "SCRIPT HAS DETERMINED THAT YOU CREATED A FORGING-HAMMER."
+				msg "IT IS NOT PERFECT"
+				msg "SCRIPT DROPPING IT IN 10 SECONDS UNLESS YOU KILL THE SCRIPT:"
+				msg "***          ;kill autoforge       to kill the script"
+				sleep 10
+				fput "drop ##{rhand.id}"
+			end
+			#unless rhand.noun =~ /forging-hammer/
+		end
+	end
+	def make
+		skills = artskills.find{|thing| thing[0] =~ /craft/i && thing[1] =~ /master/ && thing[-1] == 500} || false
+		return unless skills
+		until gfind("forging\-hammer")
+			makehandle
+			makehead
+			assemble
+		end
+		msg "SCRIPT FOUND A FORGING HAMMER"
+	end
+end
+class Forger
+	attr_accessor :variable, :var2
+	def initialize(param1 = 1, param2 = 2)
+		@variable = param1
+		@var2 = param2
+	end
+	def bankrun
+		mymove "bank"
+		withdraw
+	end
+	def withdraw(x = 5000)
+		fput "depo all"
+		fput "with #{x} silver"
+		result = matchwait /have that much in the account|hands you|here ye go|The local debt collector|ye be havin'enough/
+		if result =~ /have that much|ye be havin' enough/
+			mymove 'town'
+			msg "SCRIPT HAS DETERMINED THAT YOU ARE PISS FUCKIN BROKE"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm fucking broke IRL too!"
+			else
+				msg "I bet you're fucking broke IRL too, aren't ya?"
+			end
+			exit
+		elsif result =~ /debt collector/
+			put "depo all"
+			if XMLData.game =~ /gsf/i
+				put "yell i'm a fucking deadbeat IRL too!"
+			else
+				msg "You're a fucking deadbeat IRL too, aren't ya?"
+			end
+			withdraw(x)
+		end
+	end
+	def payrent
+		mymove("forge") unless [9007, 11015, 5039, 13270, 10394, 1954, 8618, 9422].include?(Room.current.id)
+		fput "stop 916" if Char.prof == 'Wizard' && invisible?
+		fput "go work"
+		x = matchtimeout(3, "have enough silver", "the clerk collects", "you still have some time")
+		if x =~ /have enough silver/i
+			bankrun
+			payrent
+		else
+			fput "go door"
+		end
+	end
+	def check(running = false)
+		weapons = ["brawling weapons", "one handed edged", 'one handed blunt', "pole arms", "two handed weapons"]
+		ranks = artskills
+		if ranks.find_all{|skil| skil.include?('master')}.length == 6
+			msg "*******************************************"
+			msg "Autoforge has determined that you are a master of everything"
+			3.times{msg "*********** CONGRATULATIONS!  ************"}
+			msg "*******************************************"
+			stop_script("countranks")
+			exit
+		end
+		forgethese = ranks.find_all{|a, b, c| b !~ /master/}
+		find_ranks = []
+		forgethese.each{|a, b, c| find_ranks.push(c)}
+		forgethis = ranks.find{|a, b, c| a =~ /#{weapons.join('|')}/i && b !~ /master/ && c == find_ranks.max} || false
+		unless forgethis
+			weapons.each{|weapon|
+				next if artskills.find{|a, b, c| a =~ /#{weapon}/}
+				forgethis = [weapon, "novice", 0]
+				break
+			}
+			unless forgethis
+				msg "You are a master of all weapons, but I don't believe that."
+				mymove('forge')
+				return(check(false))
+			end
+		end
+		if forgethis[0] =~ /one handed edged/i
+			@head = 'blade-glyph'
+			if forgethis[-1] < 100
+				@glyph = 14
+			elsif forgethis[-1] < 200
+				@glyph = 16
+			else
+				case my_location
+				when /Teras/
+					@glyph = 48
+				when /Icemule Trace|River's Rest/
+					@glyph = 50
+				else
+					@glyph = 18
+				end
+			end
+		elsif forgethis[0] =~ /one handed blunt/i
+			@head = 'head-glyph'
+			if forgethis[-1] < 100
+				@glyph = 20
+			elsif forgethis[-1] < 200
+				@glyph = 22
+			else
+				case my_location
+				when /Ta'Vaalor/
+					@glyph = 48
+				when /Kharam-Dzu/
+					@glyph = 46
+				else
+					@glyph = 24
+				end
+			end
+		elsif forgethis[0] =~ /two handed weapons/
+			if forgethis[-1] < 100
+				@glyph = 26
+				@head = 'endcap-glyph'
+			elsif forgethis[-1] < 200
+				@glyph = 28
+				@head = 'head-glyph'
+			else
+				case my_location
+				when /Wehnimer's|Icemule Trace/
+					@head = 'blade-glyph'
+					@glyph = 46
+				else
+					@head = 'head-glyph'
+					@glyph = 30
+				end
+			end
+		elsif forgethis[0] =~ /pole arms/
+			@head = 'head-glyph'
+			if forgethis[-1] < 100
+				@glyph = 32
+			elsif forgethis[-1] < 200
+				@glyph = 34
+			else
+				case my_location
+				when /Wehnimer's|Solhaven/
+					@glyph = 50
+				when /River's Rest/
+					@glyph = 48
+				when /Ta'Vaalor/
+					@glyph = 46
+				else
+					@glyph = 36
+				end
+			end
+		elsif forgethis[0] =~ /brawling weapons/
+			@head = 'blade-glyph'
+			case my_location
+			when /Ta'Vaalor/
+				if forgethis[-1] < 200
+					@glyph = 38
+				elsif forgethis[-1] < 400
+					@glyph = 44
+				else
+					@glyph = 50
+				end
+			else
+				if forgethis[-1] < 200
+					@glyph = 38
+				else
+					@glyph = 44
+				end
+			end
+		end
+		return(setup) if running
+		msg "You will be working on #{forgethis[0]}"
+		startforge
+	end
+	def startforge
+		fput "_drag ##{gfind('forging-hammer').id} wear" if rhand('forging-hammer') || lhand('forging-hammer')
+		stashright
+		stashleft
+		bankrun
+		setup
+	end
+	def setup
+		if rhand
+			fput "_drag ##{rhand.id} wear" if rhand('forging-hammer')
+			stashright
+		end
+		stashleft if lhand && !lhand("^bar$")
+		unless gfind("wax .*?#{@head}")
+			mymove 'forge'
+			fput "order #{@glyph} material wax"
+			fput "buy"
+			if gfind("wax .*?#{@head}")
+				stashright
+				payrent
+			else
+				bankrun
+				mymove 'forge'
+				return(setup)
+			end
+		end
+		unless gfind("^bar$")
+			mymove 'forge'
+			fput "order 2"
+			fput "buy"
+			if gfind("^bar$")
+				fput "_drag ##{gfind("^bar$").id} left"
+				stashright
+				payrent
+			else
+				bankrun
+				mymove 'forge'
+				return(setup)
+			end
+		else
+			fput "_drag ##{gfind("^bar$").id} left"
+		end
+		payrent unless checkroom =~ /forge\]/i
+		trace
+	end
+	def trace
+		return(setup) unless checkroom =~ /forge\]/i
+		fput "stare ##{gfind("wax .*?#{@head}").id}"
+		result = matchwait("Before the design is complete you reach an edge", "see a trough and a pair", "you see a door to the forging", "were you referring", "you will be able to accomplish anything else outside", "Your left hand is empty", "left hand is not in a form", "glyph turns a dull grey and crumbles", '...wait')
+		waitrt?
+		return(trace) if result =~ /\.\.\.wait/
+		if result =~ /you reach an edge/
+			move "go door" if checkroom =~ /forge\]/
+			fput "_drag ##{lhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}"
+			move "go door"
+			return(check(true))
+		elsif result =~ /trough and a pair/
+			return(tongs)
+		elsif result =~ /you see a door to the forging/
+			msg "THIS SHOULD NEVER FUCKING HAPPEN"
+			move "go door"
+			return(tongs)
+		elsif result =~ /were you referring/
+			return(check(true))
+		elsif result =~ /will be able to accomplish anything else outside/
+			msg ""
+			msg " ODDITY, Forger.trace"
+			payrent
+			return(tongs)
+		elsif result =~ /left hand is (empty|not)/
+			return(check(true))
+		elsif result =~ /turns a dull grey and crumbles/
+			return(tongs)
+		end
+	end
+	def tongs
+		stashright unless rhand('forging-hammer')
+		fput "_drag ##{gfind('forging-hammer').id} right" unless rhand('forging-hammer')
+		payrent unless checkroom =~ /forge\]/i
+		fput "get tongs"
+		result = matchwait("tempering trough is empty", "tongs on the anvil", "tongs to the anvil", "need to be holding", "material you want to work", "the rent on this workshop has expired", "has not been scribed", "hanging crystal and spreads across", "into the tempering trough", "anvil as you shake your head and stare", "hammer in your right","this would be a real waste", "grinding wheel chews into", '...wait', 'Get what?')
+		waitrt?
+		return(tongs) if result =~ /\.\.\.wait/
+		if result =~ /tempering trough is empty/
+			fput "_drag ##{rhand.id} wear" if rhand('forging-hammer')
+			stashright
+			fput "pull plug"
+			stashright
+			fput "get bucket"
+			waitrt?
+			fput "_drag ##{gfind('forging-hammer').id} right"
+			return(tongs)
+		elsif result =~ /tongs on the anvil|anvil as you shake your head and stare|\.wait/
+			return(tongs)
+		elsif result =~ /tongs to the anvil|material you want to work/i
+			return(check(true))
+		elsif result =~ /need to be holding|hammer in your right/i
+			fput "_drag ##{gfind('forging-hammer').id} right"
+			return(tongs)
+		elsif result =~ /the rent on this workshop has expired/
+			payrent
+			return(tongs)
+		elsif result =~ /hanging crystal and spreads across|into the tempering trough|grinding wheel chews into|has not been scribed/
+			move "go door"
+			fput "_drag ##{lhand.id} ##{GameObj.loot.find{|trash| trash.noun =~ /barrel|bin|waste|tube|recep|well/}.id}"
+			return(check(true))
+		else
+			return(tongs)
+		end
+	end
+end
+def msg(text)
+	### METHOD PROVIDED BY Casis, thank you.
+	stringArray = Array.new
+	stringArray = (text.gsub(/[\n]+/, "o=\_=zz")).split(/o=\_=zz/)
+	if $fake_stormfront
+		#WizFE
+		preface_text = "\034GSL\r\n "
+		end_text = "\034GSM\r\n "
+	else
+		preface_text = "<pushBold\/>"
+		end_text = "<popBold\/>"
+	end
+	stringArray.each { |line|
+		puts "#{preface_text}#{line.gsub('\n','')}#{end_text}"
+	}
+end
+def gconts(what = nil)
+	if what
+		newcont = GameObj.inv.find{|stuff| $container.include?(stuff.id.to_s) && stuff.noun =~ /#{what}/i}
+	else
+		newcont = GameObj.inv.find_all{|stuff| $container.include?(stuff.id.to_s)}
+	end
+	return(newcont)
+end
+def rhand(what = nil)
+	return nil if GameObj.right_hand.name =~ /Empty/
+	if what.to_i != 0
+		return nil unless GameObj.right_hand.id.to_i == what.to_i
+	elsif what =~ /\s/
+		return(nil) unless GameObj.right_hand.name =~ /#{what}/i
+	elsif what =~ /\w+/i
+		return nil unless GameObj.right_hand.noun =~ /#{what}/i
+	end
+	return(GameObj.right_hand)
+end
+def lhand(what = nil)
+	return nil if GameObj.left_hand.name =~ /Empty/
+	if what.to_i != 0
+		return nil unless GameObj.left_hand.id.to_i == what.to_i
+	elsif what =~ /\s/
+		return(nil) unless GameObj.left_hand.name =~ /#{what}/i
+	elsif what =~ /\w+/i
+		return nil unless GameObj.left_hand.noun =~ /#{what}/i
+	end
+	return(GameObj.left_hand)
+end
+def ginv(what = nil)
+	if what.to_i != 0
+		return nil unless GameObj.inv.find{|shit| shit.id.to_i == what.to_i}
+		return(GameObj.inv.find{|shit| shit.id.to_i == what.to_i}) if GameObj.inv.find{|shit| shit.id.to_i == what.to_i}
+	elsif what =~ /\s/
+		return(GameObj.inv.find{|shit| shit.name =~ /#{what}/i}) if GameObj.inv.find{|shit| shit.name =~ /#{what}/i}
+		return(nil) unless GameObj.inv.find{|shit| shit.name =~ /#{what}/i}
+	elsif what =~ /\w+/i
+		return(GameObj.inv.find{|shit| shit.noun =~ /#{what}/i}) if GameObj.inv.find{|shit| shit.noun =~ /#{what}/i}
+		return nil unless GameObj.inv.find{|shit| shit.noun =~ /#{what}/i}
+	end
+	return(GameObj.inv)
+end
+def mystuff(what = nil)
+	allstuff = []
+	if what.to_i != 0
+		gconts.each{|thing| thing.contents.each{|item| allstuff.push(item) if item.id.to_i == what.to_i}}
+	elsif what =~ /\s/
+		gconts.each{|thing| thing.contents.each{|item| allstuff.push(item) if item.name =~ /#{what}/i}}
+	elsif what =~ /\w+/i
+		gconts.each{|thing| thing.contents.each{|item| allstuff.push(item) if item.noun =~ /#{what}/i}}
+	else
+		gconts.each{|thing| thing.contents.each{|item| allstuff.push(item)}}
+	end
+	allstuff.push(rhand) if rhand
+	allstuff.push(lhand) if lhand
+	return(allstuff)
+end
+def gfind(what, cont = nil)
+	if cont
+		if what.to_i != 0
+			x = ginv(cont).contents.find{|thing| thing.id.to_i == what.to_i} || nil
+		elsif what =~ /\s/
+			x = ginv(cont).contents.find{|thing| thing.name =~ /#{what}/i} || nil
+		elsif what =~ /\w+/i
+			x = ginv(cont).contents.find{|thing| thing.noun =~ /#{what}/i} || nil
+		end
+	else
+		if what.to_i != 0
+			x = mystuff.find{|thing| thing.id.to_i == what.to_i} || ginv.find{|thing| thing.id.to_i == what.to_i} || nil
+		elsif what =~ /\s/
+			x = mystuff.find{|thing| thing.name =~ /#{what}/i} || ginv.find{|thing| thing.name =~ /#{what}/i} || nil
+		elsif what =~ /\w+/i
+			x = mystuff.find{|thing| thing.noun =~ /#{what}/i} || ginv.find{|thing| thing.noun =~ /#{what}/i} || nil
+		end
+	end
+	return(x)
+end
+def stashright
+	return unless rhand
+	$container.each{|cont|
+		fput "_drag ##{rhand.id} ##{cont}"
+		matchtimeout(1, "put|fit")
+		break unless rhand
+	}
+	return unless rhand
+	msg "YOU ARE HAVING RIGHT HAND ISSUES"
+	wait_while("WAITING FOR EMPTY RIGHT HAND."){rhand}
+end
+def stashleft
+	return unless lhand
+	$container.each{|cont|
+		fput "_drag ##{lhand.id} ##{cont}"
+		matchtimeout(1, "put|fit")
+		break unless lhand
+	}
+	return unless lhand
+	msg "YOU ARE HAVING LEFT HAND ISSUES"
+	wait_while("WAITING FOR EMPTY LEFT HAND."){lhand}
+end
+def mymove(room = false)
+	move "go door" if checkroom =~ /forge\]/i
+	if checkroom =~ /workshop\]/i
+		move "out"
+		return if room =~ /forge/i
+	end
+	fput "out" if checkroom =~ /table/i && Room.current.id == 4
+	return if Room.current.id == room.to_i
+	if room
+		start_script("go2",[room, '_disable_confirm_'])
+		wait_while{running?("go2")}
+	end
+end
+def forge_squelch(squelch = true)
+	forgeaction  = proc { |server_string|
+		if server_string.strip.length == 0
+			nil
+			next
+		end
+		case server_string
+		when /the grinding wheel chews into it|begin pumping to set the wheel spinning|you press it against the spinning stone|dust rises from the spinning wheel as you grind|internal strength fully recovers|begin to lose touch with your internal sources|You swap|You begin to trace|you feel pleased with yourself at having cleaned|may order a .*? of this item|for your patronage|ask about the price|silvers you offer in payment|Sold for \d+ silvers|You carefully trace|sparks leap from the spinning wheel|around you see a grinder that may suit your|focus deep within yourself, searching for untapped sources|feel a great deal stronger|feel fully energetic|you still have some time remaining, the clerk directs you|press it against the spinning wheel|spinning wheel as you grind away|hum of the spinning wheel and the scent|reducing areas of roughness to a polished|pause to press a tube of diamond dust paste|straighten up from working at the polishing wheel|#{Char.name} is using the polisher right|pause to examine both pieces closely|pick up a file and file|eternity you realize that the scribed pattern has been chewed|decide the safest thing to do now is to|you get to your feet|cost you \d+ silvers|you set to work assembling your|dip some rendered rolton fat from a small|upon fitting the two pieces together/
+			nil
+		when /around you see a trough and a pair of tongs|need it in order to set the temper in the weapon when you're done|pull the drain plug from the tempering trough|the tempering trough is empty nothing happens|lift the bucket from its hook and dip a bucket|take the mithril tongs from their place on the anvil|dull orange glow filling the gaps between the coals pulses|darkens with perspiration as the newly awakened heat floods|takes on the glow from the surrounding|you begin to shape it with your forging|reddish sparks fly in all directions as you hammer away|hammer until the glow has faded|waiting for.*?to heat up again|from the forge and resume your work|fall about the base of the anvil|toward its final form as beads of perspiration form|you realize that the scribed pattern is gone|wipe sweat from your forehead with the back of your hand|waiting for.*?coloring of workable|glow filling the gaps between the coals pulses brighter/
+			nil
+		else
+			server_string
+		end
+	}
+	if squelch
+		DownstreamHook.add('forgesquelch', forgeaction)
+	else
+		DownstreamHook.remove('forgesquelch')
+	end
+end
+def my_location
+	strings = []
+	done = false
+	location = proc{|server_string|
+		case server_string
+		when /You carefully survey your surroundings and guess that your current location is (.*?) or somewhere close to it./
+			var = $1
+			strings.push(var)
+			done = true
+			nil
+		else
+			server_string
+		end
+	}
+	waitrt?
+	DownstreamHook.add('towncheck', location)
+	$_SERVER_.puts "<c>location\n"
+	wait_until{done}
+	DownstreamHook.remove('towncheck')
+	return(nil) if strings.empty?
+	return(strings[0])
+end
+def artskills
+	done = false
+	strings = []
+	artisanhook = proc{|server_string|
+		case server_string
+		when /You are yet to begin the journey as a skilled artisan/
+			array = ['NO SKILLS', 'NO SKILL CLASS', 0]
+			strings.push(array)
+			nil
+		when /In the skill of forging \- ([^,]+), you are an?\s(.*?) with (\d+) ranks?\./
+			array = [$1, $2, $3.to_i]
+			strings.push(array)
+			nil
+		when /prompt time/i
+			done = true unless strings.empty?
+			nil
+		else
+			server_string
+		end
+	}
+	DownstreamHook.remove('arthook')
+	DownstreamHook.add('arthook', artisanhook)
+	$_SERVER_.puts "<c>art skill\n"
+	time = Time.now + 3
+	wait_until{Time.now >= time || done}
+	DownstreamHook.remove('arthook')
+	return(strings)
+end
+conta = proc{ |newstring|
+	if newstring.strip.length == 0
+		nil
+		next
+	end
+	case newstring
+	when /you see|nothing|closed/
+		nil
+	else
+		newstring
+	end
+}
+################################
+
+$container = [] unless $container[0].to_i > 10000
+contruns = 0
+until !$container.empty?
+	wait_while("ROUNDTIME"){checkrt > 0}
+	break if contruns > 9
+	done = false
+	action = proc{ |grab_this|
+		if grab_this.strip.length == 0
+			nil
+			next
+		end
+		if grab_this =~ /You are wearing/i
+			$container = grab_this.scan(/a exist\=\"([\d]+)[^\.|,]/).flatten
+			nil
+		elsif grab_this =~ /\<prompt time\=/
+			done = true;nil
+		else
+			grab_this
+		end
+	}
+	DownstreamHook.remove('inv_cont')
+	waitrt?
+	DownstreamHook.add('inv_cont', action)
+	status_tags
+	$_SERVER_.puts "inv cont"
+	t=Time.now
+	wait_until {done or t+3<Time.now}
+	DownstreamHook.remove('inv_cont')
+	status_tags
+	contruns += 1
+end
+DownstreamHook.add('checkconts', conta)
+unless $i_have_run
+	$i_have_run = true
+	$container.each{|cont|;$_SERVER_.puts "look in ##{cont}";matchtimeout(1, "you see|nothing|closed|empty")}
+end
+DownstreamHook.remove('checkconts')
+before_dying { DownstreamHook.remove('forgesquelch'); }
+case script.vars[1]
+when /debug/i
+	forge_squelch(false)
+	msg ""
+	msg "**********************************"
+	msg "You have chosen eye-bleeding debug mode"
+	msg ";e forge_squelch to exit debug mode"
+	msg "**********************************"
+	msg ""
+when /help/i
+	msg "start the script normally, (type   ;autoforge) and it'll squelch the bullshit spam output."
+	msg "start the script with debug ... (type   ;autoforge debug) and the script will not squelch anything."
+	msg "If during the process of forging you want to add the spam, ;e forge_squelch(false)."
+	msg "If during the process of forging you want to remove the spam, ;e forge_squelch"
+	msg "Start the script with info ... (type ;autoforge info)  for more information."
+	msg "SCRIPT EXITING"
+	exit
+when /info/i
+	msg "#### THE SCRIPT RUNS IN 3 MAIN PARTS.###"
+	respond ""
+	msg "	First, it will rank you up to mastery in crafting."
+	msg"	After you are a master crafter, it will create a perfect mithril forging-hammer for you."
+	msg "	After your hammer is created, the script will start to rank you up in the forging skills."
+	respond "";sleep 1
+	msg "#### The script requires nothing from the user other than silvers in the bank and some space in your containers.";respond ""
+	msg "	The script will continue and finish mastering the closest weapon type to mastery before attempting to rank up in another.";sleep 0.1
+	msg "	EXAMPLE:  Your character has 200 ranks in OHE, and 300 ranks in OHB, the script will master OHB first.";sleep 1;respond ""
+	msg "	If you have a forging-hammer on your character, the script will assume it is a perfect hammer and bypass that part of the script.";respond "";sleep 1
+	msg "	The script knows when to switch glyphs to maximize pulls per trace.";respond ""
+	msg "	*** Autoforge Versions 2.4+ have smart town logic to use the upper level glyphs.  Some problems may arise, if they do, let me know."
+	msg "	*** Some glyphs have not been tested for min-rank to use, and thus the script may error...  Let me know and I'll fix it!"
+	exit
+when /bug/i
+	msg "#### The script should not have bugs, but anomolies happen, and nothing's perfect, and there's only so many conditions I can test under."
+	msg "	The following is a list of problems found and fixed in recent updates, thanks for all the feedback."
+	msg "	Smart glyph selection added, could be buggy, please keep me posted as it's very time consuming to test all variables on my own."
+	msg "	Hammer making part was keeping any created hammer... It should trash them now."
+	msg "	Hammer making part was spamming when material was too small to trace.  SHOULD BE FIXED."
+	exit
+when /setup/i
+	msg "STARTING AUTOFORGE SETUP"
+	sleep 2
+	msg "Just kidding....  There is no setup."
+	sleep 2
+	msg "Script is self-sufficient"
+	msg "The only setup possible is for forge weapon selection"
+	msg "Manually pound out at least 1 more rank in the skill you want to rank up than you have in any other non-mastered skill"
+	msg "Otherwise, you can skip the perfect forging-hammer part by having any forging-hammer on your character."
+	sleep 2
+	msg "Script exiting"
+	exit
+else
+	if script.vars[1]
+		msg "I don't recognize that command"
+		sleep 2
+		msg "Restart me with a valid command, EXITING"
+		exit
+	end
+	forge_squelch
+	silence_me
+	msg ""
+	msg "**********************************"
+	msg "Script is set for quiet mode, hiding most spam"
+	msg ";e forge_squelch(false) to enter debug mode"
+	msg "**********************************"
+	msg ""
+end
+waitrt?
+start_script("countranks") unless running? 'countranks'
+sleep 1
+apron = Apron.new
+apron.check
+msg "Apron worn, moving on"
+crafty = Crafter.new
+crafty.craft
+msg "CRAFTING MASTERED, CHECK FOR HAMMER"
+hammer = Hammer.new(1, 2)
+hammer.make
+forge = Forger.new(1, 2)
+forge.check
+stop_script("countranks")
+
+

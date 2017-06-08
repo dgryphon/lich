@@ -1,0 +1,13 @@
+require 'win32/sound'
+include Win32
+
+=begin
+    bigshot.lic: the new optimus prime
+
+=end
+
+while true
+  wait_while {checkspell "9003"}
+  Sound.play("c:\blip.wav")
+end
+    

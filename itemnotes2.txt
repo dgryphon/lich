@@ -1,0 +1,22 @@
+
+#   Object Name:                    Note:
+0  platinum torc                   torc 8 charges of 608, rechargable (presists), 1 mana recovery huge left (crumbles)
+1  fire opal bracelet              haste recharger, 1 rank of religion lore, presists for both
+2  studded bronze pin              blank rechargable (persists), 2 THW ranks, 2 MO ranks, 1 blunt ranks (crumbles) (lot of charges remaining)
+3  platinum necklace               notes 4 smc ranks (crumbles) a lot of charges
+4  razern war mattock              notes 6 smc ranks, 6 PT ranks, 2 mana rec bonus, 2 emc ranks (presists) (alot of charges)
+5  flaming violet charm            violet charm: flaming aura, several charges
+6  silver alloy talisman           silver alloy talisman: 2 THW ranks, rechargable haste, persists recharge, crumbles enhancive
+7  pink sapphire torc              pink sapphire torc 5 con, 3 religion ranks, 6 influence
+8  white sunstone crown            sunstone crown - blank mage rechargable - crumbly
+9  pink topaz armband              pink topaz armband: +3 FA ranks, +2 MMC ranks, blank mage rechargable
+10 mithril alloy barrette          add mithril allow barrette; 5 spell aim bonus, 8 first aid bonus, blank mage recharge, crumbles enhancive, persists recharge
+11 gold alloy crown                gold alloy crown: +3/+3 MIU/Spell aim, crumbly
+12 imflass greathelm               add imflass greathelm: +7 THW, +3 aura bonus, temp slight frost resist
+13 silver cog                      add silver cog 5 health/stamina, 1 stam recovery, presists
+14 vaalorn leg greaves             add vaalorn leg greaves; 3 polearm ranks, 4 thw ranks, persists
+15 ora earring                     add engraved ora earring;4 FA ranks, 3 Mental lore ranks, 1 perception rank, a lot of charges, crumbles
+16 inset copper band               add inset copper band; +2 agility bonus, +3 air bonus, mage rechargable elemental bias, crumbly enhancive, non recharger
+
+
+38

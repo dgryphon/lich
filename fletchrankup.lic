@@ -1,0 +1,246 @@
+#Lich Script for Fletching Rank Ups by Aithzar Sechonel  
+#This script is fully automated, it will get you the wood you need for shafts, slice it up, pare, and nock shafts.
+#Usage:  ;fletchrankup wastebasket dagger pack cloak handaxe lootsack
+#Usage for Help:  ;fletchrankup help
+#Please send bugs to aithzar@gmail.com under title Bug:fletchrankup
+
+if script.vars.empty?
+	goto "Help"
+elsif script.vars[1] =~ /(help|list)/i
+	goto "Help"
+elsif script.vars[6]
+	goto "Glance"
+else
+	goto "Help"
+end
+
+Help:
+respond; respond("")
+respond; respond("You must use the following syntax when using this script.")
+respond; respond("First Variable = Place to Dispose of your shafts  EX: Script set up for Thrak Inn, use wastebasket unless you edit the script to go to another trashcan")
+respond; respond("Second Variable = Small Blade used for paring and nocking shafts")
+respond; respond("Third Variable = Container with blank shafts, handaxe base weapon, small blade")
+respond; respond("Fourth Variable = Container for Weapons/Wood to be split up  *Example: For limbs of wood from fletcher, you need about 35-40 lbs of space")
+respond; respond("Fifth Variable = Handaxe base weapon for cutting up shafts")
+respond; respond("Sixth Variable = Container to hold completed shafts for trashing")
+respond; respond("Usage: ;fletchrankup wastebasket dagger pack cloak handaxe lootsack")
+respond; respond("Usage: :fletchrankup help")
+respond; respond("Starting Points for this script are Landing Gate, Landing Town Central, Thrak Inn, Thrak Table, Wayside Inn, Wayside Table")
+respond; respond("Note:  Long descriptions will mess up the script, use plain description weapons for cutting shafts and paring and knocking.  EX: things that end with the weapon used, like a black vultite dagger, or an ora handaxe")
+respond; respond("")
+exit
+
+Glance:
+fput "look"
+match "LandingGate", "Vigilant guardsmen scrutinize the citizens"
+match "LandingTownCenter", "This is the heart of the main square"
+match "ThrakInn", "Loud and abusive noises emanate from"
+match "ThrakTable", "Thrak Table"
+match "WaysideInn", "This ramshackle hostel bears"
+match "WaysideInnTable", "Table"
+matchwait
+
+LandingGate:
+move s
+move w
+move s
+move s
+move "go inn"
+move n
+move "go table"
+goto "Begin"
+
+LandingTownCenter:
+move nw
+move "go inn"
+move n
+move "go table"
+goto "Begin"
+
+ThrakInn:
+move "go table"
+goto "Begin"
+
+ThrakTable:
+goto "Begin"
+
+WaysideInn:
+move o
+move "go gate"
+move s
+move w
+move s
+move s
+move "go inn"
+move n
+move "go table"
+goto "Begin"
+
+WaysideInnTable:
+move o
+move o
+move "go gate"
+move s
+move w
+move s
+move s
+move "go inn"
+move n
+move "go table"
+goto "Begin"
+
+Begin:
+fput "glance"
+match "Get", "empty hands"
+match "HGstep3", "single arrow shaft in your right hand"
+match "Swap", "#{script.vars[2]} in your right hand"
+match "HGbegin", "#{script.vars[2]} in your left hand"
+matchwait
+
+Get:
+fput "get my #{script.vars[2]} from my #{script.vars[3]}"
+
+Swap:
+fput "swap"
+goto "Begin"
+
+BeginCutting:
+multifput "put #{script.vars[2]} in my #{script.vars[3]}", "get #{script.vars[5]} from my #{script.vars[3]}", "cut arrow shaft from my wood"
+waitrt
+multifput "put shafts in my #{script.vars[3]}", "put #{script.vars[5]} in my #{script.vars[3]}"
+goto "Begin"
+
+HGBegin:
+waitrt?
+fput "take 1 shaft from my #{script.vars[3]}"
+match "WoodCheck", "Get what"
+match "HGBegin1", "You remove"
+matchwait
+
+HGBegin1:
+fput "cut my shaft with my #{script.vars[2]}"
+match "HGStep3", "You pare away the excess wood"
+match "HGBegin", "You begin to pare away the excess wood"
+matchwait
+
+WoodCheck:
+waitrt?
+fput "get wood from my #{script.vars[4]}"
+match "BeginCutting", "You remove"
+match "ToBank", "Get what"
+matchwait
+
+HGStep3:
+waitrt?
+fput "cut nocks in my shaft with my #{script.vars[2]}"
+fput "cut nocks in my shaft with my #{script.vars[2]}"
+match "HGBegin", "You begin cutting a nock"
+match "HGStep4", "You carefully cut a nock"
+match "HGStep4", "shaft has already had a nock cut"
+matchwait
+
+HGStep4:
+waitrt?
+fput "put my shaft in #{script.vars[6]}"
+match "ExpCheck1", "Your shaft won"
+match "ExpCheck", "You put a"
+matchwait
+
+ExpCheck:
+if checkmind(5)
+	goto "CoolDown"
+else
+	goto "HGBegin"
+end
+
+CoolDown:
+pause "120s"
+goto "ExpCheck"
+
+ExpCheck1:
+if checkmind(5)
+	goto "CoolDownTrash"
+else
+	goto "ToTrashcan"
+end
+
+CoolDownTrash:
+pause "120s"
+goto "ExpCheck1"
+
+ToBank:
+multifput "put #{script.vars[2]} in my #{script.vars[3]}", "stand"
+move o
+move s
+move o
+move s
+move "go bank"
+move "go arch"
+multifput "deposit all", "withdraw 500 silver"
+goto "NeedMat"
+
+NeedMat:
+move "go arch"
+move o
+move e
+move e
+move e
+move e
+move n
+move e
+move e
+move s
+move se
+move s
+move s
+move e
+move e
+move "go door"
+goto "BuyMaterials"
+
+BuyMaterials:
+10.times { multifput "order 40", "buy", "put wood in my #{script.vars[4]}" }
+goto "GotMaterials"
+
+GotMaterials:
+move o
+move w
+move w
+move n
+move n
+move nw
+move n
+move w
+move w
+move s
+move w
+move w
+move n
+move w
+move "go inn"
+move n
+move "go table"
+fput "sit"
+goto "Begin"
+
+ToTrashcan:
+fput "stand"
+move o
+move s
+move w
+goto "ThrowAway"
+
+ThrowAway:
+multifput "get shaft from my #{script.vars[6]}", "put shaft in #{script.vars[1]}"
+match "ThrowAway", "you feel pleased with yourself"
+match "BackToWork", "could not find what"
+matchwait
+
+BackToWork:
+move e
+move n
+move "go table"
+fput "sit"
+goto "Begin"
+
+

@@ -1,0 +1,18 @@
+require 'rubygems'
+require 'mechanize'
+
+a = Mechanize.new
+a.get('https://www.play.net/gs4/') do |page|
+
+  # Submit the login form
+  my_page = a.form_with(:action => 'https://www.play.net/includes/common/login/login.asp') do |f|
+    f.account_name  = 'grypes'
+    f.account_password         = 'kasv5599'
+  end.click_button
+
+  my_page.links.each do |link|
+    text = link.text.strip
+    next unless text.length > 0
+    puts text
+  end
+end

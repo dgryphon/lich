@@ -1,0 +1,62 @@
+dgryphon
+
+3 ranks survival
+Highest failure: 73 Lowest Success: 74
+
+
+14 ranks of survival
+prediction
+Highest failure: 70 Lowest Success: 71
+actual
+Highest failure: 70 Lowest Success: 71
+
+
+23 ranks of survival
+prediction
+Highest failure: 67 Lowest Success: 68
+actual
+Highest failure: 67 Lowest Success: 68
+
+
+using a luck talisman
+Highest failure: 67 Lowest Success: 68
+
+
+
+
+
+
+
+stuff to save
+alchemy
+essence of fire
+t'ayanad crystals
+ayanad crystal
+glowing violet essence shard
+glowing violet mote of essence 
+pristine nymph's hair
+
+
+potions
+s'ayanad crystal
+ayanad crystal
+essence of fire
+essence of water 
+
+
+alchemy:
+   lesser mana-well potion           ranks: 31-48   cost:  3000   time: 0:51:43   includes: simmer, infuse   missing: cluster of t'ayanad crystals (10), mortar (1), cauldron (1), some glowing violet essence dust (10)
+   minor sneezing powder             ranks: 34-51   cost: 32600   time: 0:31:48   includes: simmer, boil, infuse   missing: some essence of fire (10), cauldron (1), cluster of ayanad crystals (10)
+   minor luck talisman               ranks: 37-55   cost: 51000   time: 0:35:14   includes: boil, simmer, infuse   missing: mortar (1), cauldron (1), pristine nymph's hair (10), Wehnimer's Landing general store (1), cluster of s'ayanad crystals (5)
+   lesser mana regeneration potion   ranks: 40-58   cost:  1200   time: 0:44:05   includes: simmer, infuse   missing: cluster of t'ayanad crystals (6), mortar (1), cauldron (1), cluster of s'ayanad crystals (4), glowing violet mote of essence (10)
+   greater mana potion               ranks: 44-62   cost:  1000   time: 0:16:50   includes: simmer, infuse   missing: cauldron (1), glowing violet essence shard (10), cluster of s'ayanad crystals (10), cluster of ayanad crystals (10)
+   major sneezing powder             ranks: 47-62   cost: 32600   time: 0:31:48   includes: simmer, boil, infuse   missing: some essence of fire (20), cauldron (1), cluster of s'ayanad crystals (10)
+
+potions:
+   sarmoc potion                ranks: 18-31   cost:   400   time: 0:12:05   includes: chant, boil   missing: mortar (1), some essence of fire (4), cauldron (1), cluster of ayanad crystals (2), some essence of water (4)
+   duqnuru potion               ranks: 20-33   cost:   400   time: 0:12:17   includes: chant, boil   missing: mortar (1), cauldron (1), cluster of s'ayanad crystals (2), some essence of water (8)
+   softly glowing blue potion   ranks: 21-34   cost:  4400   time: 0:07:58   includes: boil, simmer, chant   missing: cauldron (1), cluster of ayanad crystals (4)
+   softly glowing red potion    ranks: 23-38   cost:  4400   time: 0:11:56   includes: boil, simmer, chant   missing: cauldron (1), cluster of ayanad crystals (4)
+
+   
+   

@@ -1,0 +1,1017 @@
+=begin
+
+	Spellup script for yourself and others
+
+	;waggle help
+
+	This script is a rewrite of ultrawaggle from SpiffyJr, which is 
+	a heavily modified version of spellup from Shaelun and Blueland.
+
+	tillmen@lichproject.org
+
+	-I personally added minimum mana setting 
+	(It will stop and wait for mana at min mana setting)
+	
+	-also useful for manual self-casting rapidfire with waggle:
+	
+	ex: normally waggle says you need to cast 100 times of 402, 
+	if you run waggle and then spam 80 times manually, it will
+	still cast 100 times ontop of your manual 80 times for total
+	180 casts. 
+	Now it will recognize your 80 and only cast another 20 times 
+	for 100 times in total.
+	
+	update: 7/17/2011
+	-ordered the casting list by decreasing mana cost. The most expensive
+	spells will cast first.
+	
+	update: 8/20/2011
+	-added workaround for some people who somehow cast sigil of concentration
+	multiple times consecutively.
+	
+	update: 10/6/2011
+	-added using sigil of power whenever you have the stamina and your mana is low enough [mana <= (maxmana - noded_pulse - 25)]
+	
+	update: 11/13/2012
+	-added multicast code
+	-made 625 stackable and multicast first if required
+	
+	update: 11/16/2012
+	-fixed multicast so it cast multiple rounds of multicast is 1 round is not enough
+	-fixed calculating of manacost and when to use mana regenerating powers - maybe.
+	
+	update:11/25/2012
+	-fixed wracking
+	-fixed spell stacking on spells that are self-stack-only ex: 202/103
+	
+	update:11/26/2012
+	-fixed unending loop bug
+	
+	update:12/2/2012
+	-added retribution code, mostly from Tillmen's script [Thank Moredin for doing the gruntwork]
+	
+	-Drafix
+	
+	
+=end
+
+# fixme: sign of thought frying nerves
+# fixme: speed up rapid-fire
+
+if CharSettings.to_hash.empty?
+	Settings[Char.name] ||= Hash.new
+	stackable_max     = CharSettings['stackable_max']     = (Settings[Char.name]['stackable_max']     || 250)
+	stackable_min     = CharSettings['stackable_min']     = (Settings[Char.name]['stackable_min']     ||  60)
+	unstackable_min   = CharSettings['unstackable_min']   = (Settings[Char.name]['unstackable_min']   ||  15)
+	min_mana = CharSettings['min_mana'] = (Settings[Char.name]['min_mana'] || 0)
+	use_wracking      = CharSettings['use_wracking']      = (Settings[Char.name]['use_wracking']      || false)
+	use_power         = CharSettings['use_power']         = (Settings[Char.name]['use_power']         || false)
+	use_concentration = CharSettings['use_concentration'] = (Settings[Char.name]['use_concentration'] || false)
+	use_multicast 	  = CharSettings['use_multicast'] 	  = (Settings[Char.name]['use_multicast'] 	  || false)
+	cast_list         = CharSettings['cast_list']         = (Settings[Char.name]['cast_list']         || [ 101, 102, 103, 107, 115, 120, 202, 211, 215, 219, 303, 307, 310, 313, 401, 406, 414, 425, 430, 503, 507, 508, 509, 513, 520, 601, 602, 606, 613, 617, 618, 625, 640, 712, 905, 911, 913, 920, 1109, 1119, 1125, 1130, 1601, 1603, 1606, 1610, 1611, 1612, 1616 ])
+else
+	stackable_max     = CharSettings['stackable_max']     || 250
+	stackable_min     = CharSettings['stackable_min']     ||  60
+	unstackable_min   = CharSettings['unstackable_min']   ||  15
+	min_mana = CharSettings['min_mana'] || 0
+	use_wracking      = CharSettings['use_wracking']      || false
+	use_power         = CharSettings['use_power']         || false
+	use_concentration = CharSettings['use_concentration'] || false
+	use_multicast 	  = CharSettings['use_multicast'] 	  || false
+	retribution_spell = CharSettings['retribution_spell']
+	cast_list         = CharSettings['cast_list']         || [ 101, 102, 103, 107, 115, 120, 202, 211, 215, 219, 303, 307, 310, 313, 401, 406, 414, 425, 430, 503, 507, 508, 509, 513, 520, 601, 602, 606, 613, 617, 618, 625, 640, 712, 905, 911, 913, 920, 1109, 1119, 1125, 1130, 1601, 1603, 1606, 1610, 1611, 1612, 1616 ]
+end
+
+known_spells      = Spells.known.collect { |spell| spell.num }
+cast_list.delete_if { |spell| !(known_spells.include?(spell) and eval(Spell[spell].duration) > 0) }
+list_mode         = false
+selfstackonly = /1601|103|202|314/
+if script.vars.empty?
+	target_list = [ Char.name ]
+elsif script.vars[1].downcase == 'help'
+	respond
+	respond 'Usage:'
+	respond "   #{$clean_lich_char}#{script.name} help                     show this message"
+	respond "   #{$clean_lich_char}#{script.name} setup                    show setup window"
+	respond "   #{$clean_lich_char}#{script.name} list                     show current settings"
+	respond "   #{$clean_lich_char}#{script.name} add [spell#]             add one or more spells to the cast list"
+	respond "   #{$clean_lich_char}#{script.name} delete [spell#]          delete one or more spells from the cast list"
+	respond "   #{$clean_lich_char}#{script.name} stacksmax [minutes]      maximum time for stackable spells"
+	respond "   #{$clean_lich_char}#{script.name} stacksmin [minutes]      minimum time for stackable spells"
+	respond "   #{$clean_lich_char}#{script.name} nonstacksmin [minutes]   minimum time for non-stacking spells"
+	respond "   #{$clean_lich_char}#{script.name} wracking [on/off]        use sign of wracking when out of mana"
+	respond "   #{$clean_lich_char}#{script.name} power [on/off]           use sigil of power when out of mana"
+	respond "   #{$clean_lich_char}#{script.name} retribution-spell [#|none]  spell number for chant retribution after casting cloak of shadows"	
+	respond "   #{$clean_lich_char}#{script.name}                          spell yourself up"
+	respond "   #{$clean_lich_char}#{script.name} [name1] [name2] ...      spell up the given people (may include your own name)"
+	respond "   #{$clean_lich_char}#{script.name} info                     show what will be cast and how much it will cost"
+	respond "   #{$clean_lich_char}#{script.name} info [name1] [name2]     ''"
+	
+	respond
+	exit
+elsif script.vars[1] =~ /^setup$|^options$/i
+	if HAVE_GTK and defined?(Gtk.queue)
+		window = window_action = nil
+		window_width  = CharSettings['window_width'] || 445
+		window_height = CharSettings['window_height'] || 490
+		Gtk.queue {
+			nocast_label = Gtk::Label.new('Spells not to Cast')
+			cast_label = Gtk::Label.new('Spells to Cast')
+
+			label_box = Gtk::HBox.new(true, 5)
+			label_box.pack_start(nocast_label, false, false, 0)
+			label_box.pack_start(cast_label, false, false, 0)
+
+
+			renderer = Gtk::CellRendererText.new
+			renderer.background = 'white'
+
+			nocast_ls = Gtk::ListStore.new(String, String)
+			nocast_ls.set_sort_column_id(0, Gtk::SORT_ASCENDING)
+			nocast_tv = Gtk::TreeView.new(nocast_ls)
+			nocast_tv.headers_visible = false
+			nocast_tv.height_request = 150
+			nocast_tv.append_column(Gtk::TreeViewColumn.new('', renderer, :text => 0, :background_set => 2))
+			nocast_tv.append_column(Gtk::TreeViewColumn.new('', renderer, :text => 1, :background_set => 2))
+			nocast_sw = Gtk::ScrolledWindow.new
+			nocast_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+			nocast_sw.add(nocast_tv)
+	
+			cast_ls = Gtk::ListStore.new(String, String)
+			cast_ls.set_sort_column_id(0, Gtk::SORT_ASCENDING)
+			cast_tv = Gtk::TreeView.new(cast_ls)
+			cast_tv.headers_visible = false
+			cast_tv.height_request = 150
+			cast_tv.append_column(Gtk::TreeViewColumn.new('', renderer, :text => 0, :background_set => 2))
+			cast_tv.append_column(Gtk::TreeViewColumn.new('', renderer, :text => 1, :background_set => 2))
+			cast_sw = Gtk::ScrolledWindow.new
+			cast_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+			cast_sw.add(cast_tv)
+
+			tree_box = Gtk::HBox.new(true, 5)
+			tree_box.pack_start(nocast_sw, true, true, 0)
+			tree_box.pack_start(cast_sw, true, true, 0)
+
+			stack_min_label = Gtk::Label.new('   Minimum:')
+			stack_min_entry = Gtk::Entry.new
+			stack_min_entry.text = stackable_min.to_s
+			stack_min_entry.width_request = 50
+			stack_max_label = Gtk::Label.new('   Maximum:')
+			stack_max_entry = Gtk::Entry.new
+			stack_max_entry.text = stackable_max.to_s
+			stack_max_entry.width_request = 50
+
+			stack_box = Gtk::HBox.new(false, 0)
+			stack_box.pack_start(stack_min_label, false, false, 5)
+			stack_box.pack_start(stack_min_entry, false, false, 5)
+			stack_box.pack_start(stack_max_label, false, false, 5)
+			stack_box.pack_start(stack_max_entry, false, false, 5)
+			stack_frame = Gtk::Frame.new('Stackable Spells')
+			stack_box_spacer = Gtk::VBox.new
+			stack_box_spacer.pack_start(stack_box, false, false, 4)
+			stack_frame.add(stack_box_spacer)
+
+			nonstack_min_label = Gtk::Label.new('   Minimum:')
+			nonstack_min_entry = Gtk::Entry.new
+			nonstack_min_entry.text = unstackable_min.to_s
+			nonstack_min_entry.width_request = 50
+
+			nonstack_box = Gtk::HBox.new(false, 0)
+			nonstack_box.pack_start(nonstack_min_label, false, false, 4)
+			nonstack_box.pack_start(nonstack_min_entry, false, false, 4)
+			nonstack_box_spacer = Gtk::VBox.new
+			nonstack_box_spacer.pack_start(nonstack_box, false, false, 4)
+			nonstack_frame = Gtk::Frame.new('Non-stackable Spells')
+			nonstack_frame.add(nonstack_box_spacer)
+#
+			min_mana_label = Gtk::Label.new('   Minimum Mana:')
+			min_mana_entry = Gtk::Entry.new
+			min_mana_entry.text = min_mana.to_s
+			min_mana_entry.width_request = 50
+
+			mana_box = Gtk::HBox.new(false, 0)
+			mana_box.pack_start(min_mana_label, false, false, 4)
+			mana_box.pack_start(min_mana_entry, false, false, 4)
+			mana_box_spacer = Gtk::VBox.new
+			mana_box_spacer.pack_start(mana_box, false, false, 4)
+			mana_box_frame = Gtk::Frame.new('Mana Settings')
+			mana_box_frame.add(mana_box_spacer)
+
+
+#
+			use_wracking_option = Gtk::CheckButton.new('wracking')
+			use_wracking_option.active = use_wracking
+			use_power_option = Gtk::CheckButton.new('power')
+			use_power_option.active = use_power
+			use_concentration_option = Gtk::CheckButton.new('concentration')
+			use_concentration_option.active = use_concentration
+			use_multicast_option = Gtk::CheckButton.new('multicast')
+			use_multicast_option.active = use_multicast
+
+			option_box = Gtk::HBox.new(false, 0)
+			option_box.pack_start(use_wracking_option, false, false, 4)
+			option_box.pack_start(use_power_option, false, false, 4)
+			option_box.pack_start(use_concentration_option, false, false, 4)
+			option_box.pack_start(use_multicast_option, false, false, 4)
+			
+			retribution_spell_label = Gtk::Label.new('retribution spell:')
+			retribution_spell_entry = Gtk::Entry.new
+			retribution_spell_entry.text = retribution_spell.to_s
+			retribution_spell_entry.width_request = 50
+			temp_box = Gtk::HBox.new(false, 0)
+			temp_box.pack_end(retribution_spell_entry, false, false, 5)
+			temp_box.pack_end(retribution_spell_label, false, false, 5)
+			option_box.pack_start(temp_box, false, false, 4)
+			option_frame = Gtk::Frame.new('Options')
+			option_box_spacer = Gtk::VBox.new
+			option_box_spacer.pack_start(option_box, false, false, 4)
+			option_frame.add(option_box_spacer)
+
+			save_button = Gtk::Button.new('Ok')
+			save_button.width_request = 75
+			cancel_button = Gtk::Button.new('Cancel')
+			cancel_button.width_request = 75
+			button_box = Gtk::HBox.new(false, 3)
+			button_box.pack_end(save_button, false, false, 4)
+			button_box.pack_end(cancel_button, false, false, 4)
+
+			main_box = Gtk::VBox.new(false, 4)
+			main_box.pack_start(label_box, false, false, 0)
+			main_box.pack_start(tree_box, true, true, 0)
+			main_box.pack_start(stack_frame, false, false, 0)
+			main_box.pack_start(nonstack_frame, false, false, 0)
+			main_box.pack_start(option_frame, false, false, 0)
+			main_box.pack_start(mana_box_frame, false, false, 0)
+			main_box.pack_start(button_box, false, false, 0)
+
+			window = Gtk::Window.new
+			window.title = 'waggle setup'
+			window.border_width = 5
+			window.add(main_box)
+			window.resize(window_width, window_height)
+
+			Spells.known.each { |spell|
+				next unless (eval(Spell[spell].duration) > 0)
+				if cast_list.include?(spell.num)
+					iter = cast_ls.append
+					iter[0] = spell.num.to_s
+					iter[1] = spell.name
+				else
+					iter = nocast_ls.append
+					iter[0] = spell.num.to_s
+					iter[1] = spell.name
+				end
+			}
+
+			Gtk::Drag.source_set(cast_tv, Gdk::Window::BUTTON1_MASK, [ [ 'text/plain', Gtk::Drag::TARGET_SAME_APP, 0 ] ], Gdk::DragContext::ACTION_MOVE)
+			Gtk::Drag.dest_set(cast_tv, Gtk::Drag::DEST_DEFAULT_ALL, [ [ 'text/plain', Gtk::Drag::TARGET_SAME_APP, 0 ] ], Gdk::DragContext::ACTION_MOVE)
+			Gtk::Drag.source_set(nocast_tv, Gdk::Window::BUTTON1_MASK, [ [ 'text/plain', Gtk::Drag::TARGET_SAME_APP, 0 ] ], Gdk::DragContext::ACTION_MOVE)
+			Gtk::Drag.dest_set(nocast_tv, Gtk::Drag::DEST_DEFAULT_ALL, [ [ 'text/plain', Gtk::Drag::TARGET_SAME_APP, 0 ] ], Gdk::DragContext::ACTION_MOVE)
+
+			cast_tv.signal_connect('drag-data-get') { |who, drag_context, data|
+				data.text = who.selection.selected[0] if who.selection.selected
+			}
+			cast_tv.signal_connect('drag-data-received') { |who, drag_context, x, y, data, info, time|
+				nocast_ls.each { |model,path,iter|
+					if iter[0] == data.text
+						new_iter = cast_ls.append
+						new_iter[0] = iter[0]
+						new_iter[1] = iter[1]
+						nocast_ls.remove(iter)
+						break
+					end
+				}
+			}
+			cast_tv.signal_connect('button-press-event') { |who, event|
+				if (event.event_type == Gdk::Event::BUTTON2_PRESS) and (source_iter = cast_tv.selection.selected)
+					dest_iter = nocast_ls.append
+					dest_iter[0] = source_iter[0]
+					dest_iter[1] = source_iter[1]
+					cast_ls.remove(source_iter)
+				end
+			}
+			nocast_tv.signal_connect('drag-data-get') { |who, drag_context, data|
+				data.text = who.selection.selected[0] if who.selection.selected
+			}
+			nocast_tv.signal_connect('drag-data-received') { |who, drag_context, x, y, data, info, time|
+				cast_ls.each { |model,path,iter|
+					if iter[0] == data.text
+						new_iter = nocast_ls.append
+						new_iter[0] = iter[0]
+						new_iter[1] = iter[1]
+						cast_ls.remove(iter)
+						break
+					end
+				}
+			}
+			nocast_tv.signal_connect('button-press-event') { |who, event|
+				if (event.event_type == Gdk::Event::BUTTON2_PRESS) and (source_iter = nocast_tv.selection.selected)
+					dest_iter = cast_ls.append
+					dest_iter[0] = source_iter[0]
+					dest_iter[1] = source_iter[1]
+					nocast_ls.remove(source_iter)
+				end
+			}
+			cancel_button.signal_connect('clicked') {
+				window_width = window.allocation.width
+				window_height = window.allocation.height
+				window_action = :cancel
+			}
+			save_button.signal_connect('clicked') {
+				Gtk.queue {
+					cast_list = Array.new
+					cast_ls.each { |model,path,iter| cast_list.push(iter[0].to_i) }
+					if stack_min_entry.text =~ /^[0-9]+$/i
+						stackable_min = stack_min_entry.text.to_i
+					else
+						respond "[waggle: ignoring invalid entry: #{stack_min_entry.text}]"
+					end
+					if stack_max_entry.text =~ /^[0-9]+$/i
+						stackable_max = stack_max_entry.text.to_i
+					else
+						respond "[waggle: ignoring invalid entry: #{stack_min_entry.text}]"
+					end
+					if nonstack_min_entry.text =~ /^[0-9]+$/i
+						unstackable_min = nonstack_min_entry.text.to_i
+					else
+						respond "[waggle: ignoring invalid entry: #{nonstack_min_entry.text}]"
+					end
+					if min_mana_entry.text =~ /^[0-9]+$/i
+						min_mana = min_mana_entry.text.to_i
+					else
+						respond "[waggle: ignoring invalid entry: #{min_mana_entry.text}]"
+					end
+					if retribution_spell_entry.text =~ /^[0-9]+$/i
+						retribution_spell = retribution_spell_entry.text
+					elsif retribution_spell_entry.text.empty? or retribution_spell_entry.text =~ /none|off/
+						retribution_spell = nil
+					else
+						respond "[waggle: ignoring invalid entry: #{retribution_spell_entry.text}]"
+					end
+					use_wracking = use_wracking_option.active?
+					use_power = use_power_option.active?
+					use_concentration = use_concentration_option.active?
+					use_multicast = use_multicast_option.active?
+					window_width = window.allocation.width
+					window_height = window.allocation.height
+					window_action = :save
+				}
+			}
+			window.signal_connect('delete_event') {
+				window_width = window.allocation.width
+				window_height = window.allocation.height
+				window_action = :cancel
+			}
+
+			window.show_all
+		}
+		before_dying { Gtk.queue { window.destroy } }
+		wait_while { window_action.nil? }
+		undo_before_dying
+		Gtk.queue { window.destroy }
+		CharSettings['window_width']  = window_width
+		CharSettings['window_height'] = window_height
+		if window_action == :save
+			CharSettings['use_wracking'] = use_wracking
+			CharSettings['use_power'] = use_power
+			CharSettings['use_concentration'] = use_concentration
+			CharSettings['use_multicast'] = use_multicast
+			CharSettings['stackable_max'] = stackable_max
+			CharSettings['stackable_min'] = stackable_min
+			CharSettings['unstackable_min'] = unstackable_min
+			CharSettings['min_mana'] = min_mana
+			CharSettings['retribution_spell'] = retribution_spell
+			CharSettings['cast_list'] = cast_list
+		end
+	else
+		unless defined?(Gtk.queue)
+			echo "GUI setup requires Lich v4.  For command-line setup, see #{$clean_lich_char}#{script.name} help"
+		end
+		unless HAVE_GTK
+			echo 'GTK bindings are not installed or failed to load.'
+		end
+	end	
+	exit
+elsif script.vars[1].downcase == 'add'
+	add_list = script.vars[2..-1].collect { |spell| spell.to_i }
+	add_list.each { |spell|
+		cast_list.push(spell.to_i) unless cast_list.include?(spell.to_i)
+	}
+	echo "added these spells to the cast list: #{add_list.join(', ')}"
+	CharSettings['cast_list'] = cast_list
+	exit
+elsif script.vars[1] =~ /^rem(?:ove)?$|^del(?:ete)?$/i
+	del_list = script.vars[2..-1].collect { |spell| spell.to_i }
+	del_list.each { |spell|
+		if cast_list.delete(spell)
+			echo "removed #{spell} from the cast list"
+		else
+			echo "did not find #{spell} in the cast list"
+		end
+	}
+	CharSettings['cast_list'] = cast_list
+	exit	
+elsif script.vars[1] =~ /^list$|^show$/i
+	respond
+	respond "cast list: #{cast_list.join(', ')}"
+	respond "maximum time for stackable spells:     #{stackable_max}"
+	respond "minimum time for stackable spells:     #{stackable_min}"
+	respond "minimum time for non-stackable spells: #{unstackable_min}"
+	respond "retribution spell: #{retribution_spell || 'none'}"
+	respond
+	exit
+elsif script.vars[1].downcase == 'stacksmax'
+	if script.vars[2] =~ /^[0-9]+$/
+		CharSettings['stackable_max'] = script.vars[2].to_i
+		echo "maximum time for stackable spells set to #{CharSettings['stackable_max']} minutes"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase == 'stacksmin'
+	if script.vars[2] =~ /^[0-9]+$/
+		CharSettings['stackable_min'] = script.vars[2].to_i
+		echo "minimum time for stackable spells set to #{CharSettings['stackable_min']} minutes"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase == 'nonstacksmin'
+	if script.vars[2] =~ /^[0-9]+$/
+		CharSettings['unstackable_min'] = script.vars[2].to_i
+		echo "minumum time for non-stackable spells set to #{CharSettings['unstackable_min']} minutes"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase == 'wracking'
+	if script.vars[2].downcase == 'on'
+		CharSettings['use_wracking'] = true
+		echo "sign of wracking will be used"
+	elsif script.vars[2].downcase == 'off'
+		CharSettings['use_wracking'] = false
+		echo "sign of wracking will not be used"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase == 'power'
+	if script.vars[2].downcase == 'on'
+		CharSettings['use_power'] = true
+		echo "sigil of power will be used"
+	elsif script.vars[2].downcase == 'off'
+		CharSettings['use_power'] = false
+		echo "sigil of power will not be used"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase == 'concentration'
+	if script.vars[2].downcase == 'on'
+		CharSettings['use_concentration'] = true
+		echo "sigil of concentration will be used"
+	elsif script.vars[2].downcase == 'off'
+		CharSettings['use_concentration'] = false
+		echo "sigil of concentration will not be used"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+elsif script.vars[1].downcase =~ /^retribution[_\-]spell$/
+	if script.vars[2].downcase =~ /^(?:off|none)$/
+		CharSettings['retribution_spell'] = nil
+		echo "retribution spell cleared"
+	elsif script.vars[2] =~ /^[0-9]+$/
+		CharSettings['retribution_spell'] = script.vars[2]
+		echo "retribution spell set to #{script.vars[2]}"
+	else
+		echo "You're doing it wrong..."
+	end
+	exit
+else
+	if script.vars[1] =~ /^info$/i
+		list_mode = true
+		target_list = script.vars[2..-1]
+		target_list = [ Char.name ] if target_list.empty?
+	else
+		target_list = script.vars[1..-1]
+		target_list = [ Char.name ] if target_list.empty?
+	end
+end
+
+target_list.collect!{|name| name.downcase }
+if target_list.length > 1 && target_list.include?(Char.name.downcase)
+	echo "** You cannot include your own name when spelling up others **"
+	echo "** Exiting **"
+	exit
+end
+
+fix_spell = proc { |spell|
+	if (spell.class == Fixnum) or (spell.class == String and spell =~ /^[0-9]+$/)
+		spell = Spell[spell.to_i]
+	end
+	unless spell.class == Spell
+		echo 'error: missing spell information'
+		exit
+	end
+	spell
+}
+
+check_mana = proc { |spell|
+	# check mana twice as a workaround for infomon changing our spell ranks when someone else casts at us
+	sigil_of_power = Spell[9718]
+	if use_power and sigil_of_power.known? and (spell.mana_cost > 0) and (spell.stamina_cost == 0)
+			mc = [Skills.emc, Skills.smc, Skills.mmc].sort.reverse
+			pulse = (mc[0]/10 + mc[1]/20 + mc[2]/20)
+			node = (maxmana * 0.25).to_i + pulse
+			if sigil_of_power.affordable? && mana <= (maxmana-25-node)
+					sigil_of_power.cast
+					sleep 0.2
+			end
+	end
+	unless (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)
+		
+		sign_of_wracking = Spell[9918]
+		if use_power and sigil_of_power.known? and (spell.mana_cost > 0) and (spell.stamina_cost == 0)
+			until (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)
+				if sigil_of_power.affordable?
+					sigil_of_power.cast
+					sleep 0.2
+				else
+					fput 'release' unless checkprep == 'None'
+					echo 'waiting for mana or stamina...'
+					wait_until { ((spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)) or sigil_of_power.affordable? }
+				end
+			end
+		elsif use_wracking and sign_of_wracking.known? and (spell.mana_cost > 0)
+			until (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)
+				waitrt?
+				waitcastrt?
+				if sign_of_wracking.affordable?
+					if invisible? or hidden? or not checkpcs
+						if checkspirit(6)
+							before_spirit = checkspirit
+							put 'sign of wracking'
+							100.times { break if checkspirit < before_spirit; sleep 0.2 }
+						end
+					else
+						status_tags
+						evil_pcs = checkpcs
+						result = dothistimeout 'sign of recognition', 5, /^You (?:touch|scratch|rub|tap|point to) your (?:right|left) (?:eyebrow|nostril|earlobe|shoulder|cheek) with your (?:right|left) (?:pinky|forefinger|thumb|index finger)\.$/
+						unless result.nil?
+							while (line = get) and (line !~ /<prompt/)
+								if line =~ /<a.*?>([A-Z][a-z]+)<\/a> acknowledges your sign/
+									evil_pcs.delete($1)
+								end
+							end
+						end
+						status_tags
+						if sign_of_wracking.affordable? and (evil_pcs.nil? or evil_pcs.empty?)
+							if checkspirit(6)
+								before_spirit = checkspirit
+								put 'sign of wracking'
+								50.times { break if checkspirit < (before_spirit-3); sleep 0.1 }
+								unless checkspirit < (before_spirit-3)
+									echo 'checking for lag to avoid double wracking...'
+									dothis 'help nothing', /^No help files matching that entry were found\.$/
+								end
+							end
+						else
+							fput 'release' unless checkprep == 'None'
+							echo 'waiting on mana... or evil people to go away...'
+							wait_until { ((spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)) or hidden? or invisible? or not checkpcs.to_a.any? { |pc| evil_pcs.include?(pc) } }
+						end
+					end
+				else
+					fput 'release' unless checkprep == 'None'
+					echo 'waiting for mana or spirit...'
+					wait_until { ((spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)) or sign_of_wracking.affordable? }
+				end
+			end
+		else
+			fput 'release' unless checkprep == 'None'
+			echo 'waiting for mana...'
+			wait_until { (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)}
+		end
+	end
+}
+
+release_spell = proc {
+	unless checkprep == 'None'
+		dothistimeout 'release', 5, /^You feel the magic of your spell rush away from you\.$|^You don't have a prepared spell to release!$/
+	end
+}
+
+cast_spell = proc { |spell, target|
+	spell = fix_spell.call(spell)
+	if (defined?(spell.castProc) and spell.castProc) or spell.command
+		waitrt?
+		waitcastrt?
+		check_mana.call(spell)
+		spell.cast
+		result = true
+	else
+		result = nil
+		loop {
+			check_mana.call(spell)	
+			unless checkprep == spell.name
+				release_spell.call
+				loop {
+					waitrt?
+					waitcastrt?
+					check_mana.call(spell)
+					prepare_result = dothistimeout "prepare #{spell.num}", 8, /^You already have a spell readied!  You must RELEASE it if you wish to prepare another!$|^Your spell(?:song)? is ready\.|^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$/
+					if prepare_result =~ /^Your spell(?:song)? is ready\./
+						break
+					elsif prepare_result == 'You already have a spell readied!  You must RELEASE it if you wish to prepare another!'
+						release_spell.call
+					elsif prepare_result =~ /^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$/
+						# fixme: injured or something
+						exit
+					end
+				}
+			end
+			if target == Char.name.downcase
+				action = 'cast'
+			else
+				action = "cast at #{target}"
+			end
+			cast_result = dothistimeout action, 8, /^(?:Cast|Sing) Roundtime [0-9]+ Seconds\.$|^Cast at what\?$|^But you don't have any mana!$|Spell Hindrance for|^You don't have a spell prepared!$|keeps? the spell from working\.|^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast|^As you focus on your magic, your vision swims with a swirling haze of crimson\.$/
+			if cast_result =~ /^(?:Cast|Sing) Roundtime [0-9]+ Seconds\.$/
+				result = :success
+				break
+			elsif cast_result =~ /^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast/
+				result = :bad_spell
+				break
+			elsif cast_result == 'Cast at what?'
+				result = :bad_target
+				break
+			end
+		}
+	end
+	result
+}
+
+get_target_info = proc { |target|
+	if defined?(lichnet_get_spells)
+		lichnet_get_spells(target)
+	else
+		nil
+	end
+}
+
+#
+# gather current spell info for the targets
+#
+target_info = Hash.new
+target_list.each { |name|
+	if name.downcase == Char.name.downcase
+		target_info[Char.name.downcase] = Hash.new
+		Spell.active.each { |spell| target_info[Char.name.downcase][spell.num.to_s] = spell.timeleft }
+	else
+		target_info[name.downcase] = get_target_info.call(name) || Hash.new
+	end
+}
+
+spellinfo = proc {
+	dry_run = Hash.new
+	max_spell_name = 0
+	cast_list.each { |spell|
+		spell = fix_spell.call(spell)
+		next unless spell.stacks
+		max_spell_name = [ max_spell_name, spell.name.length ].max
+		target_info.keys.each { |name|
+			next if (spell.num.to_s =~ selfstackonly) and (name != Char.name.downcase)	
+			next if spell.selfonly and (name != Char.name.downcase)
+			next if (name == Char.name.downcase) and (spell.circlename == 'Bard') and spell.active?
+			target_info[name][spell.num.to_s] ||= 0
+			dry_run[name] ||= Hash.new
+			while ( (target_info[name][spell.num.to_s] < stackable_min) or (target_info[name][spell.num.to_s] + eval(spell.duration)) < stackable_max ) and (target_info[name][spell.num.to_s] < 249.5)
+				dry_run[name][spell.num.to_s] = dry_run[name][spell.num.to_s] + 1
+				target_info[name][spell.num.to_s] += eval(spell.duration)
+			end
+		}
+	}
+	cast_list.each { |spell|
+		spell = fix_spell.call(spell)
+		max_spell_name = [ max_spell_name, spell.name.length ].max
+		target_info.keys.each { |name|
+			next if (spell.stacks && name == Char.name.downcase) || (spell.stacks && spell.num.to_s !~ selfstackonly )
+			next if spell.selfonly and (name != Char.name.downcase)
+			next if (name == Char.name.downcase) and (spell.num >= 1001) and (spell.num <= 1050) and spell.active?
+			target_info[name][spell.num.to_s] ||= 0
+			if (target_info[name][spell.num.to_s] < unstackable_min)
+				dry_run[name][spell.num.to_s] = dry_run[name][spell.num.to_s] + 1
+			end
+		}
+	}
+	[dry_run, max_spell_name]
+}
+
+order_list = proc {
+	#
+	# order spells
+	#
+	dry_run, junk = spellinfo.call
+	temp_cast_list = Hash.new
+	dry_run.each{|name,hash| 
+		if Char.name.downcase == name
+			temp_cast_list = hash.sort{|a,b|
+				 eval(Spell[b[0]].cost) <=> eval(Spell[a[0]].cost)
+			}
+		else
+			temp_cast_list = hash.sort{|a,b|
+				b[0].to_i % 100 <=> a[0].to_i % 100
+			}
+		end
+	}
+	target_info = Hash.new
+	target_list.each { |name|
+		if name.downcase == Char.name.downcase
+			target_info[Char.name.downcase] = Hash.new
+			Spell.active.each { |spell| target_info[Char.name.downcase][spell.num.to_s] = spell.timeleft }
+		else
+			target_info[name.downcase] = get_target_info.call(name) || Hash.new
+		end
+	}
+	temp_cast_list.collect{|num, casts| num.to_i}
+}
+
+#Determine number of casts needed for max duration
+num_casts = proc{|person, spell|
+	if person.downcase == Char.name.downcase
+		if spell.timeleft.to_f < stackable_min
+			( (stackable_max - spell.timeleft.to_f) / eval(spell.duration).to_f ).ceil
+		else
+			0
+		end
+	else
+		if target_info[person][spell.num.to_s].to_f < stackable_min
+			( (stackable_max - target_info[person][spell.num.to_s].to_f) / eval(spell.duration).to_f ).ceil
+		else
+			0
+		end
+	end
+
+}
+
+#Determine max number of multi-casts
+max_multicast = proc{|spell|
+	ranks = 0
+	case spell.circle.to_i
+	when 4, 5, 9
+		#elemental bias
+		ranks = (Skills.emc + [Skills.smc, Skills.mmc].max / 2).floor
+	when 1, 2, 3, 6, 16, 11
+		#spiritual bias
+		ranks = (Skills.smc + [Skills.emc, Skills.mmc].max / 2).floor
+	when 7
+		#equal weight spirit/elemental
+		ranks = ([Skills.emc,Skills.smc].max + [Skills.emc,Skills.smc].min / 2).floor
+	end
+	(ranks / 25) + 1
+}
+
+if list_mode
+	dry_run, max_spell_name = spellinfo.call #Hash.new
+
+	get_bonus_string = proc { |spell|
+		bonus_list = Array.new
+		bonus_list.push "#{'+' if spell.bolt_as > 0}#{spell.bolt_as} bAS" unless spell.bolt_as.zero?
+		bonus_list.push "#{'+' if spell.physical_as > 0}#{spell.physical_as} pAS" unless spell.physical_as.zero?
+		bonus_list.push "#{'+' if spell.bolt_ds > 0}#{spell.bolt_ds} bDS" unless spell.bolt_ds.zero?
+		bonus_list.push "#{'+' if spell.physical_ds > 0}#{spell.physical_ds} pDS" unless spell.physical_ds.zero?
+		bonus_list.push "#{'+' if spell.elemental_cs > 0}#{spell.elemental_cs} eCS" unless spell.elemental_cs.zero?
+		bonus_list.push "#{'+' if spell.spirit_cs > 0}#{spell.spirit_cs} spCS" unless spell.spirit_cs.zero?
+		bonus_list.push "#{'+' if spell.sorcerer_cs > 0}#{spell.sorcerer_cs} soCS" unless spell.sorcerer_cs.zero?
+		bonus_list.push "#{'+' if spell.elemental_td > 0}#{spell.elemental_td} eTD" unless spell.elemental_td.zero?
+		bonus_list.push "#{'+' if spell.spirit_td > 0}#{spell.spirit_td} spTD" unless spell.spirit_td.zero?
+		bonus_list.push "#{'+' if spell.sorcerer_td > 0}#{spell.sorcerer_td} soTD" unless spell.sorcerer_td.zero?
+		bonus_list.push "#{'+' if spell.strength.to_i > 0}#{spell.strength} str" unless spell.strength.to_i.zero?
+		bonus_list.push "#{'+' if spell.dodging.to_i > 0}#{spell.dodging} dodge" unless spell.dodging.to_i.zero?
+		bonus_list.join(', ')
+	}
+	total_casts = 0
+	total_mana  = 0
+	output = "\n"
+	for name,hash in dry_run
+		if hash.empty?
+			output.concat "#{name.capitalize}: no spells needed\n"
+		else
+			output.concat "#{(name.capitalize + ':').ljust(8+max_spell_name)}casts  mana  duration  bonus\n"
+			for spell,casts in hash
+				spell = Spell[spell]
+				total_casts += casts
+				total_mana += casts * spell.mana_cost
+				output.concat "#{spell.num.to_s.rjust(4)}  #{spell.name.ljust(max_spell_name)}  #{casts.to_s.rjust(5)}  #{(spell.mana_cost*casts).to_s.rjust(4)}   #{(spell.time_per*casts).as_time}  #{get_bonus_string.call(spell)}\n"
+			end
+		end
+		output.concat "\n"
+	end
+	output.concat "#{''.ljust(max_spell_name)}   total: #{total_casts.to_s.rjust(3)}  #{total_mana.to_s.rjust(4)}\n\n" unless total_casts.zero?
+	respond output
+else
+	cast_list = order_list.call
+	if cast_list.include?(625) and target_info.keys.include?(Char.name.downcase)
+		name = Char.name.downcase
+		target_info[name]['625'] ||= 0
+		if (target_info[name]['625'] < unstackable_min)
+			cast_list.delete(625)
+			cast_list.insert(0, 625)
+		end
+	end
+	skip_targets = Array.new
+	skip_spells = Array.new
+	
+	#
+	# cast stackable spells
+	#
+	
+	cast_list.each { |spell|
+		if use_concentration and (sigil_of_concentration = Spell[9714]) and sigil_of_concentration.known? and sigil_of_concentration.affordable? and not sigil_of_concentration.active?
+			sigil_of_concentration.cast if sigil_of_concentration.affordable? and not sigil_of_concentration.active?
+			30.times{ break if sigil_of_concentration.active?; pause 0.1 }
+		end
+		spell = fix_spell.call(spell)
+		next unless spell.stacks
+		target_info.keys.each { |name|
+			#skip casting self-stack-only spells on others
+			next if (spell.num.to_s =~ selfstackonly) and (name != Char.name.downcase)
+			next if spell.selfonly and (name != Char.name.downcase)
+			next if skip_targets.include?(name) or skip_spells.include?(spell.num)
+			next if (name == Char.name.downcase) and (spell.circlename == 'Bard') and spell.active?
+			target_info[name][spell.num.to_s] ||= 0
+			
+			#multicast modifications
+			maxcast = max_multicast.call(spell)
+			casts = num_casts.call(name,spell)
+			casts = [maxcast, casts].min
+			next if casts == 0
+			
+			if use_multicast && spell.num.to_s !~ /402|404/ && casts > 1
+				cost = casts * spell.mana_cost
+				
+				sigil_of_power = Spell[9718]
+				sign_of_wracking = Spell[9918]
+				while ( ((target_info[name][spell.num.to_s] < stackable_min) or (target_info[name][spell.num.to_s] + eval(spell.duration)) < stackable_max ) and (target_info[name][spell.num.to_s] < 249.5))
+					casts = num_casts.call(name,spell)
+					casts = [maxcast, casts].min
+					break if casts == 0
+					
+					if use_power and sigil_of_power.known? and (spell.mana_cost > 0) and (spell.stamina_cost == 0)
+							mc = [Skills.emc, Skills.smc, Skills.mmc].sort.reverse
+							pulse = (mc[0]/10 + mc[1]/20 + mc[2]/20)
+							node = (maxmana * 0.25).to_i + pulse
+							if sigil_of_power.affordable? && mana <= (maxmana-25-node)
+									sigil_of_power.cast
+									sleep 0.2
+							end
+					end
+					while cost > mana
+						unless (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - cost >= min_mana)
+							if use_power and sigil_of_power.known? and (cost > 0) and (spell.stamina_cost == 0)
+								until (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - cost >= min_mana)
+									if sigil_of_power.affordable?
+										sigil_of_power.cast
+										sleep 0.2
+									else
+										fput 'release' unless checkprep == 'None'
+										echo 'waiting for mana or stamina...'
+										wait_until { ((spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - cost >= min_mana)) or sigil_of_power.affordable? }
+									end
+								end
+							elsif use_wracking and sign_of_wracking.known? and (cost > 0)
+								until (spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - cost >= min_mana)
+									waitrt?
+									waitcastrt?
+									if sign_of_wracking.affordable?
+										if invisible? or hidden? or not checkpcs
+											if checkspirit(6)
+												before_spirit = checkspirit
+												put 'sign of wracking'
+												100.times { break if checkspirit < before_spirit; sleep 0.2 }
+											end
+										else
+											status_tags
+											evil_pcs = checkpcs
+											result = dothistimeout 'sign of recognition', 5, /^You (?:touch|scratch|rub|tap|point to) your (?:right|left) (?:eyebrow|nostril|earlobe|shoulder|cheek) with your (?:right|left) (?:pinky|forefinger|thumb|index finger)\.$/
+											unless result.nil?
+												while (line = get) and (line !~ /<prompt/)
+													if line =~ /<a.*?>([A-Z][a-z]+)<\/a> acknowledges your sign/
+														evil_pcs.delete($1)
+													end
+												end
+											end
+											status_tags
+											if sign_of_wracking.affordable? and (evil_pcs.nil? or evil_pcs.empty?)
+												if checkspirit(6)
+													before_spirit = checkspirit
+													put 'sign of wracking'
+													50.times { break if checkspirit < (before_spirit-3); sleep 0.1 }
+													unless checkspirit < (before_spirit-3)
+														echo 'checking for lag to avoid double wracking...'
+														dothis 'help nothing', /^No help files matching that entry were found\.$/
+													end
+												end
+											else
+												fput 'release' unless checkprep == 'None'
+												echo 'waiting on mana... or evil people to go away...'
+												wait_until { ((spell.affordable? and sleep 0.1 and spell.affordable?) and (mana - spell.cost.to_i >= min_mana)) or hidden? or invisible? or not checkpcs.to_a.any? { |pc| evil_pcs.include?(pc) } }
+											end
+										end
+									end
+									pause 1
+								end
+							end
+						end
+					end
+					waitrt?
+					waitcastrt?
+					if name.downcase == Char.name.downcase
+						time_before = spell.timeleft
+						fput "incant #{spell.num} #{casts}"
+						fput "chant retribution #{retribution_spell}" if spell.num == 712 && retribution_spell
+						pause 1
+						spell.timeleft = [time_before + casts * eval(spell.duration), 250].min
+					else
+						begin
+							put "prepare #{spell.num}"
+							while line = get
+								if line =~ /Your spell is ready\./
+									break
+								elsif line =~ /You already have a spell readied!/
+									release_spell.call if checkprep !~ /#{spell}/
+									put "prepare #{spell.num}"
+								elsif line =~ /[wW]ait (\d+) sec/
+									waitcastrt?
+									waitrt?
+									put "prepare #{spell.num}"
+								end
+							end
+							put "cast #{name} #{casts}"
+							while line = get
+								if line =~ /Cast Roundtime/
+									break
+								elsif line =~ /[wW]ait (\d+) sec/
+									waitcastrt?
+									waitrt?
+									put "cast #{name} #{casts}"
+								elsif line =~ /You don't have a spell prepared!/
+									break
+								elsif line =~ /Cast at what?/
+									release_spell.call
+									exit
+								end
+							end
+						end while line !~ /Cast Roundtime/
+					end
+					target_info[name][spell.num.to_s] += casts * eval(spell.duration)
+				end
+			else
+				while ( ((target_info[name][spell.num.to_s] < stackable_min) or (target_info[name][spell.num.to_s] + eval(spell.duration)) < stackable_max ) and (target_info[name][spell.num.to_s] < 249.5))
+					break if (name == Char.name.downcase) and !(((Spell[spell.num].timeleft < stackable_min) or ((Spell[spell.num].timeleft+ eval(spell.duration)) < stackable_max)) and ( Spell[spell.num].timeleft < 249.5))
+					cast_result = cast_spell.call(spell, name)
+					if cast_result == :bad_spell
+						skip_spells.push(spell.num)
+						break
+					elsif cast_result == :bad_target
+						skip_targets.push(name)
+						break
+					end
+					target_info[name][spell.num.to_s] += eval(spell.duration)
+					fput "chant retribution #{retribution_spell}" if spell.num == 712 && retribution_spell && name == Char.name.downcase
+				end
+			end
+		}
+		release_spell.call
+	}
+	#
+	# cast non-stacking spells
+	#
+	cast_list.each { |spell|
+		next if spell == 625
+		if use_concentration and (sigil_of_concentration = Spell[9714]) and sigil_of_concentration.known? and sigil_of_concentration.affordable? and not sigil_of_concentration.active?
+			sigil_of_concentration.cast if sigil_of_concentration.affordable? and not sigil_of_concentration.active?
+			30.times{ break if sigil_of_concentration.active?; pause 0.1 }
+		end
+		spell = fix_spell.call(spell)		
+		target_info.keys.each { |name|
+			next if (spell.stacks && name == Char.name.downcase) || (spell.stacks && spell.num.to_s !~ selfstackonly ) || skip_spells.include?(spell.num)
+			next if spell.selfonly and (name != Char.name.downcase)
+			next if skip_targets.include?(name) or skip_spells.include?(spell.num)
+			next if (name == Char.name.downcase) and (spell.num >= 1001) and (spell.num <= 1050) and spell.active?
+			target_info[name][spell.num.to_s] ||= 0
+			if (target_info[name][spell.num.to_s] < unstackable_min)
+				cast_result = cast_spell.call(spell, name)
+				if cast_result == :bad_spell
+					skip_spells.push(spell.num)
+					break
+				elsif cast_result == :bad_target
+					skip_targets.push(name)
+				end
+			end
+		}
+		release_spell.call
+	}
+	echo 'Done.'
+end

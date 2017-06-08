@@ -1,0 +1,14 @@
+#surgeperm.lic
+#keeps up surge permanently - requires 60 stamina
+# --Dgry
+# email: dgry@hotmail.com
+
+loop {
+		wait_while {Spell['surge of strength'].active?}	#surge already running
+		wait_while {Spell[9699].active?}		#popped muscles
+		wait_while { stamina < 60 }
+		fput "cman surge"
+		wait
+		pause 1
+		
+}

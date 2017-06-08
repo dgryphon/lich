@@ -1,0 +1,505 @@
+# DigDug_Spits
+# This script digs, and digs, and digs.
+# edit the top few lines to configure containers,spending caps, and donotloot list
+# to run...
+# Step 1: Edit the digdug.lic file in note pad, and set your container and such.
+# Step 2: Go to the room you want to dig in, and start digdug
+## .
+## .
+## .
+# edit the donotloot list at your peril.  I suggest adding the phrase to the
+#   beginning (a pipe symbol "|" should seperate the phrase).
+
+
+  @amount_of_coins_to_spend = 20000  #this is the amount of money to spend on shovels (per round)
+  @max_money_to_spend = 1000000 #this is the maximum amount of money that digdug should EVER spend (while running)
+  @place_to_put_loot = "greatcloak"  # if you selling, this container needs to be EMPTY!!!
+  @place_to_store_shovels = "cloak"
+  $stop_at_encumbrance_percent = 150   # change this to your stopping point.
+  @number_of_rounds_between_selling = 10
+  $use_haste_for_digging = true  #keep 506 running while digging.
+  @donotloot = /shoe|driftwood|sandal|boot/
+  
+  #Selling options
+  # YOU MUST SET ALL THESE OPTIONS CORRECTLY!!!!!
+  @sell_loot = false   # set to false to MANUALLY go through your loot
+  
+  #if you want to have digdug sell EVERYTHING in your loot container (except for what's on do_not_sell list) mark next line as true
+  @use_digdug_sell_all = true 
+  @do_not_sell_list = /press|shade-lizard|lance|scroll|parchment/
+  
+  #if you want to use your own selling script mark the next line as true (make sure @use_digdug_sell_all is false)
+  @use_other_selling_script = false
+  @selling_script = "sloot_sell"
+  
+  #the following should be set no matter what (this will determine when digdug should sell, or pause for manual selling)
+  @number_of_rounds_between_selling = 30  #after x number of rounds (shovel buying), selling will occur
+  
+
+
+#IF you want multiple character support, you'll need to do like the following
+#No need to edit anything below unless you are setting this up to run on multiple chars.
+#basically you only need redefine variables that you want to override from above
+if checkname.downcase == "casis"
+  @amount_of_coins_to_spend = 14000
+  @place_to_put_loot = "manpurse"
+  @place_to_store_shovels = "crate"
+  $use_haste_for_digging = false
+end
+if checkname.downcase == "umphta"
+  @amount_of_coins_to_spend = 10000  #this is the amount of money to spend on shovels (per round)
+  @place_to_put_loot = "pack"  # if you selling, this container needs to be EMPTY!!!
+  @place_to_store_shovels = "cloak"
+  $use_haste_for_digging = true  #keep 506 running while digging.
+  $stop_at_encumbrance_percent = 85  # change this to your stopping point.
+  @number_of_rounds_between_selling = 1
+end
+
+
+
+#DO NOT EDIT BELOW THIS LINE AT ALL>>>>>
+#-------------------------------------------------------------------------------------------
+def msg(text)
+  stringArray = Array.new
+  custPrefix = [':.   ..',':..  ..',':... ..',':......']
+  stringArray = (text.gsub(/[\n]+/, "o=\_=zz")).split(/o=\_=zz/)
+  if $fake_stormfront
+    preface_text = "\034GSL\r\n "
+    end_text = "\034GSM\r\n "
+  else
+    preface_text = "<pushBold\/>"
+    end_text = "<popBold\/>"
+  end
+  stringArray.each { |line|
+    puts "#{preface_text}#{custPrefix[rand(custPrefix.size)]} #{line.gsub('\n','')}#{end_text}"
+    }  
+end
+def checksilver
+	silvers = nil
+	action = proc { |server_string|
+		if server_string =~ /^\s*Name\:|^\s*Gender\:|^\s*Normal \(Bonus\)|^\s*Strength \(STR\)\:|^\s*Constitution \(CON\)\:|^\s*Dexterity \(DEX\)\:|^\s*Agility \(AGI\)\:|^\s*Discipline \(DIS\)\:|^\s*Aura \(AUR\)\:|^\s*Logic \(LOG\)\:|^\s*Intuition \(INT\)\:|^\s*Wisdom \(WIS\)\:|^\s*Influence \(INF\)\:/
+			nil
+		elsif server_string =~ /^\s*Mana\:\s+\-?[0-9]+\s+Silver\:\s+([0-9]+)/
+			silvers = $1.to_i
+			DownstreamHook.remove("slib_check_silvers")
+			nil
+		else
+			server_string
+		end
+	}
+	DownstreamHook.add("slib_check_silvers", action)
+	$_SERVER_.puts "#{$cmd_prefix}info\n"
+	wait_until { silvers }
+	silvers
+end
+def runScript(script, *args)
+      start_script script, args
+      wait_while{running?(script)}
+end
+def wait_for_rt
+  sleep 1
+  waitrt?
+  waitcastrt?
+end
+class Digger
+  attr_accessor :lootstore, :shovelstore, :cash, :maxmoney, :nolootlist,
+  :stepcount
+  
+  def initialize(wheretoputloot,wheretoputshovel,cashtospend,maxsilver,lootlist)
+    @lootstore = wheretoputloot
+    @shovelstore = wheretoputshovel
+    @cash = cashtospend.to_i
+    @nolootlist = lootlist
+    @maxmoney = maxsilver
+    @stepcount = 0
+  end
+  
+  def runScript(script, *args)
+      start_script script, args
+      wait_while{running?(script)}
+  end
+  
+  def wait_for_rt
+    sleep 1
+    waitrt?
+    waitcastrt?
+  end
+  
+  def msg(text)
+  stringArray = Array.new
+  custPrefix = [':.   ..',':..  ..',':... ..',':......']
+  stringArray = (text.gsub(/[\n]+/, "o=\_=zz")).split(/o=\_=zz/)
+  if $fake_stormfront
+    preface_text = "\034GSL\r\n "
+    end_text = "\034GSM\r\n "
+  else
+    preface_text = "<pushBold\/>"
+    end_text = "<popBold\/>"
+  end
+  stringArray.each { |line|
+    puts "#{preface_text}#{custPrefix[rand(custPrefix.size)]} #{line.gsub('\n','')}#{end_text}"
+    }  
+  end
+  
+  def load
+    buymore = true if @cash >= 2000
+    buymore = false if @cash < 2000
+    while buymore
+      if @cash >= 2000
+        if get_shovel
+          @cash = @cash - 2000
+          @maxmoney = @maxmoney - 2000
+        else
+          buymore = false
+        end
+      else
+        buymore = false
+      end
+    end
+  end
+
+  def dig
+    fput "stow left" if checkleft =~ /\w/
+    if checkright !~ /shovel/
+      fput "stow right"
+      fput "get my shovel"
+    end
+    while checkright =~ /shovel/
+      dig_action
+      wait_for_rt
+      clean_up
+      if  percentencumbrance >= $stop_at_encumbrance_percent
+        msg " "
+        msg " Too encumbered to continue... time to evaluate the loot!"
+        msg " "
+        sleep 3
+      else
+        fput "get shovel"
+      end      
+    end
+  end
+  
+  def clean_up()
+    if checkright =~ /\w/
+        fput "put #{checkright} in chute"
+    end
+    if checkright =~ /\w/
+        fput "put #{checkright} in chute"
+    end
+  end
+    
+  def getshit
+    fput "open my #{checkright}"
+    fput "get coins"
+    wait_for_rt
+      thaloot = multiLineGet("look in my #{checkright}",1)
+      if thaloot =~ /There is nothing/
+        return true
+      else
+        fput "stow left" if checkleft =~ /\w/
+        GameObj.right_hand.contents.each{|boxitem|
+          if boxitem.name =~ @nolootlist
+            msg " This box appears the have items that suck... So's imma gonna skip the sucky ones. Umm K? thx - Love DigDug"
+          else
+            fput "_drag ##{boxitem.id} ##{GameObj.inv.find{|pack| pack.noun =~ /#{@lootstore}/}.id}"
+          end
+        }
+        wait_for_rt
+      end
+    $shovel_counter = $shovel_counter + 1
+    return true
+  end
+    
+  def prep_dig
+    fput "stow all"
+    return commandWithConfirmation("get my shovel",
+                                   /You remove a/,2)
+  end
+      
+  def dig_action
+    while checkright =~ /shovel/
+      wait_for_rt
+      if $use_haste_for_digging && !Spell[506].active?
+        Spell[506].cast until Spell[506].active?
+        wait_for_rt
+      end
+      fput "dig sand"
+    end
+    if checkright =~ /\w/
+      wait_for_rt
+      getshit
+    end
+  end
+      
+  def get_shovel
+    wait_for_rt
+    fput "give halfling 2000"
+    wait_for_rt
+    if checkright =~ /shovel/
+      fput "put shovel in my #{@shovelstore}"
+      return false if checkright
+      return true if !checkright
+    else
+      return false
+    end
+  end
+  
+  def commandWithConfirmation(exec_cmd,str_to_match=Regexp.new('zzzzzz'),expire_after=1)
+    waitrt?
+    waitcastrt?
+    done = false
+    start_time = Time.now
+    runonce = true
+    until done || Time.now > start_time+expire_after
+      fput exec_cmd if runonce
+      runonce=false
+      line = get?
+      if line =~ str_to_match
+        done = true
+      end
+    end
+    return done
+  end
+  
+  
+  def multiLineGet(exec_cmd,timeout,ignore_exp=Regexp.new('zzzzzz'),asArray=false)
+  ## Get's all game lines during timeout period and returns a single
+  ##   string with all game lines (useful for regex compares)
+  ## timeout is integer in seconds
+  ## ignore_string should be a regular expression. NOT a string.
+  ## example...
+  ## multiLineGet("look",2,/\[LNet]/) - would ignore lnet channel chat)
+  ##
+  ## If you'd rather just get the whole array, set 4th parameter to true
+  started_at = Time.now
+  stop_at = Time.now + timeout
+  waitrt?  # wait for rt
+  waitcastrt?
+  mlg_lines = Array.new
+  $_SERVER_.write("#{$cmd_prefix}#{exec_cmd}\n")
+  while Time.now < stop_at
+    tmp_line = get?
+    if !tmp_line.nil?
+      mlg_lines.push(tmp_line) if tmp_line !~ ignore_exp
+    end
+  end
+  if asArray then return mlg_lines end
+  return mlg_lines.join(sep=" ")
+  end
+  
+  def checksilver
+	silvers = nil
+	action = proc { |server_string|
+		if server_string =~ /^\s*Name\:|^\s*Gender\:|^\s*Normal \(Bonus\)|^\s*Strength \(STR\)\:|^\s*Constitution \(CON\)\:|^\s*Dexterity \(DEX\)\:|^\s*Agility \(AGI\)\:|^\s*Discipline \(DIS\)\:|^\s*Aura \(AUR\)\:|^\s*Logic \(LOG\)\:|^\s*Intuition \(INT\)\:|^\s*Wisdom \(WIS\)\:|^\s*Influence \(INF\)\:/
+			nil
+		elsif server_string =~ /^\s*Mana\:\s+\-?[0-9]+\s+Silver\:\s+([0-9]+)/
+			silvers = $1.to_i
+			DownstreamHook.remove("slib_check_silvers")
+			nil
+		else
+			server_string
+		end
+	}
+	DownstreamHook.add("slib_check_silvers", action)
+	$_SERVER_.puts "#{$cmd_prefix}info\n"
+	wait_until { silvers }
+	silvers
+end
+
+  
+  def dmovement_to_bank
+    runScript("go2",'bank')
+  end
+  
+  def dmovement_to_grave
+    runScript('go2',19133)    
+  end
+  
+  def dreset
+    fput "look in my #{@shovelstore}"
+    return true if GameObj.inv.find{|pack| pack.noun =~ /#{@shovelstore}/}.contents.find{|thing| thing.noun  =~ /shovel/}
+    msg " "
+    msg " DigDug needs shovels.  Going to Halfling."
+    msg " "
+    loop{
+      sleep 1
+      if GameObj.npcs.nil?
+        walk
+      else
+        break
+      end
+    }
+    if checksilver < @cash
+      msg " "
+      msg " DigDug needs money.  Going to bank."
+      msg " "
+      sleep 3
+      runScript('go2','bank')
+      wait_for_rt
+      fput "with #{@cash - checksilver} silver"
+      wait_for_rt
+      dmovement_to_grave
+    end 
+  end
+end
+
+
+
+def sell_all(locale)
+      msg " Digdug now selling your shit at the #{locale}.... in 3 seconds"
+      sleep 3
+      fput "stow all" if checkright =~ /\w/
+      fput "look in my #{@place_to_put_loot}"
+    
+      GameObj.inv.find{|pack| pack.noun =~ /#{@place_to_put_loot}/}.contents.each {|lootitem|
+        if lootitem.name !~ @do_not_sell_list
+          fput "get ##{lootitem.id} from my #{@place_to_put_loot}"
+          fput "sell ##{lootitem.id}"
+        end
+        if checkright =~ /\w/
+          fput "put right in my #{@place_to_put_loot}"
+        end
+      }
+end
+
+
+
+def sell_my_loot
+    if !@sell_loot
+      msg "DigDug is ready for you to sell shit, but you have said you want to manually do it.  Do that, then unpause DigDug."
+      pause_script
+    else
+      if !@use_digdug_sell_all
+        runScript(@selling_script) if @use_other_selling_script
+      else
+        #go to the gemshop
+        runScript('go2','gemshop')
+        sell_all(' gemshop...')
+        
+        #go to the pawnshop
+        runScript('go2','pawnshop')
+        sell_all(' pawnshop...')
+      end
+    end
+    #go to the bank
+    runScript('go2','bank')
+    fput "deposit all"
+    fput "with #{@amount_of_coins_to_spend - checksilver} silver"
+    wait_for_rt
+    runScript('go2',19133) 
+end
+
+#action  = proc { |server_string|
+#  case server_string
+#    when /.*just arrived./
+#      nil
+#    when /.*just went up./
+#      nil
+#    when /.*just went down./
+#      nil
+#    when /.*just opened a/
+#      nil
+#    when /tries to empty the contents of his .* into his/
+#      nil
+#    when /tries to empty the contents of her .* into her/
+#      nil
+#    else
+#      server_string
+#  end
+#}
+
+DownstreamHook.remove('digger_squelch')
+
+loopcount = 0
+$shovel_counter = 0
+moneyspent = 0
+betweensellcount = 0
+$dig_room = Room.current.id
+
+if script.vars[1].to_s == "dig"
+  iluvdigging = Digger.new(@place_to_put_loot,@place_to_store_shovels,@amount_of_coins_to_spend,@max_money_to_spend,@donotloot)
+  iluvdigging.dig
+else
+  loop{
+    if loopcount < 1
+      msg " ------------------------------------------------------------"
+      msg " Starting DigDug - the Spitfire edition"
+      msg "                                       last edit 4/16 1:40pm EDT"
+      if @sell_loot
+        msg " "
+        msg " WARNING... You have enabled Digdug to sell your loot."
+        msg " "
+        if @use_digdug_sell_all
+          msg " It will attempt to sell EVERYTHING in the loot container you specified."
+          msg " If you are unsure of the status of your valuables in this container"
+          msg " STOP Digdug NOW  ( ;k digdug ) and sort out things out. (note you can also define a selling script)"
+        else
+          msg " DigDug is configured to activate the script: #{@selling_script} to sell your items."
+          msg " If this isn't correct, or it's not yet ready, STOP Digdug NOW  ( ;k digdug ) and sort out things out."
+        end
+      else
+        msg " "
+        msg " You are configured for manual selling.  DigDug will pause at a selling point."
+        msg " This setting is caused by the @sell_loot flag in the digdug_spits.lic file (edit with text editor)."
+      end
+        msg " "
+        msg " You can edit the donotpickup, and donotsell (applies to digdug selling) lines at the top of"
+        msg "  digdug_spits.lic file."
+        msg " "
+        msg " Digdug will...."
+        msg "    - Store loot in your #{@place_to_put_loot}, Store shovels in your #{@place_to_store_shovels}"
+        msg "    - Cast haste while digging." if $use_haste_for_digging
+        msg "    - will spend #{@amount_of_coins_to_spend} per round of digging"
+        msg "    - will spend a maximum of #{@max_money_to_spend} on shovels."
+        msg "    - will try to sell after #{@number_of_rounds_between_selling} rounds, or if encumbrance is at (or higher than) #{$stop_at_encumbrance_percent = 101}%."
+        msg "    - will not loot: #{@donotloot.to_s}"
+        if @use_digdug_sell_all
+          msg "    - will not sell #{@do_not_sell_list}"
+        end
+        msg " "
+        msg " -------------------------------------------------------------"
+        msg " All complaints will result in disruption being cast on you by Casis."
+        msg " Casis accepts no responsibility for sold/disgarded loots."
+        msg " "
+      if GameObj.loot.join(" ") !~ /chute/
+        msg " "
+        msg " ERROR - YOU MUST START DIGDUG IN A VALID DIGGING ROOM"
+        msg " Hint... Digging rooms include 18867, and surrounding rooms with a 'chute' in them."
+        msg " "
+        exit
+      end
+      sleep 10
+    end
+    if  percentencumbrance >= $stop_at_encumbrance_percent
+      msg " "
+      msg " Too encumbered to continue... time to evaluate the loot!"
+      msg " "
+      sleep 3
+      sell_my_loot
+    end
+    iluvdigging = Digger.new(@place_to_put_loot,@place_to_store_shovels,@amount_of_coins_to_spend,@max_money_to_spend,@donotloot)
+    iluvdigging.dreset
+    iluvdigging.load
+    iluvdigging.dig
+    loopcount = loopcount + 1
+    betweensellcount = betweensellcount + 1
+    moneyspent = moneyspent + @amount_of_coins_to_spend.to_i
+    msg " "
+    msg " DigDug has gone through #{$shovel_counter} shovels!"
+    msg " Digdug has had #{betweensellcount} digging sessions since last selling loot." if @sell_loot
+    msg " Current encumbrance is: #{percentencumbrance}%, limit is #{$stop_at_encumbrance_percent}%."
+    msg " You have spent #{moneyspent} silvers on this session of digdug."
+    msg " "
+    sleep 3
+      if betweensellcount >= @number_of_rounds_between_selling
+        sell_my_loot
+        betweensellcount = 0
+      end
+    if moneyspent > @max_money_to_spend.to_i
+      msg " "
+      msg " Digdug is exiting, as your max spending amount has been reached."
+      msg " "
+      break 
+    end
+  }
+end

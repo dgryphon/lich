@@ -1,0 +1,10 @@
+technologies I need to learn
+-hibernate
+-struts
+-MVC spring
+-spring
+-SOAP
+-REST
+-Entity relationships
+-continuous integration
+-junit

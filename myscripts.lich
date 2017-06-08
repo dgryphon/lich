@@ -1,0 +1,21 @@
+require "ftools"
+no_kill_all
+no_pause_all
+#hide_me
+
+=begin
+update: read the help ;enchant help
+
+A passive script for tracking enchant temper times, it makes a note anytime you pour a temper potion on an item.
+Add to favorites so that it's always running - ;fav add global enchantnotes.
+Usage: ;enchants - will show list of current projects for all characters you have access to
+by: Dgry (suggestions/bugs) dgry@hotmail.com
+known bugs: 
+=end
+
+
+@Filename = $script_dir + "enchantnotes.csv"
+
+for script in scriptlist
+   echo script
+end

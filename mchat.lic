@@ -1,0 +1,9 @@
+#mchat - sends sell thought to both lnet merchant channel and amunet
+#spammers rejoice!
+#
+#May add something more worthwhile later - Dgry
+
+lmessage = "chat on merchant "+script.vars[0].to_s 
+amessage = "think on merchant "+script.vars[0].to_s 
+send_to_script( 'lnet', [lmessage] )
+fput amessage

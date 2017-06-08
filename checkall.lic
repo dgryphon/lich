@@ -1,0 +1,43 @@
+# Thread.new {
+#                 while( line = get )
+# 					if (line =~ 
+# 						echo "Found something interesting!"
+# 					end
+#                 end
+#             };
+# 			
+begin
+action = proc { |server_string|
+	if server_string =~ /(worn)(.*)(short sword|mithril|ora|vultite|vaalorn|faenor)(.*)/
+		server_string = "FOUND SOMETHING\n"
+	elsif server_string =~ /see a fairly typical/
+		server_string = ""
+    elsif server_string =~ /appears to be in/
+		server_string = ""
+	elsif server_string =~ /nothing at this/
+		server_string = ""
+	else
+		server_string
+	end
+}			
+
+DownstreamHook.add('checkall', action) 
+	
+ensure
+	DownstreamHook.remove('checkall')	
+end	
+	
+lastroom = -1000000000
+			
+loop {
+
+# for npc in GameObj.npcs
+# for target in GameObj.npcs.find { |npc| npc.status.nil? }
+    wait_until {Room.current.id != lastroom}
+	lastroom = Room.current.id
+	silence_me	
+	for npc in checknpcs
+		fput "look #{npc}"		
+	end	
+
+}

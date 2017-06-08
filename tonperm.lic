@@ -1,0 +1,11 @@
+#surgeperm.lic
+#keeps up tonis permanently - requires mana
+# --Dgry
+# email: dgry@hotmail.com
+
+loop {
+		wait_while {Spell['tonis'].active?}
+		wait_while { mana < 35 }
+		fput "incant 1035"
+		pause 1					
+}

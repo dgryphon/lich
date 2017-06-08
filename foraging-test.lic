@@ -1,0 +1,84 @@
+
+# big list of rooms
+#roomslist = ['410', '222', '221', '225', '224', '286', '287', '280', '281', '265', '266', '267', '268', '249', '248', '247', '246', '243', '323', '320', '319', '275', '260', '259', '231', '230', '229', '282', '284', '289', '294', '293', '292', '291', '290', '296', '298', '299', '300', '301', '303', '304', '305', '308', '309', '315', '314', '312', '313', '316', '326', '327', '328', '335', '334', '336', '337', '375', '3878', '373', '374', '372', '369', '371', '370', '338', '339', '336', '367', '365', '368', '364', '361', '363', '362', '340', '341', '358', '359', '357', '360', '356', '353', '355', '354', '342', '343', '350', '351', '349', '352', '348', '347', '346', '345', '344']
+roomslist = [410, 222, 225, 286, 287, 280, 281, 265, 266, 267, 249, 248, 247, 246, 243, 323, 320, 319, 260, 259, 231, 282, 284, 289, 294, 293, 292, 291, 290, 296, 299, 301, 303, 304, 305, 309, 315, 314, 312, 313, 316, 326, 327, 328, 335, 334, 336, 337, 375, 3878, 373, 374, 372, 369, 371, 370, 338, 339, 336, 365, 368, 364, 361, 363, 362, 340, 341, 358, 359, 357, 360, 356, 353, 355, 354, 342, 343, 350, 351, 349, 352, 348, 347, 346, 345, 344]
+
+
+@lowestSuccess = 999999
+@highestFailure = 0
+
+for roomnum in roomslist
+	start_script('go2', [ roomnum, '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	fput "stance off"
+	#fput "kneel"	
+	#do-while foraging
+	line = ""
+	until (line =~ /You forage briefly and manage to find some acantha leaf|As you forage around, you notice that someone has been foraging here recently and you are unable to find anything/)
+		if checkleft
+			fput "stow left"		
+		end
+		if checkright
+			fput "stow right"		
+		end
+		if checkstanding
+			fput "kneel"
+		end	
+
+	#	if mana > 2
+	#		fput "incant 603"
+	#	end		
+		fput "forage acantha leaf"
+		line = get
+		#echo line
+		#echo "if statement"
+
+		if line =~ /d100\(Open\): ([-]*)([0-9]+)/ 
+			# herbsleft = $1.to_i
+			# @@coinamt = @@coinamt * $1.to_i		
+			#echo "here"
+			negative = $2.to_i
+			@currentRoll = $2.to_i
+			#echo @currentRoll
+			if line =~ /d100\(Open\): [-]([0-9]+)/ 
+			  echo 'negative - ignore'
+			else
+				line = get
+				if (line =~ /You forage briefly and manage to find some acantha leaf/)
+					if (@currentRoll < @lowestSuccess)
+						@lowestSuccess = @currentRoll
+						puts "New low success: " + @lowestSuccess.to_s()
+					end
+				else	
+					if (@currentRoll > @highestFailure)
+						@highestFailure = @currentRoll
+						puts "New high fail: " + @highestFailure.to_s()
+					end
+				end
+			end
+			#echo "end of line"
+			waitrt?
+			if (@highestFailure + 1 == @lowestSuccess || @highestFailure == @lowestSuccess || @highestFailure > @lowestSuccess)
+				puts "-------------------------------------------------------------------------------------"
+				puts "Highest failure: " + @highestFailure.to_s() + " Lowest Success: "+ @lowestSuccess.to_s()
+				puts "-------------------------------------------------------------------------------------"	
+				fput "time"				
+				exit
+			end			
+			#fput "forage acantha leaf"
+		else
+			echo "failed"
+		end
+	end 
+	 fput "drop leaf"
+	 fput "stand"
+	 waitrt?
+	 fput "stance def"
+	 puts "-------------------------------------------------------------------------------------"
+	 puts "Highest failure: " + @highestFailure.to_s() + " Lowest Success: "+ @lowestSuccess.to_s()
+	 puts "-------------------------------------------------------------------------------------"
+	 fput "time"
+
+end
+
+

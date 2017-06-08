@@ -1,0 +1,122 @@
+=begin
+
+	This script is obsolete.  Use ;repository download-updates
+
+	tillmen@lichproject.org
+
+=end
+
+if $SAFE > 0
+	echo "This script needs to be trusted to work properly. (;trust #{script.name})"
+	exit
+end
+
+if XMLData.game =~ /^GS/
+	port = 7153
+else
+	echo 'wrong game'
+	exit
+end
+
+get_lich_server = proc {
+	begin
+		lich_server = TCPSocket.open('216.224.171.85', port)
+	rescue
+		lich_server.close rescue()
+		lich_server = nil
+		echo "error connecting to server: #{$!}"
+	end
+	lich_server
+}
+
+repository_get = proc { |script_name,dir|
+	if lich_server = get_lich_server.call
+		lich_server.sync = true
+		lich_server.write('d')
+		lich_server.puts(script_name.sub(/\.[A-z]{1,3}$/, ''))
+		rsp = lich_server.gets.chomp
+		if rsp == "good"
+			fname = lich_server.gets.chomp
+			data = lich_server.readlines
+			File.open("#{dir}#{fname}", "w") { |file| file.puts(data.collect { |line| line.chomp }) }
+			lich_server.close
+			sleep 1
+			true
+		else
+			lich_server.close
+			sleep 1
+			false
+		end
+	else
+		nil
+	end
+}
+
+find_updates = proc {
+	if lich_server = get_lich_server.call
+		lich_server.sync = true
+		lich_server.write('L')
+		updated_scripts = Array.new
+		while line = lich_server.gets
+			name,size,time = line.split(';;')
+			updated_scripts.push(name) if (name == 'repository.lic') and (!File.exists?("#{$script_dir}#{name}") or (time.to_i > (File.mtime("#{$script_dir}#{name}").to_i)))
+		end
+		lich_server.close
+		sleep 1
+		updated_scripts
+	else
+		nil
+	end
+}
+
+if script.vars[1].downcase == 'update'
+	updated_scripts = find_updates.call
+	unless Settings['final-update']
+		if updated_scripts.include?('repository.lic')
+			if repository_get.call('repository.lic', $script_dir)
+				echo "updated repository.lic"
+				Settings['final-update'] = true
+			end
+		end
+	end
+	if script.vars.any? { |var| var =~ /forcemap/ }
+		echo 'reloading map database because of forcemap option (;e Map.reload)'
+		Map.reload
+	end
+	echo 'this script is obsolete - starting ;repository download-updates'
+	start_script 'repository', [ 'download-updates' ]
+elsif script.vars[1].downcase == 'check'
+	echo 'this script is obsolete - use ;repository'
+elsif (script.vars[1].downcase == 'add') and script.vars[2]
+	echo 'this script is obsolete - use ;repository set-updatable [scriptname]'
+elsif (script.vars[1] =~ /^rem(?:ove)$|^del(?:ete)?$/i) and script.vars[2]
+	echo 'this script is obsolete - use ;repository unset-updatable [scriptname]'
+elsif (script.vars[1].downcase == 'lich') and (script.vars[2] =~ /^on$|^off$/i)
+	if script.vars[2].downcase == 'on'
+		echo 'this script is obsolete - use ;repository set-lich-updatable'
+	elsif script.vars[2].downcase == 'off'
+		echo 'this script is obsolete - use ;repository unset-lich-updatable'
+	end
+elsif (script.vars[1].downcase == 'map') and (script.vars[2] =~ /^on$|^off$/i)
+	if script.vars[2].downcase == 'on'
+		echo 'this script is obsolete - use ;repository set-mapdb-updatable'
+	elsif script.vars[2].downcase == 'off'
+		echo 'this script is obsolete - use ;repository unset-mapdb-updatable'
+	end
+elsif script.vars[1].downcase == 'list'
+	echo 'this script is obsolete - use ;repository show-updatable'
+	unless Settings['scripts'].empty? and not Settings['lich'] and not Settings['map']
+		respond
+		respond 'To transfer your updater settings to repository:'
+		if Settings['lich'] == true
+			respond "   ;repository set-lich-updatable"
+		end
+		if Settings['map'] == true
+			respond "   ;repository set-mapdb-updatable"
+		end
+		Settings['scripts'].each { |s| respond "   ;repository set-updatable #{s}" }
+		respond
+	end
+else
+	echo 'this script is obsolete - use ;repository help'
+end

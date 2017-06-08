@@ -1,0 +1,201 @@
+=begin
+Delivers messages in Landing for Moot Hall clerk, a reply if necessary, deposit coins at bank, and return to the room you were in.
+Will wait 5 minutes after successful delivery and begin again (mandated wait period).
+If you leave it running, it will interrupt your hunt, etc and go get a new message every 5 minutes.
+Requires WALK and GO2 scripts.  Walk.lic is used to find the gypsy and the runner.
+~Moridin
+=end
+
+
+start:
+starting_room_id = Room.current.id
+waitrt?
+clear
+put "stow all"
+wait
+waitrt?
+clear
+start_script("go2", [ "7970", '_disable_confirm_' ])
+wait_while { running?("go2")}
+goto "ask"
+
+ask:
+waitrt?
+clear
+put "ask clerk for job"
+match "askagain", "\"I'm really sorry, "
+match "toosoon", "The clerk says, \"I just gave you a message not long ago\\."
+match "deliver", "Ahh, here we go, "
+match "old", "looks you over\\.  \"I think you're too experienced"
+matchwait
+
+old:
+waitrt?
+clear
+put "'I'm too old for this!"
+waitrt?
+clear
+put "whine"
+exit
+
+askagain:
+pause 1
+goto "ask"
+
+toosoon:
+pause 30
+goto "ask"
+
+deliver:
+waitrt?
+clear
+put "look my message"
+match "paupers", "House of Paupers doorkeeper"
+match "aspis", "House of the Argent Aspis doorkeeper"
+match "brigatta", "House of Brigatta gatekeeper"
+match "phoenix", "House of the Rising Phoenix doorkeeper"
+match "arcane", "House of the Arcane Masters doorkeeper"
+match "blacksmith", "to Iron Jack, the blacksmith"
+match "gypsy", "to the Gypsy Fortuneteller"
+match "runner", "to a Wehnimer's Runner "
+matchwait
+
+paupers:
+waitrt?
+clear
+start_script("go2", [ "7983", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give doorkeeper"
+goto "checkreply"
+
+aspis:
+waitrt?
+clear
+start_script("go2", [ "378", '_disable_confirm_' ])
+wait_while { running?("go2")}
+
+waitrt?
+clear
+put "give doorkeeper"
+goto "checkreply"
+
+brigatta:
+waitrt?
+clear
+start_script("go2", [ "274", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give gatekeeper"
+goto "checkreply"
+
+phoenix:
+waitrt?
+clear
+start_script("go2", [ "256", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give doorkeeper"
+goto "checkreply"
+
+
+arcane:
+waitrt?
+clear
+start_script("go2", [ "249", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give doorkeeper"
+goto "checkreply"
+
+blacksmith:
+waitrt?
+clear
+start_script("go2", [ "8616", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give blacksmith"
+goto "checkreply"
+
+gypsy:
+echo
+echo "NEED TO FIND THE GYPSY"
+echo
+waitrt?
+clear
+move "e"
+waitrt?
+clear
+move "out"
+waitrt?
+clear
+move "out"
+waitrt?
+clear
+start_script("walk",["fortuneteller"])
+wait_while { running?("walk")}
+waitrt?
+clear
+put "give fortuneteller"
+goto "checkreply"
+exit
+
+runner:
+echo
+echo "NEED TO FIND THE RUNNER"
+echo
+waitrt?
+clear
+move "e"
+waitrt?
+clear
+move "out"
+waitrt?
+clear
+move "out"
+waitrt?
+clear
+start_script("walk",["runner"])
+wait_while { running?("walk")}
+waitrt?
+clear
+put "give runner"
+goto "checkreply"
+
+checkreply:
+match "bank", "hands you some silvers"
+match "bank", "says to you, \"Well, no reply is needed,"
+match "goback", "take this reply"
+matchwait
+
+goback:
+waitrt?
+clear
+start_script("go2", [ "7970", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "give clerk"
+wait
+goto "bank"
+
+bank:
+waitrt?
+clear
+start_script("go2", [ "400", '_disable_confirm_' ])
+wait_while { running?("go2")}
+waitrt?
+clear
+put "deposit all"
+wait
+waitrt?
+clear
+start_script("go2", [ starting_room_id, '_disable_confirm_' ])
+wait_while { running?("go2")}
+pause 300
+goto "start"

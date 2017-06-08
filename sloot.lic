@@ -1,0 +1,718 @@
+#quiet
+=begin
+SpiffyLooter by SpiffyJr (SpiffyJr@gmail.com)
+ Description: The loot script to rule them all!
+Dependencies: slib
+	 
+TODO: Add phasing
+	  Add overflow sack
+=end
+
+#### Begin slib.lic required lines ####
+version = 2.28			# The current version of this script
+slib_version = 2.34		# The required slib version
+
+options = {
+	:author => 'SpiffyJr',
+	:email => 'SpiffyJr@gmail.com',
+	:name => 'SLoot',
+	:version => version
+}
+
+if (Script.exists?("slib"))
+	start_script('slib', [], attr={:quiet=>true}) unless defined?(SLib)
+	wait_while { running?('slib') }
+	if slib_version > SLib.version
+		smsg "#{script.name}: SLib is being upgraded to the latest version", true
+		SLib.upgrade
+		smsg "#{script.name}: Upgrade complete!"
+	end
+else
+	respond "#{script.name}: This script requires SLib #{slib_version.to_s}."
+	respond "#{script.name}: 1) ;repo download slib 2) ;slib 3) ;sloot setup"
+	exit
+end
+
+@me = SScript.new(options)
+#### End slib.lic required lines ####
+
+def show_skin_msg(critter)
+	success = @me.settings['stats'][critter]['success'].to_i
+	fail = @me.settings['stats'][critter]['fail'].to_i
+	total = success + fail
+	
+	@me.msg "Skin stats for #{critter}", true, true
+	smsg sprintf("    Success: %d/%d (%4.2f)%", success, total, success.to_f / total.to_f * 100.0), false, true
+	smsg sprintf("       Fail: %d/%d (%4.2f)%", fail, total, fail.to_f / total.to_f * 100.0), false, true
+end
+
+def skin_fail(critter)
+	@me.settings['stats'][critter] ||= Hash.new
+	@me.settings['stats'][critter]['fail'] ||= 0
+	@me.settings['stats'][critter]['fail'] += 1
+
+	show_skin_msg(critter) if @me.settings['verbose']
+end
+
+def skin_success(critter)
+	@me.settings['stats'][critter] ||= Hash.new
+	@me.settings['stats'][critter]['success'] ||= 0
+	@me.settings['stats'][critter]['success'] += 1
+	
+	show_skin_msg(critter) if @me.settings['verbose']
+end
+
+def check_args
+	case variable[1].downcase
+		when /__skin_fail__/		
+			skin_fail(variable[2])
+		when /__skin_success/
+			skin_success(variable[2])
+		when /__clear_disk__/
+			@me.settings['disk_ready'] = true
+		when /dump/i
+			@me.msg "Dumping SLoot settings", true, true
+			@me.settings.each_pair { |setting, value|
+				smsg sprintf("%25s: %-s", setting, value), false, true unless setting =~ /stats|noskin/
+			}
+		when /sell/i
+			do_sell
+		when /stats/i
+			show_stats
+		when /_clear_gtk_/
+			@me.settings['window_height'] = nil
+			@me.settings['window_position'] = nil
+			@me.settings['window_width'] = nil
+	end
+	
+	exit unless variable[1].nil?
+end
+
+def show_help
+	smsg sprintf('    %-25s          %s', 'setup', 'show graphical setup window'), false, true
+	smsg sprintf('    %-25s          %s', 'sell', 'sell items based on sell settings'), false, true
+	smsg sprintf('    %-25s          %s', 'stats', 'shows per creature skinning statistics'), false, true
+end
+
+def show_setup
+	done = false
+	save = false
+	
+	settings = @me.settings
+	
+	# Create a SGtk window
+	gtk = SGtk.new("#{@me.name} v#{@me.version} configuration for #{Char.name}", settings)
+	gtk.window.resizable = false
+	
+	Gtk.queue {
+		# Primary window		
+		vb = Gtk::VBox.new(false)
+		vb.set_border_width(5)
+		gtk.window.add(vb)
+	
+		# Notebook
+		nb = Gtk::Notebook.new
+		nb.set_show_border(true)
+		vb.pack_start(nb)
+		
+		# Buttons
+		tbl_btns = Gtk::Table.new(1, 6, true)
+		gtk.add_button(tbl_btns, 0, 5, 'Save', 'save')
+		gtk.add_button(tbl_btns, 0, 6, 'Close', 'close')
+		
+		vb.pack_start(tbl_btns)
+				
+		# Containers
+		tbl = Gtk::Table.new(8, 4, true)
+		tbl.set_border_width(5)
+		tbl.row_spacings = 2
+		tbl.column_spacings = 2
+		
+		gtk.add_entry(tbl, 0, 0, 'Alchemy:', 'alchemysack', Lich.alchemysack, :global)
+		gtk.add_entry(tbl, 0, 2, 'Ammo:', 'ammosack', Lich.ammosack, :global)
+		gtk.add_entry(tbl, 1, 0, 'Box:', 'boxsack', Lich.boxsack, :global)
+		gtk.add_entry(tbl, 1, 2, 'Forage:', 'foragesack', Lich.foragesack, :global)
+		gtk.add_entry(tbl, 2, 0, 'Gem:', 'gemsack', Lich.gemsack, :global)
+		gtk.add_entry(tbl, 2, 2, 'Herb:', 'herbsack', Lich.herbsack, :global)
+		gtk.add_entry(tbl, 3, 0, 'Jewelry:', 'jewelrysack', Lich.jewelrysack, :global)
+		gtk.add_entry(tbl, 3, 2, 'Lockpick:', 'lockpicksack', Lich.lockpicksack, :global)
+		gtk.add_entry(tbl, 4, 0, 'Magic:', 'magicsack', Lich.magicsack, :global)
+		gtk.add_entry(tbl, 4, 2, 'Scroll:', 'scrollsack', Lich.scrollsack, :global)
+		gtk.add_entry(tbl, 5, 0, 'Skin:', 'skinsack', Lich.skinsack, :global)
+		gtk.add_entry(tbl, 5, 2, 'Uncommon:', 'uncommonsack', Lich.uncommonsack, :global)
+		gtk.add_entry(tbl, 6, 0, 'Wand:', 'wandsack', Lich.wandsack, :global)
+		
+		gtk.add_checkbutton(tbl, 8, 0, 'Keep containers closed', 'close_sacks', settings['close_sacks'], :local)
+		gtk.add_checkbutton(tbl, 8, 1, 'Disk boxes', 'disk_boxes', settings['disk_boxes'], :local)
+		gtk.add_checkbutton(tbl, 8, 2, 'Loot using left hand', 'stow_left', settings['stow_left'], :local)
+		gtk.add_checkbutton(tbl, 8, 3, 'Loot only my drops', 'mine_only', settings['mine_only'], :local)
+		
+		nb.append_page(tbl, Gtk::Label.new('Containers'))
+		
+		# Loot options
+		tbl2 = Gtk::Table.new(6, 4, true)
+		tbl2.set_border_width(5)
+		tbl2.row_spacings = 2
+		tbl2.column_spacings = 2
+		
+		gtk.add_checkbutton(tbl2, 0, 0, 'Loot all critters', 'loot_all', settings['loot_all'], :local)
+		gtk.add_checkbutton(tbl2, 0, 1, 'Alchemy', 'pickup_alchemy', settings['pickup_alchemy'], :local)
+		gtk.add_checkbutton(tbl2, 0, 2, 'Ammo', 'pickup_ammo', settings['pickup_ammo'], :local)
+		gtk.add_checkbutton(tbl2, 0, 3, 'Boxes', 'pickup_box', settings['pickup_box'], :local)
+		gtk.add_checkbutton(tbl2, 1, 0, 'Forageables', 'pickup_forage', settings['pickup_forage'], :local)
+		gtk.add_checkbutton(tbl2, 1, 1, 'Gems', 'pickup_gem', settings['pickup_gem'], :local)
+		gtk.add_checkbutton(tbl2, 1, 2, 'Herbs', 'pickup_herb', settings['pickup_herb'], :local)
+		gtk.add_checkbutton(tbl2, 1, 3, 'Jewelry', 'pickup_jewelry', settings['pickup_jewelry'], :local)
+		gtk.add_checkbutton(tbl2, 2, 0, 'Lockpick', 'pickup_lockpick', settings['pickup_lockpick'], :local)
+		gtk.add_checkbutton(tbl2, 2, 1, 'Magic', 'pickup_magic', settings['pickup_magic'], :local)
+		gtk.add_checkbutton(tbl2, 2, 2, 'Scrolls', 'pickup_scroll', settings['pickup_scroll'], :local)
+		gtk.add_checkbutton(tbl2, 2, 3, 'Skins', 'pickup_skin', settings['pickup_skin'], :local)
+		gtk.add_checkbutton(tbl2, 3, 0, 'Uncommon', 'pickup_uncommon', settings['pickup_uncommon'], :local)
+		gtk.add_checkbutton(tbl2, 3, 1, 'Wands', 'pickup_wand', settings['pickup_wand'], :local)
+		gtk.add_checkbutton(tbl2, 4, 0, 'Autoloot after critter kill', 'autoloot', settings['autoloot'], :local)
+		gtk.add_checkbutton(tbl2, 4, 1, 'Autoloot only when safe', 'autoloot_safe', settings['autoloot_safe'], :local)
+		gtk.add_checkbutton(tbl2, 4, 2, 'Autoloot while hiding', 'autoloot_hiding', settings['autoloot_hiding'], :local)
+		gtk.add_checkbutton(tbl2, 5, 0, 'Vaccum mode', 'vaccum_mode', settings['vaccum_mode'], :local, "Not currently implemented")
+		gtk.add_checkbutton(tbl2, 5, 1, 'Pause scripts (vaccum only)', 'vaccum_mode_pause', settings['vaccum_mode_pause'], :local, "Not currently implemented")
+		
+		nb.append_page(tbl2, Gtk::Label.new('Looting'))
+		
+		# Skinning options
+		tbl3 = Gtk::Table.new(6, 4, true)
+		tbl3.set_border_width(5)
+		tbl3.row_spacings = 2
+		tbl3.column_spacings = 2
+		nb.append_page(tbl3, Gtk::Label.new('Skinning'))
+		
+		gtk.add_checkbutton(tbl3, 0, 0, 'Enable skinning', 'skin', settings['skin'], :local)
+		gtk.add_checkbutton(tbl3, 0, 1, 'Skin with left hand', 'skin_left', settings['skin_left'], :local)	
+		gtk.add_checkbutton(tbl3, 1, 0, 'Skin with alternate', 'skin_alternate', settings['skin_alternate'], :local)
+		gtk.add_checkbutton(tbl3, 1, 1, 'Skin in offensive', 'skin_offensive', settings['skin_offensive'], :local)
+		gtk.add_checkbutton(tbl3, 2, 0, 'Close alternate sack', 'skin_alternate_close', settings['skin_alternate_close'], :local)
+		gtk.add_checkbutton(tbl3, 2, 1, 'Kneel to skin', 'skin_kneel', settings['skin_kneel'], :local)
+		gtk.add_checkbutton(tbl3, 3, 1, 'Use 604 (skinning)', 'skin_604', settings['skin_604'], :local) if Stats.prof == 'Ranger'
+		gtk.add_checkbutton(tbl3, 3, 0, 'Enable verbose mode', 'verbose', settings['verbose'], :local, "Verbose mode displays skin information after each skin attempt")
+		gtk.add_checkbutton(tbl3, 4, 0, 'Safe mode skin', 'skin_safe', settings['skin_safe'], :local, "Will only kneel/offensive if there are no other critters present")
+		
+		gtk.add_entry(tbl3, 0, 2, 'Alternate weapon:', 'skinweapon', Lich.skinweapon, :global)
+		gtk.add_entry(tbl3, 1, 2, 'Alternate sack:', 'skinweaponsack', Lich.skinweaponsack, :global)
+		gtk.add_entry(tbl3, 2, 2, 'Stand command:', 'stand_command', settings['stand_command'], :local)
+		
+		# Selling options
+		tbl = Gtk::Table.new(6, 4, true)
+		tbl.set_border_width(5)
+		tbl.row_spacings = 2
+		tbl.column_spacings = 2
+		nb.append_page(tbl, Gtk::Label.new('Selling'))
+		
+		gtk.add_checkbutton(tbl, 0, 0, 'Alchemy', 'sell_alchemy', settings['sell_alchemy'], :local)
+		gtk.add_checkbutton(tbl, 0, 1, 'Gems', 'sell_gem', settings['sell_gem'], :local)
+		gtk.add_checkbutton(tbl, 0, 2, 'Jewelry', 'sell_jewelry', settings['sell_jewelry'], :local)
+		gtk.add_checkbutton(tbl, 0, 3, 'Lockpicks', 'sell_lockpick', settings['sell_lockpick'], :local)
+		gtk.add_checkbutton(tbl, 1, 0, 'Magic', 'sell_magic', settings['sell_magic'], :local)
+		gtk.add_checkbutton(tbl, 1, 1, 'Scrolls', 'sell_scroll', settings['sell_scroll'], :local)
+		gtk.add_checkbutton(tbl, 1, 2, 'Skins', 'sell_skin', settings['sell_skin'], :local)
+		gtk.add_checkbutton(tbl, 1, 3, 'Wands', 'sell_wand', settings['sell_wand'], :local)
+		gtk.add_checkbutton(tbl, 3, 0, 'Gold Rings -> Chrono', 'sell_chronomage', settings['sell_chronomage'], :local, "Takes all gold rings and gives them to the Chronomages")
+		gtk.add_checkbutton(tbl, 3, 1, 'Require hands to be empty', 'sell_empty_hands', settings['sell_empty_hands'], :local, "Requires hands to be empty to sell")
+		gtk.add_checkbutton(tbl, 3, 2, 'Force deposit', 'sell_force_deposit', settings['sell_force_deposit'], :local, "Enabling this will force a bank deposit even if you had no items to sell")
+		gtk.add_checkbutton(tbl, 3, 3, 'Enable townsmith', 'sell_townsmith', settings['sell_townsmith'], :local, "Enabling this will get your boxes picked at the NPC locksmith\nAll good ideas from Sangreal's townsmith script")
+		gtk.add_checkbutton(tbl, 4, 0, 'Share silvers before deposit', 'sell_share', settings['sell_share'], :local, "Shares silvers with group before depositing")
+		gtk.add_entry(tbl, 6, 0, 'Exclusions:', 'sell_exclude', settings['sell_exclude'], :local, "Exclude items you want to keep using regular expression format\nEx: crystal|gold wand|coin")
+		gtk.add_entry(tbl, 6, 2, 'Withdraw:', 'sell_withdraw', settings['sell_withdraw'], :local, "Amount of coins to withdraw after selling\nUseful for places like Icemule with the gate")
+		
+	
+		# Signals
+		gtk.window.signal_connect('delete_event') { done = true }
+		gtk.button['close'].signal_connect('clicked') { done = true }
+		gtk.button['save'].signal_connect('clicked') { save = true }
+		gtk.window.show_all
+	}
+	
+	before_dying { gtk.destroy_window(@me.settings)	}
+	
+	loop {
+		if save
+			@me.msg "Settings saved", true
+			
+			gtk.save_settings
+			
+			$sloot_autoloot_hiding = @me.settings['autoloot_hiding']
+			$sloot_autoloot_safe = @me.settings['autoloot_safe']
+			
+			hook_autoloot
+			hook_disk
+			save = false
+		end
+		break if done
+		
+		sleep 0.10
+		}
+	exit
+end
+
+# Shows skinning stats
+def show_stats
+	smsg sprintf("#### %-28s     %s         (%%)      %s         (%%)", "Critter", "Success", "Fail"), true, true
+	count = 0
+	total_success = 0
+	total_fail = 0
+	@me.settings['stats'].keys.sort.each { |critter|
+		success = @me.settings['stats'][critter]['success'].to_i
+		fail = @me.settings['stats'][critter]['fail'].to_i
+		total = success + fail
+		
+		total_success+= success
+		total_fail+= fail
+		
+		smsg sprintf("%3d. %-30s     %5d     %6.2f%%     %5d     %6.2f%%", (count+= 1), critter, success, success.to_f / total.to_f * 100.0, fail, fail.to_f / total.to_f * 100.0), false, true
+	}
+	
+	total = total_success + total_fail
+	
+	respond
+	
+	smsg sprintf("%s       (%%)      %s     (%%)", "T Success", "T Fail"), true, true
+	smsg sprintf("    %5d   %6.2f%%       %5d %6.2f%%", total_success, total_success.to_f / total.to_f * 100.0, total_fail, total_fail.to_f / total.to_f * 100.0), false, true
+end
+
+# Downstream hook used for autolooting
+def hook_autoloot
+	if (!@me.setting_enabled?('autoloot'))
+		DownstreamHook.remove('SLootAutoloot')
+	else
+		action = proc { |server_string|
+			if ((!$sloot_autoloot_safe or ($sloot_autoloot_safe and SNpc.find_all.nil?)) and (!$sloot_autoloot_hide or ($sloot_autoloot_hide and !hiding?)))
+				if (server_string =~ /You .* <a exist="(\d+)" noun="(\w+)">\w+<\/a>.*!/)
+					start_script('sloot') if SNpc.find('id', $1).status == 'dead' and !running?('sloot')
+				end
+			end
+			
+			server_string
+		}
+		DownstreamHook.add('SLootAutoloot', action)
+	end
+end
+
+# Downstream hook used tell when a box has been emptied
+def hook_disk
+	if (!@me.setting_enabled?('disk_boxes'))
+		DownstreamHook.remove('SLootDisk')
+	else
+		action = proc { |server_string|
+			if (server_string =~ /from in the <a exist="(?:\d+)" noun="disk">.*#{Char.name} disk<\/a>|You give your disk a flip|A small circular container suddenly appears and floats rather serenely over to you|^(?:.+) #{Char.name} disk in a dismissing gesture./)
+				start_script('sloot', [ "__clear_disk__" ]) if !running?('sloot')
+			end
+				
+			server_string
+		}
+		DownstreamHook.add('SLootDisk', action)
+	end
+end
+
+# Downstream hook for vaccum mode
+def hook_vaccum
+	
+end
+
+# Downstream hook used for skinning statistics
+#def hook_skin
+#	if (!@me.setting_enabled?('skin'))
+#		DownstreamHook.remove('SLootSkin')
+#	else
+#		action = proc { |server_string|	
+#			if (server_string =~ /You botched the job/)
+#				start_script('sloot', [ "__skin_fail__" ]) if !running?('sloot')
+#			elsif (server_string =~ /You skinned the/)
+#				start_script('sloot', [ "__skin_success__" ]) if !running?('sloot')
+#			end
+#				
+#			server_string
+#		}
+#		DownstreamHook.add('SLootSkin', action)
+#	end
+#end
+
+def deposit_coins
+	SGoto.go2('bank');
+	
+	if (@me.setting_enabled?('sell_share'))
+		coins = silver
+		fput "share #{coins}" if coins > 0
+	end
+	fput "deposit all" 
+	
+	if (@me.settings['sell_withdraw'] and @me.settings['sell_withdraw'].to_i > 0) 
+		fput "withdraw #{@me.settings['sell_withdraw']}"
+	end
+end
+
+def do_loot(loot, loot_ids = Array.new)
+	open_sacks = Array.new
+	
+	loot.each_pair { |type, list|
+		if list.length > 0 && @me.setting_enabled?("pickup_#{type.to_s}")
+			if handsfull?
+				@stow_id = stowright unless @me.setting_enabled?('stow_left')
+				@stow_id = stowleft if @me.setting_enabled?('stow_left')
+			end
+			
+			list.each { |item|
+				next if @me.setting_enabled?('mine_only') and !loot_ids.nil? and !loot_ids.include?(item.id.to_i)
+				if (type == :box and @me.setting_enabled?('disk_boxes'))
+					next if disk_box(item.id)
+				end
+				
+				sack = SInv.get(Lich.send("#{type}sack"))
+				if (sack.nil?)
+					@me.msg "ERROR *** Unable to find sack \"#{Lich.send("#{type}sack")}\" in your inventory!", true
+					@me.msg "Skipping loot #{item.name}"
+				else
+					open_sacks << sack if @me.setting_enabled?('close_sacks') && !open_sacks.include?(sack)
+					grab(sack.id.to_i, "##{item.id}")
+				end
+			}
+		end
+	}
+
+	fput "get ##{@stow_id}" unless @stow_id.nil?
+	open_sacks.each { |sack| fput "close #{sack}" }
+end
+
+def do_townsmith
+	boxes = Array.new
+	disk_boxes = Array.new
+	disk = nil
+	
+	if (@me.setting_enabled?('disk_boxes'))
+		@me.msg "Checking for disk", true
+		if !(disk = check_disk).nil?
+			if !(disk_loot = SLoot.checkloot(:box, disk.id.to_i)[:box]).nil?
+				disk_boxes += disk_loot
+			end
+		end
+	end
+
+	@me.msg "Checking #{UserVars.boxsack}", true
+	boxes += SLoot.checkloot(:box, UserVars.boxsack)[:box]
+	
+	if (boxes.size > 0 || disk_boxes.size > 0)
+		if (silver < 10000) 
+			deposit_coins
+			res = dothistimeout "withdraw 10000 silver", 2, /withdraw/
+		end
+		
+		SGoto.go2('locksmith')
+		unless trash = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun =~ /^(?:crate|barrel|wastebarrel|casket)$/ } || trash = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun == 'coffer' }
+			@me.msg "Unable to locate trash bin", true
+			return
+		end
+		
+		unless table = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun =~ /^(?:table|counter)$/ }
+			@me.msg "Unable to locate table", true
+			return
+		end
+		
+		if table.contents.nil? and (dothis "look on ##{table.id}", /On the .*? you see/) and table.contents.nil?
+			@me.msg "Fix me (#0x01)!", true
+			return
+		end
+		
+		if table.contents.find { |obj| obj.noun == 'bell' }
+			activator = 'ring bell'
+		elsif table.contents.find { |obj| obj.noun == 'keys' }
+			activator = 'pull keys'
+		elsif table.contents.find { |obj| obj.noun == 'chime' }
+			activator = 'ring chime'
+		else
+			@me.msg "Fix me (#0x02)!", true
+			return
+		end
+		
+		loot_box = proc { |box|
+			dothistimeout "get ##{box.id}", 2, /You remove/
+			dothistimeout "put ##{box.id} on #{table}", 2, /You put/
+			fput "unhide" if invisible? or hiding?
+			res = dothistimeout activator, 4, /|but it'll cost|so he can look at it/
+			if (res =~ /so he can look at it/)
+				fput "get ##{box.id}"
+			else
+				fput "pay"
+				fput "get ##{box.id}"
+				fput "open ##{box.id}"
+				fput "get coins from ##{box.id}"
+				waitrt?
+				box_loot = SLoot.checkloot(SLoot.db.keys, GameObj.right_hand.id.to_i)
+				do_loot(box_loot, nil)
+			end
+			
+			res = dothistimeout "put ##{box.id} in #{trash}", 2, /There appears to be an item or items|pleased/
+			fput "put ##{box.id} in #{trash}" if holding?(box.id)
+		}
+		
+		boxes.each { |box| loot_box.call(box) }
+		
+		if (disk_boxes.size > 0)
+			@me.msg "Waiting on your disk to arrive", true
+			if !(disk = check_disk).nil?
+				disk_boxes.each { |box| loot_box.call(box) }
+			end
+		end
+	else
+		@me.msg "Dag nabbit, ain't got no boxes!", true
+	end
+	
+	sleep 2
+end
+
+def do_sell
+	@cur_room = Room.current.id
+	hiding = hiding?
+	
+	if (!handsempty? and @me.setting_enabled?('sell_empty_hands'))
+		@me.msg "Selling requires your hands to be empty!", true
+		exit
+	end
+	
+	do_townsmith if @me.setting_enabled?('sell_townsmith')
+	
+	selling = {
+		:alchemy => { :location => 'consignment' },
+		:gem => { :location => 'gemshop' },
+		:jewelry => { :location => 'gemshop' },
+		:lockpick => { :location => 'pawnshop' },
+		:magic => { :location => 'pawnshop' },
+		:scroll => { :location => 'pawnshop' },
+		:skin => { :location => 'furrier' },
+		:wand => { :location => 'pawnshop' }
+	}
+	
+	open_sacks = Array.new
+	found_sacks = Array.new
+	found_rings = Array.new
+	found_loot = Hash.new
+	total_loot = 0
+	
+	selling.each_key { |type, info|
+		if (@me.setting_enabled?("sell_#{type.to_s}"))
+			sack = SInv.get(Lich.send("#{type.to_s}sack"))
+			next if sack.nil?
+						
+			if found_sacks.include?(sack)
+				loot = found_loot[sack.id][type]
+			else
+				open_sacks << sack if @me.setting_enabled?('close_sacks') && !open_sacks.include?(sack)
+				fput "open ##{sack.id}" if @me.setting_enabled?('close_sacks')
+				
+				found_loot[sack.id] = SLoot.checkloot(SLoot.db.keys, "##{sack.id}")
+				found_sacks << sack
+				
+				loot = found_loot[sack.id][type]
+			end
+			
+			next if loot.nil?
+												
+			# Exclusions and rings
+			loot.delete_if { |item|				
+				if (item.name.strip =~ /#{@me.settings['sell_exclude']}/ and @me.settings['sell_exclude'].strip != '')
+					true
+				elsif (type == :jewelry and item.name.strip =~ /gold ring/ and @me.setting_enabled?('sell_chronomage'))
+					found_rings << item
+					true
+				end
+			}
+					
+			total_loot += loot.size	
+			
+			selling[type][:loot] = loot
+			selling[type][:sack] = sack
+		end
+	}
+	
+	if (total_loot == 0 and found_rings.size == 0) 
+		@me.msg "Sorry bum, you ain't got nuttin' to sell!", true
+	end
+	
+	if (total_loot > 0)
+		@me.msg "sell started", true, true
+		selling.each_pair { |type, info| smsg sprintf("%10s: %s items", type, info[:loot].size), false, true if info[:loot].size }	
+	
+		sleep 2
+		
+		total_made = 0
+		start_amount = silver
+		selling.each_pair { |type, info|
+			if (info[:loot].size > 0)
+				SGoto.go2(info[:location])
+				info[:loot].each { |item|
+					dothistimeout "get ##{item.id}", 2, /You remove/
+					dothistimeout "sell ##{item.id}", 2, /You ask/
+					fput "drop ##{item.id}" if holding?(item.id)
+				}
+				
+				selling[type][:coin] = (silver - total_made - start_amount)
+				total_made+= selling[type][:coin]
+			end
+		}
+				
+		open_sacks.each { |sack| fput "close ##{sack.id}" if @me.setting_enabled?("sell_#{type.to_s}") and @me.setting_enabled?("close_sacks") }
+		
+		if (silver > 0) then 
+			deposit_coins
+		end
+	end
+	
+	if (found_rings.size > 0)
+		@me.msg "Giving rings to the chronomage", true
+		SGoto.go2('chronomage')
+		npc = SNpc.find_all[0].noun
+		found_rings.each { |ring| 
+			fput "get ##{ring.id}"
+			fput "give ##{ring.id} to #{npc}"
+		}
+	end
+
+	# Force deposit even if total loot was 0 and force_deposit is enabled
+	deposit_coins if (total_loot == 0 and @me.setting_enabled?('sell_force_deposit') and silver > @me.settings['sell_withdraw'].to_i)
+	
+	SGoto.go2(@cur_room)
+	
+	if (total_loot > 0)
+		@me.msg "Selling complete", true
+		smsg "   You made a total of #{total_made.to_s} silver(s)!"
+		
+		selling.each_pair { |type, info| smsg sprintf("%10s: %s", type, info[:coin].to_s) if info[:loot].size > 0 and info[:coin] > 0 }
+	end
+	
+	# Rehide if hiding before
+	if (hiding)
+		tries = 0
+		until(hiding? or tries > 3)
+			waitrt?
+			fput "hide"
+			tries+= 1
+		end
+	end
+end
+
+def check_disk
+	disk = nil
+	20.times { break if disk = SLoot.find('name', /#{Char.name} disk/); sleep 0.2 }
+	disk
+end
+
+def safe_to_skin
+	return true unless @me.setting_enabled?('skin_safe')
+	return SNpc.find_all('status', 'dead') == GameObj.npcs.size
+end
+
+def disk_box(box)
+	return false if @me.settings['disk_ready'] == false
+	
+	if (!(disk = SLoot.find('name', "#{Char.name} disk")))
+		@me.msg "Waiting on your disk to arive", true
+		
+		disk = check_disk
+		if (!disk)
+			@me.msg "You don't seem to have a disk", true
+			
+			if (Stats.prof == "Wizard" and Spells.majorelemental > 10)
+				@me.msg "Since you're a wizard I'll cast one for you", true
+				
+				if (!checkmana(11))
+					@me.msg "Not enough mana!", true
+					return false
+				end
+				
+				fput "incant 511"
+			else
+				@me.settings['disk_ready'] = false
+			end
+		end
+	end
+
+	return false unless disk
+	fput "get ##{box}"
+	if (!putitem("##{box}", disk.id.to_i))
+		@me.settings['disk_ready'] = false
+		return false
+	end
+	
+	return true
+end
+
+@me.load_settings
+
+$sloot_autoloot_hiding = @me.settings['autoloot_hiding']
+$sloot_autoloot_safe = @me.settings['autoloot_safe']
+
+@me.settings['skin_count'] ||= 0
+@me.settings['fail_count'] ||= 0
+@me.settings['success_count'] ||= 0
+@me.settings['noskin'] ||= Array.new
+@me.settings['stats'] ||= Hash.new
+
+before_dying { @me.save_settings }
+
+show_help if @me.show_help?
+show_setup if @me.show_setup?
+
+check_args
+
+loot_types = Array.new
+before = Array.new
+after = Array.new
+my_loot = Array.new
+@stow_id = nil
+
+before = GameObj.loot.to_a.collect { |obj| obj.id.to_i } if @me.setting_enabled?('mine_only')
+
+SNpc.find_all('status', 'dead').each { |critter|
+	waitrt?
+	
+	if @me.setting_enabled?('skin') and !@me.settings['noskin'].include?(critter.name)
+		@stow_id = stowleft if @me.setting_enabled?('skin_alternate') and checkleft and @me.setting_enabled?('skin_left') and @stow_id.nil?
+		@stow_id = stowright if @me.setting_enabled?('skin_alternate') and checkright and !@me.setting_enabled?('skin_left') and @stow_id.nil?
+		fput "open my #{Lich.skinweaponsack}" if @me.setting_enabled?('skin_alternate_close')
+		fput "get my #{Lich.skinweapon} from my #{Lich.skinweaponsack}" if @me.setting_enabled?('skin_alternate')
+		fput "close my #{Lich.skinweaponsack}" if @me.setting_enabled?('skin_alternate_close')
+	
+		fput '_cast 604' while @me.setting_enabled?('skin_604') and Spell[604].affordable? and !Spell[604].active?
+		fput 'kneel' if @me.setting_enabled?('skin_kneel') and safe_to_skin
+		cur_stance = checkstance
+		fput "stance offensive" if @me.setting_enabled?('skin_offensive') and safe_to_skin
+		fput sprintf("skin #%d%s", critter.id, if @me.setting_enabled?('skin_left') then ' left' else '' end)
+		line = matchtimeout 1, "skinned", "botched", "already been", "cannot skin", "must be a member", "can only skin"
+		fput "stance #{cur_stance}" if @me.setting_enabled?('skin_offensive')
+		if (line =~ /skinned/)
+			skin_success(critter.name)
+		elsif (line =~ /cannot skin/)
+			@me.settings['noskin'] << critter.name
+		else
+			skin_fail(critter.name)
+		end
+		
+		fput "put my #{Lich.skinweapon} in my #{Lich.skinweaponsack}" if @me.setting_enabled?('skin_alternate')
+
+		if !@me.settings['stand_command'].nil?
+			fput @me.settings['stand_command'] until standing?
+		else 
+			fput "stand" until standing?
+		end
+	end
+	
+	res = dothistimeout "loot ##{critter.id}", 2, /You search/
+	break unless @me.setting_enabled?('loot_all')
+}
+
+if (@me.setting_enabled?('mine_only'))
+	after = GameObj.loot.to_a.collect { |obj| obj.id.to_i };
+	my_loot = after - before
+end
+
+@me.settings.each_pair { |key, value| loot_types << $1.to_sym if key =~ /pickup_(\w+)/ }
+do_loot(SLoot.checkloot(loot_types), my_loot)
+
+# Downstream hooks
+hook_autoloot
+hook_disk

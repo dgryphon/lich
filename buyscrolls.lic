@@ -1,0 +1,108 @@
+
+=begin
+# blah blah blah
+=end
+
+def main()
+scrolls = ['paper', 'scroll', 'parchment', 'papyrus', 'palimpsest', 'tome', 'book', 'vellum']
+spells = ["203", "211", "215", "603", "606", "610", "420"]
+
+	if table = (GameObj.loot.to_a + GameObj.room_desc.to_a).find { |obj| obj.name == 'magic table' || obj.name == 'arcane table'}
+	
+		count = Hash.new
+		dothistimeout "look on ##{table.id}", 3, /^On the .* you see/
+		unless table.contents.empty?
+		#if table.contents.any? { |obj| obj.name =~ /scroll|vellum|paper|palimpsest/ }
+		con = table.contents
+		
+		if con.map { |m| scrolls.include?(m.to_s) }.include?(true)
+			empty_hands
+			#dothistimeout "get ##{note.id}", 10, /^You remove|^You already have that\./
+			for obj in table.contents
+				if scrolls.include?(obj.noun)
+					unless count[obj.name]
+					#fput "read ##{obj.id}"
+					rslt =  mread_scroll(obj.id)
+					#echo spells
+					if (rslt.map { |n| spells.include?(n) }.include?(true))
+						echo "---------------------MATCH--------------------"
+						echo obj.name
+						echo rslt
+						echo "---------------------MATCH--------------------"
+					end
+					
+					#count[obj.name] = all_sack_contents.call.find_all { |o| o.name == obj.name }.length
+				end
+			end		
+		end
+	end
+end
+end
+end
+
+def mread_scroll(scroll_id)
+
+	reading_scroll = true
+	max_lines = 7
+	curr_lines = 0
+	curr_spell = 0
+	curr_scroll_info = Array.new
+	first = true
+	
+	fput "read ##{scroll_id}"
+	
+	waitfor "you see"
+	line = ""
+	
+	while(reading_scroll)
+	
+		# wait 1s for next scroll line
+	
+		line = matchtimeout 1, "\\(", "unreadable"
+		
+		if(line =~ /\(|unreadable/)
+		
+			#echo "got line: #{line}"
+		
+			spell = line[/\(([0-9]+)\)| ([0-9]*) unreadable/, 1]
+			spell_name = line[/\([0-9]+\) (.*)/, 1]
+
+			spell = spell.to_i
+
+			if(spell < 100 && spell > 1) 
+
+				spell_name = "unreadable spells"
+
+			elsif(spell < 100 && spell < 2)
+
+				spell_name = "unreadable spell"
+
+			end
+			
+			if(spell != nil && spell_name != nil)
+		
+				#echo "found a spell: #{spell}, #{spell_name}"
+			
+				spell_info = "#{spell}"
+				
+				curr_scroll_info[curr_spell] = spell_info
+			
+				curr_spell = curr_spell + 1
+			
+			end
+		
+		else
+		
+			reading_scroll = false
+		
+		end
+	
+	end
+	
+	return curr_scroll_info
+
+end
+
+main
+
+

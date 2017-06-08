@@ -1,0 +1,72 @@
+=begin
+
+	This script answers all your questions.
+
+	tillmen@lichproject.org
+
+=end
+
+game_months = [ 'Lormesta', 'Fashanos', 'Charlatos', 'Olaesta', 'Ivastaen', 'Lumnea', 'Koaratos', 'Phoenatos', 'Imaerasta', 'Jastatos', 'Eoantos', 'Eorgaen' ]
+game_days = [ 'Restday', 'Volnes', 'Tilamaires', 'Leyan', 'Niiman', 'Day of the Huntress', 'Feastday' ]
+town_list = {
+	# fixme: missing towns... use location verb?
+	'[Dragonspine and Imflass]' => 'teras',
+	'[Town Square, West]' => 'landing',
+}
+unless town = town_list[checkroom]
+	unless town = script.vars[1]
+		echo "unable to figure out what town you're in... start the script with ;answers <town name>"
+		exit
+	end
+end
+
+
+while line = get
+	if line =~ /^(?:The city official says, "|The muffled voice of a guard echoes from beyond the cell door, "Roll call!  Time to make sure you're still alive and causing me grief!  )#{checkname}, ANSWER me these questions in order, one at a time, and within two minutes.  What is (.*?), (.*?), and (.*?)\?\"$/
+		for question in [ $1, $2, $3 ]
+			sleep 3 + rand(5)
+			if question == "your name"
+				fput "answer #{Char.name.downcase}"
+			elsif question == "your gender"
+				fput "answer #{Char.gender.downcase}"
+			elsif question == "your race"
+				fput "answer #{Char.race.downcase}"
+			elsif question == "your profession"
+				fput "answer #{Char.prof.downcase}"
+			elsif question == "the name of the city you were charged in for your crimes"
+				fput "answer #{town}"
+			elsif question == "the number of the hour of the day in elven time"
+				server_time = Time.at(Time.now.to_f + XMLData.server_time_offset.to_f).getutc - 18000
+#				server_time += 3600 if server_time.isdst # fixme, utc time always says isdst is false
+				server_time += 3600 if Time.now.isdst
+				fput "answer #{server_time.hour}"
+			elsif question == "today's day of the week"
+				fput "answer #{game_days[(Time.at(XMLData.server_time).getutc - 14400).wday]}"
+			elsif question == "today's month"
+				fput "answer #{game_months[(Time.at(XMLData.server_time).getutc - 14400).month-1]}"
+			elsif question == "the year"
+				fput "answer #{(Time.at(XMLData.server_time).getutc - 14400).year+3100}"
+			end
+		end
+	elsif line =~ /^With that, the official walks over to you and sets you free\.|^You do remember the judge telling you that you need to pick up your belongings as soon as possible, lest they be sold to the poor\.|^You ponder what you should do now for a moment, and realize that since you've served your punishments,/
+		break
+	elseif line == "YOU HAVE BEEN IDLE TOO LONG. PLEASE RESPOND."
+		put 'exp'
+	end
+end
+
+=begin
+location = proc {
+	put "location"
+	put "look"
+	while line = get
+		if line =~ /(Solhaven|Landing|Icemule|Teras|Ta'Illistim)/
+			return $1
+		end
+	end
+}
+unless town = town_list[checkroom]
+	town = location.call
+	echo "** Town recognized as: [#{town}] **"
+end
+=end

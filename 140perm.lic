@@ -1,0 +1,21 @@
+#surgeperm.lic
+#keeps up surge permanently - requires 60 stamina
+# --Dgry
+# email: dgry@hotmail.com
+
+loop {
+		num = '140'
+		wait_while {Spell[num].active?}	#surge already running
+		if Spell[num].affordable?
+			until Spell[1603].active?
+				Spell['1603'].cast
+				waitrt?
+				waitcastrt?			
+				pause 1
+			end
+			Spell[num].cast
+			waitrt?
+			waitcastrt?			
+			pause 1
+		end
+}

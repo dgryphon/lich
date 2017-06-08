@@ -1,0 +1,42 @@
+# This is an exceedingly simple, but exceedingly useful script. It walks around in random directions (never backtracking unless it hits a dead-end) until it finds a critter. Personally, I use it almost constantly when I hunt, but it also serves to demonstrate usage of the 'walk' command.
+
+famcheck = Array.new
+while true
+	until walk
+		if $stormfront
+			waitfor("Obvious [A-z]+:")
+		end
+		nil # Do nothing... just keep cycling until WALK returns a 'true' value, which it does only when an NPC is in the room it walks into.
+	end
+	next if checkpcs
+# Assume that if there's a disk in the room the critter is taken (unless it's this character's disk), and if there's a void (like you find in the rift) move two rooms away.
+	diskcheck = waitfor("You also see ", "You notice")
+	if diskcheck =~ /a swirling black void/
+		2.times { walk }
+		next
+	elsif diskcheck =~ /([A-Z][a-z]+) disk/
+		next unless $1 == checkname
+	end
+
+# If the user didn't enter any specific critter names to look for, go ahead and check if any NPCs found are familiars.
+	if script.vars.empty?
+# Since in Wizard, familiars are highlighted just like critters, Lich can't tell the difference -- this puts the array of critters in the room into the 'famcheck' variable, then deletes any critters by the name of 'mouse' or 'halberd' (Bard's animated weapons are also highlighted like NPCS) from the 'famcheck' array. If after this the 'famcheck' variable is nothing but an empty array, start over at the beginning of the loop (meaning, go back to walking around).
+		famcheck = checknpcs
+		famcheck.delete('mouse')
+		famcheck.delete('halberd')
+		if famcheck.empty?
+			next
+		else
+			exit
+		end
+# If the user DID enter specific critters to look for, store the list of present NPCs in the 'usercheck' variable and see if any of the critters we're looking for are in it.
+	else
+		usercheck = checknpcs
+		if script.vars.find { |lookingfor| usercheck.include?(lookingfor) }
+#		if checknpcs.join(' ') =~ /#{script.vars[1..-1].join('|')}/i
+			exit
+		else
+			next
+		end
+	end
+end

@@ -1,0 +1,64 @@
+roomlist
+
+while line = get
+
+	if line =~ /SHOP INVENTORY/
+	
+		while line = get
+			if line =~ /Total number of items/
+				break
+			end
+			
+			if line =~ /.../
+			    #ignore
+			else
+				#add an item to the list
+				roomlist.push(line)
+			end
+		end
+	
+	end
+	
+end
+
+
+class FileIO2
+
+	def initialize(title = nil)
+		@Filename = $script_dir + "shopnotes.csv"
+	end
+	
+	def addNew(enchantList)
+		f = File.open(@Filename, "w")
+		for proj in enchantList
+			name, encItem, encItemID, calcTime, calcTime2, pouredDay = proj.split(",")
+			#if encItemID != ""
+				f.puts proj
+			#end
+		end
+		f.close
+		
+	end
+
+	def append(lineitem)
+		tmp = File.open(@Filename, "a") { |f| f.puts lineitem}
+		tmp.close
+		respond
+		respond "A note has been saved to enchantnotes file!"
+		respond	
+	end
+	
+	def read()
+		begin
+			file = File.open(@Filename, "r")		
+			x = Array.new()
+			while (line = file.gets)
+				#store into an array
+				x << line			
+			end
+			file.close
+			return x
+		rescue
+		end
+	end
+end

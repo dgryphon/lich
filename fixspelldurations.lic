@@ -1,0 +1,28 @@
+=begin
+	Sets your spell durations to whatever spell active says!
+	
+	--Drafix
+=end
+put "spell active"
+put "yes"
+while line = get
+	if line =~ /(.+) \.+ (\d+):(\d+):(\d+)/
+		spell=$1
+		hour=$2.to_i
+		min=$3.to_i
+		sec=$4.to_i
+		min+=hour*60
+		min+=sec/60.0
+		spellobj = Spell[spell]
+		if spellobj
+			spellobj.putup unless spellobj.active?
+			spellobj.timeleft = min
+			respond "Setting #{spellobj} to #{'%.2f'%min} minutes."
+		else
+			respond "Unrecognized Spell: #{spell}"
+		end
+	
+	elsif line=~/A good positive/
+		break
+	end
+end

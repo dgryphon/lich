@@ -1,0 +1,13 @@
++16 orb
++10 badge
++11 armor
++7 helm
++4 greaves
++2 pin - stop using this
++2 talisman 
++1 gauntlets
+
++50 THW
++20 CM
+
+690 + 10x = 700

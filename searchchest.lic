@@ -1,0 +1,14 @@
+=begin
+=end
+
+count = 0
+loop {
+	fput 'search stone chest'	
+	line = get
+	if line =~ /You search around in the stone chest for a few moments and pull out a/
+		waitrt
+		fput "drop #{righthand}"
+	else
+		exit
+	end
+}

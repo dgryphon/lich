@@ -1,0 +1,31 @@
+=begin
+=end
+
+action = proc { |client_string|
+#She has some light leather (worn), a reinforced shield and a short sword.
+	if client_string =~ /^(.*)>(She|He|It)(.*)>(.*)<\/a(.*)(.*)>(.*)<\/a(.*)(.*)>(.*)<\/a(.*)/i            # gear - need this working, then just need an alert and trigger
+      echo "Doing this"
+      article = $2.to_s
+      if article.contains?("short sword")
+        echo "Found a "+article      
+      end 
+	else
+		client_string
+	end
+}
+DownstreamHook.add('treasurefinder', action)
+
+
+loop {
+    # detect room change
+    if checknpcs
+        @items = Array.new()
+        #silence_me
+        GameObj.npcs.each{|mob| fput "look ##{mob.id}"}
+        #silence_me
+        #GameObj.npcs.each{|mob| fput mob.contents?("leather")}        
+    end
+    sleep 15
+}  
+
+

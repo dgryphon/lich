@@ -1,0 +1,11 @@
+#surgeperm.lic
+#keeps up surge permanently - requires 60 stamina
+# --Dgry
+# email: dgry@hotmail.com
+
+loop {
+		wait_while {Spell['haste'].active?}
+		wait_while { mana < 6 }
+		fput "incant 506"
+		pause 1					
+}

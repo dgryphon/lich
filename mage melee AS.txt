@@ -1,0 +1,28 @@
+mage AS
+201 weapon
+51  CM
+50  weapon enchant
+35  col
+15  strength
+50  425
+50  weapon enchancive
+25  CM enhancive
+20  strength enhancive
+25 strength bonus
+
+total
+522
+
+ranged AS
+201 weapon
+80  perception
+50  weapon enchant
+35  col
+50  425
+50  weapon enchancive
+20  dex enhancive
+35  dex bonus
+
+total
+522
+

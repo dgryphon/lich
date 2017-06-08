@@ -1,0 +1,40 @@
+
+roomslist = ['410', '222', '221', '225', '224', '286', '287', '280', '281', '265', '266', '267', '268', '249', '248', '247', '246', '243', '323', '320', '319', '275', '260', '259', '231', '230', '229', '282', '284', '289', '294', '293', '292', '291', '290', '296', '298', '299', '300', '301', '303', '304', '305', '308', '309', '315', '314', '312', '313', '316', '326', '327', '328', '335', '334', '336', '337', '375', '3878', '373', '374', '372', '369', '371', '370', '338', '339', '336', '367', '365', '368', '364', '361', '363', '362', '340', '341', '358', '359', '357', '360', '356', '353', '355', '354', '342', '343', '350', '351', '349', '352', '348', '347', '346', '345', '344']
+
+roomlist = Array.new
+
+for roomnum in roomslist	
+	start_script('go2', [ roomnum, '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	#puts roomnum
+	line = ""
+	fput "lm sense"	
+	until (line =~ /Under the current conditions/)
+		line = get	
+		#echo line
+		if line =~ /pretty average lighting/
+			#puts "put room on array " +roomnum.to_s()
+			roomlist.push(roomnum)
+		end
+	#	if  line =~/After a thorough examination/
+	#		break
+	#	end
+		
+	end
+
+	th = ""
+	for rn in roomlist
+		th = th + rn.to_s() + ", "
+	end
+	#puts roomlist
+	puts th
+		
+end
+
+th = ""
+for rn in roomlist
+  th = th + rn.to_s() + ", "
+end
+
+puts th
+puts roomlist

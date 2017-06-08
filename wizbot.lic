@@ -1,0 +1,31 @@
+# wizbot
+# by Digit Squared
+# Ver .0.1.5
+friendlist = ["Marsters", "Mytmo", "Digit", "Herachio","Shannivar"]
+
+
+
+
+loop {
+	line = matchtimeout 15, "whispers", "asks", "exclaims", "says", "just"
+	if line =~ /(?:^Speaking .*to )?(you, |[A-Z][a-z]+, )?([A-Z][a-z]+).*(whispers)(?i).*?(spellup).*?(?:\.|\!|\?)\"|([A-Z][a-z]+).*/i
+		target = $1
+		castee = $2
+		waittime = 2
+		if target =~ /spellup/
+			start_script("waggle #{castee}")
+			end
+	elsif line =~/(?:^Speaking .*to )?(you, |[A-Z][a-z]+, )?([A-Z][a-z]+).*(whispers)(?i).*?(disk).*?(?:\.|\!|\?)\"|([A-Z][a-z]+).*/i
+		diskee = $1
+		if friendlist.include?(diskee)
+			pause("1s")
+			if mana?(11)
+			fput "prep 511"
+		        fput "cast #{diskee}"
+			else
+				fput "wave #{diskee}"
+                                fput "snicker #{diskee}"
+			end
+		end
+	end
+}

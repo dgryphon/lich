@@ -1,0 +1,156 @@
+#quiet
+=begin
+
+	This script sends "experience" to the game, and in the results adds the total and average experience and fame gained since the first and last check.
+
+	tillmen@gmx.net
+
+=end
+
+silence_me
+
+Settings.load
+
+if script.vars[1] =~ /^clear$/i
+	$xp = {}
+	respond "Your experience tracking has been reset."
+	exit
+elsif script.vars[1] =~ /^setgoal$/i
+	xp_goal = script.vars[2].to_i
+	Settings['goal'] = xp_goal
+	Settings.save
+	echo 'Goal set to: ' + xp_goal.to_s
+	exit
+end
+
+xp_goal = Settings['goal']
+xp_now = {}
+xp_until_next = 0
+capped = false
+clear
+fput "experience"
+loop {
+	line = get
+	if line =~ /^\s+Experience: ([0-9]+)/
+		xp_now['exp'] = $1.to_i
+	elsif line =~ /^Exp\. until next: (\-?[0-9]+)/
+		xp_until_next = $1.to_i
+		capped = false
+	elsif line =~ /^Exp\. to next TP: (\-?[0-9]+)/
+		xp_until_next = $1.to_i
+		capped = true
+	elsif line =~ /^\s+Mental TPs: [0-9]+\s+Fame: ([0-9]+)/
+		xp_now['fame'] = $1.to_i
+	elsif line =~ /Mana/
+		break
+	end
+}
+xp_now['time'] = Time.now.to_i
+
+unless $xp['first']
+	$xp = {}
+	$xp['first'] = xp_now
+	$xp['last'] = xp_now
+	respond 'No information to show you yet.  Try again later.'
+	exit
+end
+unless (xp_now['exp'] - $xp['first']['exp']) > 0
+	respond 'No information to show you yet.  Try again later.'
+	exit
+end
+
+seconds_since_first  = xp_now['time'] - $xp['first']['time']
+xp_since_first       = xp_now['exp'] - $xp['first']['exp']
+xp_since_first_avg   = (xp_since_first * (3600 / seconds_since_first.to_f)).round
+fame_since_first     = xp_now['fame'] - $xp['first']['fame']
+fame_since_first_avg = (fame_since_first * (3600 / seconds_since_first.to_f)).round
+
+seconds_since_last  = xp_now['time'] - $xp['last']['time']
+xp_since_last       = xp_now['exp'] - $xp['last']['exp']
+xp_since_last_avg   = (xp_since_last * (3600 / seconds_since_last.to_f)).round
+fame_since_last     = xp_now['fame'] - $xp['last']['fame']
+fame_since_last_avg = (fame_since_last * (3600 / seconds_since_last.to_f)).round
+
+xp_until_goal = xp_goal - xp_now['exp']
+
+if xp_until_next > 0
+	hours_until_next = xp_until_next / xp_since_first_avg.to_f
+	difference = (hours_until_next * 3600).to_i
+	seconds    =  difference % 60
+	difference = (difference - seconds) / 60
+	minutes    =  difference % 60
+	difference = (difference - minutes) / 60
+	hours      =  difference % 24
+	days = (difference - hours) / 24
+	time_until_next = ''
+	if days == 1
+		time_until_next += days.to_s + ' day, '
+	elsif days > 1
+		time_until_next += days.to_s + ' days, '
+	end
+	if hours == 1
+		time_until_next += '1 hour, '
+	elsif hours > 1
+		time_until_next += hours.to_s + ' hours, '
+	end
+	if minutes == 1
+		time_until_next += '1 minute, '
+	elsif minutes > 1
+		time_until_next += minutes.to_s + ' minutes, '
+	end
+	if seconds == 1
+		time_until_next += '1 second, '
+	elsif seconds > 1
+		time_until_next += seconds.to_s + ' seconds, '
+	end
+	time_until_next.chop!.chop!
+end
+
+if xp_until_goal > 0
+	hours_until_goal = xp_until_goal / xp_since_first_avg.to_f
+	difference = (hours_until_goal * 3600).to_i
+	seconds    =  difference % 60
+	difference = (difference - seconds) / 60
+	minutes    =  difference % 60
+	difference = (difference - minutes) / 60
+	hours      =  difference % 24
+	days = (difference - hours) / 24
+	time_until_goal = ''
+	if days == 1
+		time_until_goal += days.to_s + ' day, '
+	elsif days > 1
+		time_until_goal += days.to_s + ' days, '
+	end
+	if hours == 1
+		time_until_goal += '1 hour, '
+	elsif hours > 1
+		time_until_goal += hours.to_s + ' hours, '
+	end
+	if minutes == 1
+		time_until_goal += '1 minute, '
+	elsif minutes > 1
+		time_until_goal += minutes.to_s + ' minutes, '
+	end
+	if seconds == 1
+		time_until_goal += '1 second, '
+	elsif seconds > 1
+		time_until_goal += seconds.to_s + ' seconds, '
+	end
+	time_until_goal.chop!.chop!
+end
+
+respond "Exp. Gained     Avg per Hour     Fame Gained     Avg per Hour"
+respond "%-10s      %-10s       %-10s      %-10s    (%s since first)" % [ xp_since_first.to_s, xp_since_first_avg.to_s, fame_since_first.to_s, fame_since_first_avg.to_s, (seconds_since_first / 60.0).as_time ]
+respond "%-10s      %-10s       %-10s      %-10s    (%s since last)" % [ xp_since_last.to_s, xp_since_last_avg.to_s, fame_since_last.to_s, fame_since_last_avg.to_s,  (seconds_since_last / 60.0).as_time ]
+respond
+if xp_until_next > 0
+	if capped
+		respond "At this rate, you'll gain training points in " + time_until_next + '.'
+	else
+		respond "At this rate, you'll train in " + time_until_next + '.'
+	end
+end
+if xp_until_goal > 0
+	respond "At this rate, you'll reach your goal of #{xp_goal} experience in " + time_until_goal + '.'
+end
+$xp['last'] = xp_now

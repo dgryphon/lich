@@ -1,0 +1,217 @@
+=begin
+
+	Space holder for a smart ranged aiming script
+
+	;shoot help    - help file
+	;shoot target  - shoots a specific target
+	;shoot         - shoots a random target
+
+	dgry@hotmail.com
+
+	# Author: Dgry
+	# Category: ranged combat
+
+=end
+
+if defined?(GameObj.type_data)
+	GameObj.load_data if GameObj.type_data.empty? or GameObj.type_data.nil?
+	if GameObj.type_data.nil?
+		wait_while { running?('updater') }
+		wait_while { running?('repository') }
+		start_script 'repository', [ 'download', 'gameobj-data.xml' ]
+		wait_while { running?('repository') }
+		wait_while { running?('updater') }
+		start_script 'updater', [ 'add', 'gameobj-data.xml' ]
+		wait_while { running?('updater') }
+		GameObj.load_data
+		exit if GameObj.type_data.nil?
+	end
+end
+
+# fixme: open/close lootsack
+
+CharSettings['legit']         = false     if CharSettings['legit'].nil?
+CharSettings['headneck']      = false     if CharSettings['headneck'].nil?
+CharSettings['get-arrows']    = false     if CharSettings['get-arrows'].nil?
+
+$new_shoot ||= Array.new
+
+if script.vars.empty?
+	nil
+elsif script.vars[0].downcase == 'list'
+	fix_setting = { true => 'on', false => 'off' }
+	respond "legit:          #{fix_setting[CharSettings['legit']]}"
+	respond "headneck:       #{fix_setting[CharSettings['headneck']]}"
+	#respond "get-arrows:    #{fix_setting[CharSettings['get-arrows']]}"
+	exit
+elsif script.vars[0] =~ /^(legit|headneck|get\-arrows)=(on|off|yes|no|true|false)$/i
+	fix_setting = { 'on' => true, 'yes' => true, 'true' => true, 'off' => false, 'no' => false, 'false' => false }
+	CharSettings[$1.downcase] = fix_setting[$2.downcase]
+	echo 'setting saved'
+	exit
+elsif script.vars[0].downcase == 'help'
+	respond
+	respond "#{$lich_char}#{script.name}                          shoots a random target"
+	respond "#{$lich_char}#{script.name} target                   shoots a specific target"
+	respond "#{$lich_char}#{script.name} legit=<on/off>           setting for less skilled archers to aim for legs if not prone"
+	respond "#{$lich_char}#{script.name} headneck=<on/off>        setting for less skilled archers to aim for head/neck before eyes"
+	#respond "#{$lich_char}#{script.name} get-arrows=<on/off>      pick up the arrows you fire and put them in your"
+	#respond "#{''.rjust($lich_char.length)}#{''.rjust(script.name.length)}                          arrowsack (or lootsack if arrowsack isn't set)"
+	respond
+	exit
+else
+
+	echo "debugger statement: got into actual shooting portion"
+
+	$shoot_order  = Array.new
+	silence_me
+
+	#assign a target
+	if script.vars[0].downcase == nil				 #user did not specify target
+		if (npc = GameObj.npcs.find { |npc| npc.id == obj_id }) and (npc.status != 'dead')
+			target = npc
+		end
+	else                                             #user specific
+	end
+
+	#check for prone-ness and add legs
+	if CharSettings['legit'] && target.status == 'prone'
+		$shoot_order.push('left leg')
+		$shoot_order.push('right leg')
+	end
+	
+	if CharSettings['headneck']	
+		#aim for the head and neck first
+		$shoot_order.push('head')
+		$shoot_order.push('neck')
+	else
+		$shoot_order.push('right eye')
+		$shoot_order.push('left eye')
+		$shoot_order.push('head')
+		$shoot_order.push('neck')	
+	end
+	
+	#analyze and do the body parts according to the order
+	
+	
+	
+	
+	if CharSettings['get-arrows']
+		if UserVars.arrowsack.nil? or UserVars.arrowsack.empty?
+			arrowsack = lootsack
+		else
+			unless arrowsack = GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.arrowsack.strip)}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.arrowsack).sub(' ', ' .*')}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.arrowsack).sub(' ', ' .*')}/i }
+				echo 'error: failed to find your arrowsack'
+				exit
+			end
+		end
+	end
+
+
+	
+end
+
+if UserVars.lootsack.nil? or UserVars.lootsack.empty?
+	echo 'error: lootsack is not set.  (;set change lootsack <container name>)'
+	exit
+end
+unless lootsack = GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.lootsack.strip)}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.lootsack).sub(' ', ' .*')}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.lootsack).sub(' ', ' .*')}/i }
+	echo 'error: failed to find your lootsack'
+	exit
+end
+
+status_tags
+
+$shoot_dead_npcs  = Array.new
+$shoot_grab_list  = Array.new
+$shoot_working    = false
+$shoot_berserking = false
+
+$shoot_stats ||= Hash.new
+$shoot_stats['start_time']       ||= Time.now
+$shoot_stats['kills']            ||= 0
+$shoot_stats['successful_skins'] ||= 0
+$shoot_stats['failed_skins']     ||= 0
+$shoot_stats['shoot_count']       ||= 0
+$shoot_arrow_ids                 ||= LimitedArray.new
+$shoot_arrow_wait                  = Array.new
+$shoot_needs_eblade              ||= Array.new
+$shoot_search_rooms              ||= Array.new
+
+can_drag = true
+
+exec_string = "
+	hide_me
+	status_tags
+	before_dying { kill_script(#{script.name.inspect}) if running?(#{script.name.inspect}) }
+	Thread.new { wait_while { running?(#{Script.self.name.inspect}) }; Script.self.kill }
+	immolated = LimitedArray.new
+	immolated.max_size = 15
+	weapon_fired = LimitedArray.new
+	weapon_fired.max_size = 15
+	while line = get
+		if line =~ /<stream id=\"thoughts\">/
+			next
+		elsif line =~ /^(?:<.*?>)?You nock an? .*?<a exist=\"(\\-?[0-9]+)\" noun=\"arrow\">/
+			$shoot_arrow_ids.push($1) unless $shoot_arrow_ids.include?($1)
+		elsif line =~ /^(?:<.*?>)?The scintillating light fades from an .*?<a exist=\"(\\-?[0-9]+)\" noun=\"arrows\">.*?<\\/a>\\./
+			$shoot_needs_eblade.push($1)
+		elsif line =~ /^(?:<.*?>)?The scintillating .*?light surrounding the .*?<a exist=\"(\\-?[0-9]+)\" noun=\"arrow\">.*?<\\/a> fades away\\./
+			$shoot_needs_eblade.push($1)
+		elsif line =~ /<comp(?:onent|Def) id='room objs'>.*?<a exist=\"(?:\#{$shoot_arrow_ids.join('|')})\".*?<\\/comp(?:onent|Def)>/
+			$shoot_grab_list = ($shoot_grab_list | GameObj.shoot.to_a.find_all { |obj| $shoot_arrow_ids.include?(obj.id) }.collect { |obj| obj.id }) - $shoot_arrow_wait
+		elsif line =~ /^(?:The|Glancing shot.  The|Bad angle.  The|Lacking the force and angle to lodge in .*?, the) <a exist=\"(\\-?[0-9]+)\" noun=\"arrow\">.*?<\\/a> (?:ricochets away from .*?, landing nearby\\.|zips past its target to the ground\\.|flips over, landing behind .*?\\.|fails to stick in .*?\\.|simply falls\\.|is deflected to one side, sailing to the ground\\.|disappears into the local environs\\.|zips past its target to the ground\\.)/
+			arrow_id = $1.dup
+			$shoot_arrow_wait.push(arrow_id) unless $shoot_arrow_wait.include?(arrow_id)
+			Thread.new {
+				sleep 16
+				arrow_id = $shoot_arrow_wait.shift
+				$shoot_grab_list.push(arrow_id) unless $shoot_grab_list.include?(arrow_id) or !GameObj.shoot.any? { |obj| obj.id == arrow_id }
+			}
+			if (line =~ /disappears into the local environs/) and (room = Room.current)
+				$shoot_search_rooms.push(room.id)
+			end
+		elsif line =~ /You (?:swing|gesture|sing|weave another verse|continue to sing|channel|fire|wave|tap|rub|hurl|thrust|slash|throw|punch|attempt to punch|attempt to kick|attempt to throw|quickly dart behind .*? and try to hamstring|mentally attempt to locate your implanted essence)|Your (?:<.*?>)?raging sandstorm(?:<.*?>)? swirls around|^The flames surrounding <pushBold\\/>an? <a exist=\"(?:\#{immolated.join('|')})\" noun=\".*?\">.*?<\\/a><popBold\\/> flare up violently\\.\\.\\.|A .*? leaps from a <a.*?>.*?<\\/a> <pushBold\\/>.*?<a exist=\"(?:\#{weapon_fired.join('|')})\".*?>.*?<\\/a><popBold\\/> is wielding\\./
+			candidates = Array.new
+			while (line = get) and (line !~ /Roundtime|A little bit late for that don't you think|<prompt/)
+				if line =~ /^The glimmer of an? <a exist=\"(.*?)\" noun=\".*?\">.*?<\\/a> catches your eye|^<pushBold\\/>A <a exist=\".*?\" noun=\".*?\">.*?<\\/a><popBold\\/> releases a groan of mingled ecstasy and relief as <pushBold\\/><a exist=\".*?\" noun=\".*?\">.*?<\\/a><popBold\\/> fades away, leaving an? <a exist=\"(.*?)\" noun=\".*?\">.*?<\\/a> behind!$/
+					obj_id = $1 || $2
+					$shoot_grab_list.push(obj_id) unless $shoot_grab_list.include?(obj_id)
+					next
+				elsif line =~ /^(?:The|Glancing shot.  The|Bad angle.  The|Lacking the force and angle to lodge in .*?, the) <a exist=\"(\\-?[0-9]+)\" noun=\"arrow\">.*?<\\/a> (?:ricochets away from .*?, landing nearby\\.|zips past its target to the ground\\.|flips over, landing behind .*?\\.|fails to stick in .*?\\.|simply falls\\.|is deflected to one side, sailing to the ground\\.)/
+					arrow_id = $1.dup
+					$shoot_arrow_wait.push(arrow_id) unless $shoot_arrow_wait.include?(arrow_id)
+					Thread.new {
+						sleep 16
+						arrow_id = $shoot_arrow_wait.shift
+						$shoot_grab_list.push(arrow_id) unless $shoot_grab_list.include?(arrow_id) or !GameObj.shoot.any? { |obj| obj.id == arrow_id }
+					}
+					next
+				end
+				if line =~ /Wisps of black smoke swirl around <pushBold\\/>.*?<a exist=\"(.*?)\" noun=\".*?\">.*?<\\/a><popBold\\/> and s?he bursts into flame!/
+					immolated.push($1) unless immolated.include?($1)
+				end
+				if line =~ /You successfully hit <pushBold\\/>.*?<a exist=\"(.*?)\".*?>.*?<\\/a><popBold\\/> <a.*?>.*?<\\/a> with the spell\\./
+					weapon_fired.push($1) unless weapon_fired.include?($1)
+				end
+				if line =~ /<a exist=['\"](.*?)['\"]/
+					candidates.push($1) unless candidates.include?($1)
+				end
+			end
+			for obj_id in candidates
+				if (npc = GameObj.npcs.find { |npc| npc.id == obj_id }) and (npc.status == 'dead')
+					unless $shoot_dead_npcs.include?(obj_id)
+						$shoot_dead_npcs.push(obj_id) unless (npc.name =~ /ice golem|fire elemental|skayl|lava golem|mein golem|mein android/)
+						$shoot_stats['kills'] += 1
+					end
+				end
+			end
+		elsif line =~ /^You spy .*?<a exist=\"(.*?)\" noun=\".*?\">.*?<\\/a>, which looks like the heirloom that you are searching for!$/
+			$shoot_grab_list.push($1) unless $shoot_grab_list.include?($1)
+		elsif line =~ /^You cannot do that while berserking\.$|^Everything around you turns red as you work yourself into a berserker's rage!|^You rage across the battlefield, striking with unrelenting fury!/
+			$shoot_berserking = true
+		elsif line =~ /^The redness fades from the world and you begin to breathe harder\.$/
+			$shoot_berserking = false
+		end
+	end
+"

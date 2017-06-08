@@ -1,0 +1,9 @@
+combat_refresh = [1601, 1605, 1606, 1610, 1611, 1612, 1613, 1616, 1618, 101, 103, 107, 115, 120]
+
+#;e combat_refresh.each{|spell|(fput "incant #{spell}";waitcastrt) unless XMLData.active_spells.keys.include?(Spell[spell].to_s)}
+
+
+loop {
+		combat_refresh.each{|spell|(fput "incant #{spell}";waitcastrt) unless XMLData.active_spells.keys.include?(Spell[spell].to_s)}
+		pause 10
+}

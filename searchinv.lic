@@ -1,0 +1,8 @@
+str = script.vars[1]
+myobj = GameObj.inv.find_all {|obj| obj.contents.find{|item| item.name =~ /#{Regexp.quote(str)}/ || (item.after_name =~ /#{Regexp.quote(str)}/) }}
+#echo myobj
+myobj.each{ |container|
+          echo str.to_s + " was found inside " + container.name
+}
+
+

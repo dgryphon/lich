@@ -1,0 +1,18 @@
+=begin
+A script to test for loresinging
+Usage: ;loresing (adjective) (item)
+by: Dgry
+=end
+
+
+item = GameObj.right_hand.name
+
+fput "loresing #{item} on a critter found;For your song I am bound"
+waitrt
+fput "loresing #{item} on a critter found;For your song I am bound;Ahh I see now what you say"
+waitrt
+fput "loresing #{item} on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?"
+waitrt
+fput "loresing #{item} on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least"
+waitrt
+fput "loresing #{item} that I have found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least;Any final tidbits on which to feast?"

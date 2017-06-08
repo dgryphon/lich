@@ -1,0 +1,9 @@
+=begin
+Power's up paladin
+=end
+
+
+start_script 'killtracker'
+start_script 'surgeperm'
+start_script 'loot'
+start_script 'keepspellz'

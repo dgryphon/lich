@@ -1,0 +1,125 @@
+ Lich: loresing active.
+[loresing]>loresing beheading sword on a critter found;For your song I am bound
+You sing:
+
+    "Beheading sword on a critter found
+     For your song I am bound"
+
+You learn nothing new about the sword.
+
+>;ka
+--- Lich: loresing has exited.
+get gem
+Get what?
+>inv
+You are holding a curved eonake beheading sword with a jade dragon claw hilt in your right hand.
+You are wearing some full leather, a deep black flame-stitched chasuble, a cobweb-covered dark blue spidersilk cloak edged with silver velvet trim, a dead parrot, and a blackened veil iron shield.
+Click INVENTORY HELP for more options.
+>rem shi
+You sling a blackened veil iron shield off from over your shoulder.
+>swap
+You swap a curved eonake beheading sword with a jade dragon claw hilt to your left hand and a blackened veil iron shield to your right hand.
+>
+.lor shield
+
+[Press the ESCape key to abort script.]
+loresing shield in my hand that I hold;let your purpose soon be told
+
+[Script finished!]
+You sing:
+
+    "Shield in my hand that I hold
+     Let your purpose soon be told"
+
+
+Roundtime: 8 sec.
+
+As you sing, you feel a faint resonating vibration from the veil iron shield in your hand, and you learn something about it...
+
+You sense a faint aura of magic around the veil iron shield.  From the pitch of the vibration you determine that the purpose of the shield is as a shield.
+
+>wear shi
+You sling a blackened veil iron shield over your shoulder.
+>swap
+You swap your beheading sword from your left to your right hand.
+>;loresing beheading sword
+--- Lich: loresing active.
+[loresing]>loresing beheading sword on a critter found;For your song I am bound
+You sing:
+
+    "Beheading sword on a critter found
+     For your song I am bound"
+
+
+Roundtime: 8 sec.
+
+As you sing, you feel a faint resonating vibration from the beheading sword in your hand, and you learn something about it...
+
+The first thing that strikes you about the sword is the weight, which is about 10 pounds.  In your best estimation, it's worth about 800,000 silvers.  You can also tell that there is some type of metal in the structure of the beheading sword.
+
+>
+[loresing]>loresing beheading sword on a critter found;For your song I am bound;Ahh I see now what you say
+You sing:
+
+    "Beheading sword on a critter found
+     For your song I am bound
+     Ahh I see now what you say"
+
+
+Roundtime: 12 sec.
+
+As you sing, you feel a faint resonating vibration from the beheading sword in your hand, and you learn something about it...
+
+You sense a faint aura of magic around the beheading sword.  You sense that this is some type of holy item.  From the pitch of the vibration you determine that the purpose of the sword is as some type of weapon.  A sense of deep seated hatred clings to the beheading sword, as if it had been crafted with a specific purpose.
+
+>
+[loresing]>loresing beheading sword on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?
+You sing:
+
+    "Beheading sword on a critter found
+     For your song I am bound
+     Ahh I see now what you say
+     Anything else to share this day?"
+
+
+Roundtime: 16 sec.
+
+As you sing, you feel a faint resonating vibration from the beheading sword in your hand...
+
+It has a bonus of +20 from a normal sword, and the way it vibrates in tune with your voice tells you that it requires skill in twohanded weapons to use effectively.  It also has some type of special ability, but you can't tell what yet.    This beheading sword seems to be the bane of all undead creatures.
+
+
+>
+[loresing]>loresing beheading sword on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least
+You sing:
+
+    "Beheading sword on a critter found
+     For your song I am bound
+     Ahh I see now what you say
+     Anything else to share this day?
+     That is interesting to say the least"
+
+
+Roundtime: 21 sec.
+
+As you sing, you feel a faint resonating vibration from the beheading sword in your hand...
+
+The harmonics generated tell you that the sword inflicts more fearsome wounds when it strikes and has been sanctified for use by a Cleric or Paladin in the fight against the undead.
+
+This beheading sword inflicts more fearsome wounds when employed against all undead creatures.
+>
+[loresing]>loresing beheading sword that I have found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least;Any final tidbits on which to feast?
+You sing:
+
+    "Beheading sword that I have found
+     For your song I am bound
+     Ahh I see now what you say
+     Anything else to share this day?
+     That is interesting to say the least
+     Any final tidbits on which to feast?"
+
+You learn nothing new about the sword.
+
+>
+--- Lich: loresing has exited.
+>

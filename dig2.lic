@@ -1,0 +1,99 @@
+=begin
+I did not write this script, I used wiz_to_lich to convert an older eg digging script. 
+=end
+
+Settings.load
+sav = Settings['sav'] || String.new
+before_dying { Settings['sav'] = sav; Settings.save }
+
+
+dig:
+    waitrt?
+    clear
+    fput "dig"
+    match "dig", "Roundtime"
+    match "strongbox", "strongbox from the"
+    match "box", "box from the"
+    match "crate", "crate from the"
+    match "chest", "chest from the"
+    match "coffer", "coffer from the"
+    match "trunk", "trunk from the"
+    match "coffin", "coffin from the"
+    match "casket", "casket from the"
+    match "new", "Perhaps you need a shovel in your right hand to dig in the ground"
+    matchwait
+
+
+coffin:
+    sav = "coffin"
+    goto "pry"   
+
+casket:
+    sav = "casket"
+    goto "pry"
+        
+box:
+    sav = "box"
+    goto "open"
+    
+chest:
+    sav = "chest"
+    goto "open"
+    
+crate:
+    sav = "crate"
+    goto "open"
+    
+coffer:
+    sav = "coffer"
+    goto "open"
+    
+strongbox:
+    sav = "strongbox"
+    goto "open"
+    
+trunk:
+    sav = "trunk"
+    goto "open"
+    
+open:
+    waitrt?
+    clear
+    fput "open my #{sav}"
+    waitrt?
+    clear
+    fput "get coins from my #{sav}"
+    waitrt?
+    clear
+    fput "look in my #{sav}"
+    goto "trash"
+
+pry:
+    waitrt?
+    clear
+    fput "pry my #{sav}"
+    waitrt?
+    fput "pry my #{sav}"
+    clear
+    fput "get coins from my #{sav}"
+    waitrt?
+    goto "trash"
+    
+trash:
+    fput "empty my #{sav} in my greatcloak"
+    waitrt?
+    clear
+    fput "put my #{sav} in hole"
+    goto "new"
+    
+new:
+    waitrt?
+    clear
+    fput "get my shovel"
+    match "dig", "You remove"
+    match "done", "Get what\\?"
+    matchwait
+    
+done:
+    echo "* * You're out of shovels! * *"
+    exit

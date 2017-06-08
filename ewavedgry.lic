@@ -1,0 +1,18 @@
+repat:
+    if mana > 9
+		fput "prep 410"
+		fput "cast dgry"
+	end
+	match 'down', 'knocked to the ground'
+	match 'repeat', 'RoundTime 3 Seconds'
+	matchwait
+	
+
+down:
+  waitfor 'Dgry stands up.'
+  waitcastrt?
+  goto 'repat'
+  
+repeat:
+  waitcastrt
+  goto 'repat'

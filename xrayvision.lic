@@ -1,0 +1,26 @@
+
+
+=begin
+
+Super x-ray vision goggles!
+	-Anonymous
+=end
+
+begin
+action = proc { |server_string|
+	if server_string =~ /She(.*?) is wearing (.*?)\./
+		server_string = "She is wearing nothing special at this time.\r\n"
+	elsif server_string =~ /He(.*?) is wearing (.*?)\./
+		server_string = "He is wearing nothing special at this time.\r\n"
+	else
+		server_string
+	end
+}
+DownstreamHook.add('xrayvision', action) 
+	loop{
+		sleep 10
+	}
+	
+ensure
+	DownstreamHook.remove('xrayvision')
+end

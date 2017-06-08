@@ -1,0 +1,12 @@
+=begin
+
+Dgry's generic 1620 anchoring script
+usage
+;anchor_1620 "deityname"
+
+=end
+
+put "prep 1620"
+waitfor "your spell is"
+put "kneel"
+put "pray #{script.vars[1]}, my patron, your blessing I call upon;Anchor me to this place of healing;so that I may send away rotting bodies;Offer your blessing, my god #{script.vars[1]}, in time of death;That I may continue the path of righteousness"

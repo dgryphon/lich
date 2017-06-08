@@ -1,0 +1,16 @@
+=begin
+
+=end
+
+while (true)
+	line = get						
+	
+	if line =~/(.*) taps you lightly on the shoulder/	
+		charName = $1.to_s
+		echo charName
+		start_script 'waggle' , [ charName ]
+		wait_while { running?('waggle') }	
+	end		
+end
+
+

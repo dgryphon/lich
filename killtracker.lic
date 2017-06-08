@@ -1,0 +1,12 @@
+=begin
+=end
+
+count = 0
+loop {
+		
+	line = get
+	if line =~ /Quite severely dead|ground and dies|rolls over and dies/
+		count = count+1
+		echo count
+	end
+}

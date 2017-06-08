@@ -1,0 +1,86 @@
+=begin
+
+	no comment
+
+=end
+
+unless DownstreamHook.list.include?('uac')
+	npc_id = nil
+	hook_proc = proc { |server_string|
+		if server_string =~ /^You have (decent|good|excellent) positioning against .*?exist="(\-?[0-9]+)"/
+			position = $1
+			npc_id = $2
+			if npc_info = $uac_critters.find { |info| info[:id] == npc_id }
+				if (position == 'good') and (npc_info[:position] == 'decent')
+					npc_info[:vulnerable] = nil
+				end
+				npc_info[:position] = position
+			else
+				$uac_critters.push(:id => npc_id, :position => position)
+			end
+		elsif server_string =~ /^\s*Strike leaves foe vulnerable to a followup (jab|grapple|punch|kick) attack!/
+			vulnerable = $1
+			if npc_info = $uac_critters.find { |info| info[:id] == npc_id }
+				npc_info[:vulnerable] = vulnerable
+			else
+				$uac_critters.push(:id => npc_id, :vulnerable => vulnerable)
+			end
+		end
+		server_string
+	}
+	DownstreamHook.add('uac', hook_proc)
+end
+
+CharSettings['targetable']   ||= Array.new
+CharSettings['untargetable'] ||= Array.new
+
+unless $uac_critters.class == LimitedArray
+	$uac_critters = LimitedArray.new
+	$uac_critters.max_size = 20
+end
+
+if script.vars.empty?
+	while unknown_npc = GameObj.npcs.find { |npc| not CharSettings['targetable'].include?(npc.name) and not CharSettings['untargetable'].include?(npc.name) and (npc.status !~ /dead/) }
+		target_result = dothistimeout "target ##{unknown_npc.id}", 10, /^You are now targeting|^You can't target/
+		if target_result =~ /^You are now targeting/
+			CharSettings['targetable'].push(unknown_npc.name)
+		elsif target_result =~ /^You can't target/
+			CharSettings['untargetable'].push(unknown_npc.name)
+		end
+	end
+	loop {
+		if npc = (GameObj.npcs.find { |npc| CharSettings['targetable'].include?(npc.name) and npc.status.nil? } || GameObj.npcs.find { |npc| CharSettings['targetable'].include?(npc.name) and (npc.status !~ /dead|stunned|sleeping/) } || GameObj.npcs.find { |npc| CharSettings['targetable'].include?(npc.name) and (npc.status !~ /dead/) })
+			if npc_info = $uac_critters.find { |info| info[:id] == npc.id }
+				if npc_info[:position] == 'excellent'
+					uac_attack = 'kick'
+				elsif npc_info[:vulnerable]
+					uac_attack = npc_info[:vulnerable]
+				else
+					uac_attack = 'jab'
+				end
+				Spell.lock_cast
+				waitcastrt?
+				waitrt?
+				50.times { break unless $loot_working or GameObj.npcs.any? { |npc| npc.status == 'dead' }; sleep 0.1 }
+				put 'stance offensive' unless stance =~ /offensive/
+				dothistimeout "#{uac_attack} ##{npc.id}", 5, /^You attempt/
+				Spell.unlock_cast
+				waitrt?
+			else
+				Spell.lock_cast
+				waitcastrt?
+				waitrt?
+				50.times { break unless $loot_working or GameObj.npcs.any? { |npc| npc.status == 'dead' }; sleep 0.1 }
+				put 'stance offensive' unless stance =~ /offensive/
+				dothistimeout "jab ##{npc.id}", 5, /^You attempt/
+				Spell.unlock_cast
+				waitrt?
+			end
+		else
+			break
+		end
+	}
+	fput 'stance defensive' unless stance =~ /defensive/
+else
+	echo 'fixme'
+end

@@ -1,0 +1,101 @@
+put "ponder #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "peer #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "stare #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "point #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "pluck #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "kick #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "nudge #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "spin #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "roll #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "touch #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "lick #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "hiss #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "gaze #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "lean #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "rest #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "flip #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "wave #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "raise #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "hold #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "toss #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "open #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "open #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "close #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "close #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "wear #{script.vars[1]}"
+wait
+waitrt?
+clear
+put "remove #{script.vars[1]}"

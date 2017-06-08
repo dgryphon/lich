@@ -1,0 +1,77 @@
+# autoexp by Azanoth
+# credit to Tillmen for Gift calculation
+$average_exp = nil
+$autoexp_start_time = Time.now
+
+# get $autoexp_start_exp
+silence_me
+puts "*** Calibrating Experience: The following data may appear erroneous ***"
+puts "*** (Note: You only need to do this when you want to restart your Avg Exp/Hour) ***"
+fput "exp"
+wait_while { get !~ /^.*?Experience: (\d+)/ }
+$autoexp_start_exp = $1.to_i
+
+# hook
+action = proc { |server_string|
+    if(server_string =~ /^.*?Experience: (\d+)/)
+        $autoexp_new_exp = $1.to_i
+        $average_exp = (($autoexp_new_exp - $autoexp_start_exp) * (3600 / (Time.now - $autoexp_start_time))).round
+        server_string
+    elsif(server_string =~ /^.*?Physical TPs: \d+/)
+        # calculate gift
+        giftleft = Gift.remaining
+        string = nil
+        unless Time.now > Gift.restarts_on
+            cyclemins = (Gift.restarts_on.to_i - Time.now.to_i) / 60.00
+            days = cyclemins.as_time.slice(/\d+/).to_i / 24
+            hours = cyclemins.as_time.slice(/\d+/).to_i % 24
+            mins, secs = cyclemins.as_time.split(':')[-2..-1]
+            mins, secs = mins.to_i, secs.to_i
+            if days > 1
+                    string = "Gift: #{days} days, "
+            elsif days == 1
+                    string = "Gift: #{days} day, "
+            else
+                    string = "Gift: 0 days, "
+            end
+            if hours == 1
+                    string += "#{hours} hour, "
+            elsif hours > 1
+                    string += "#{hours} hours, "
+            else
+                    string += "0 hours, "
+            end
+            if mins == 1
+                    string += "#{mins} min, "
+            elsif mins > 1
+                    string += "#{mins} min, "
+            else
+                    string += "0 min, "
+            end
+            if secs > 1
+                    string += "#{secs} secs."
+            elsif secs == 1
+                    string += "#{secs} sec."
+            else
+                    string += "0 secs."
+            end
+            if giftleft <= 0
+                    nil
+            elsif giftleft < 10800
+                    string = "Gift Remaining: #{(giftleft / 60).as_time} for XX."
+            else
+                    giftleft -= 10800
+                    string = "Gift Remaining: #{(giftleft / 60).as_time} for XXX."
+            end
+            string.concat("\n   Bounty Cooldown: #{Spell[9003].remaining}") if(Spell[9003].active?)
+        else
+                string = 'Gift: Will start when you next learn.'
+        end
+        server_string + "     Avg. Exp: #{$average_exp}/hour                  #{string}\n  "
+    else
+        server_string
+    end
+}
+
+DownstreamHook.add('xp', action)
+fput "exp"

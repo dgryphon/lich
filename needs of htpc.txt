@@ -1,0 +1,7 @@
+needs of htpc
+
+-emulation - windows
+-xmbc
+-bit torrenting
+-media server/storage - laptop
+-auto ripping movies/songs

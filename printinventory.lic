@@ -1,0 +1,50 @@
+require 'json'
+#allinventory = GameObj.inv.find_all{|obj| 1==1}
+   @Filename = $data_dir + checkname + ".inventory"
+   @inventoryList = Array.new()	
+
+	def write(inv)
+		f = File.open(@Filename, "w")
+		for cmpitm in inv
+			f.puts cmpitm
+		end		
+		f.close		
+	end
+
+	def traverse(invItem)
+      itmName = invItem.before_name.to_s + " " + invItem.name.to_s + " " + invItem.after_name.to_s
+      if (invItem.contents.size == nil || invItem.contents.size == 0)
+        #puts "     " + itmName
+        @inventoryList << "     "+invItem.name
+      else
+        #puts invItem.name + " contains the following: "
+        @inventoryList << itmName + " contains the following: "
+        invItem.contents.each{|itm| traverse(itm)}
+      end
+	end 
+
+    GameObj.inv.each{|cont| traverse(cont)}
+    write(@inventoryList)
+    
+while line = get
+
+	if line =~ /^#{$lich_char}shop help$/ || line =~ /^#{$lich_char}shop$/
+		respond
+		respond "A passive script for keeping track of inventory items."
+		respond
+		respond		
+		respond "Add to favorites so that it's always running - ;fav add global invmanager."
+		respond "If an item is removed from your shop between ;shop inventories, it will be assumed to be sold"
+		respond "Usage: "
+		respond ";shop help        - displays this help"		
+		respond ";shop inventory   - current list of shop items (as of the last time you updated)"
+		respond ";shop sales       - displays last 10 sales and estimates the profit"
+		respond ";shop totals      - displays all of your sales and estimates"
+		respond ";shop exit        - exits program"
+		respond
+
+	if line =~ /^#{$lich_char}inv search$/	
+		s.inventory()
+    end
+	
+end    

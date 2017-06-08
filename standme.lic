@@ -1,0 +1,6 @@
+loop {
+		
+		wait_while {checkstanding}
+		fput "stand"
+		waitrt
+}

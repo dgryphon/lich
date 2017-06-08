@@ -1,0 +1,136 @@
+# settings
+# container for herbs
+# forage
+# wait on banker
+
+
+
+
+
+start_script("go2", [ "2787", '_disable_confirm_' ])
+wait_while { running?("go2")}
+# step here to wait for npc
+fput "ask banker for 20000 silvers"
+waitfor "The banker nods"
+
+start_script("go2", [ "2782", '_disable_confirm_' ])
+wait_while { running?("go2")}
+fput "order 1"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 2"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 3"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 4"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 5"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 6"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 7"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 8"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 9"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 10"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 11"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 12"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 13"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 14"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 15"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 16"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 17"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 18"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 19"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 20"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 21"
+waitfor "You may order a QUANTITY"
+fput "buy"
+fput "put pot in my cloak"
+waitfor "You put"
+
+
+#determine remaining amount of coins
+start_script("go2", [ "2787", '_disable_confirm_' ])
+wait_while { running?("go2")}
+# step here to wait for npc
+fput "ask banker for 20000 silvers"
+waitfor "The banker nods"
+
+start_script("go2", [ "2635", '_disable_confirm_' ])
+wait_while { running?("go2")}
+
+
+

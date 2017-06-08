@@ -1,0 +1,59 @@
+if(checkmana >= 29)
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[202].cast("#{script.vars[1]}")
+      else
+        exit
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[103].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[101].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[101].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[101].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[107].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[107].cast("#{script.vars[1]}")
+      else
+        exit        
+      end
+      waitcastrt
+      target = GameObj.pcs.find {"#{script.vars[1]}"}
+      if target
+        Spell[107].cast("#{script.vars[1]}")
+      else
+        exit        
+      end                  
+else
+      echo "Not enough mana"
+end

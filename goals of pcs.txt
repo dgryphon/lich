@@ -1,0 +1,42 @@
+-set up printer to be network printer
+-
+
+main pc
+240
+320 (250 if this is faulty)
+dvd
+
+-win xp
+-normal games
+-normal development stuff
+-office xp
+-secondary local drive for temprary files
+-media drive over network
+
+
+htpc
+320
+2 t
+640 
+
+
+old pc
+320 external
+
+
+-movies
+-streaming
+-music
+-pictures
+-downloading
+-emulation
+-live tv
+-backups
+-backup pc (maybe)
+
+network printer
+
+800
+2
+320
+

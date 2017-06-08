@@ -1,0 +1,130 @@
+# HUNTING - IMT End Hunt
+
+container = script.vars[2]
+
+def runScript(script, waitWhile = false, *args)
+    if(script.split(" ").size > 1)
+        tokens = script.split(" ")
+        script = tokens.shift
+        tokens.each { |token| args.push(token) }
+    end
+    result = start_script script, args
+    wait_while{running?(script)} if waitWhile
+    return result
+end
+
+Settings.load
+sav = Settings['sav'] || String.new
+before_dying { Settings['sav'] = sav; Settings.save }
+c = 0
+
+
+waitrt?
+clear
+runScript("go2", true, 3370)
+waitrt?
+clear
+put "withdraw 1000 silver"
+waitfor "you"
+waitrt?
+clear
+runScript("go2", true, 2422)
+fput "remove my #{container}"
+waitfor "you"
+fput "sell my #{container}"
+fput "wear my #{container}"
+waitfor "you"
+runScript("go2", true, 2425)
+
+locksmithing:
+
+match "strongboxs", "strongbox"
+match "coffers", "coffer"
+match "trunks", "trunk"
+match "chests", "chest"
+match "boxs", "box"
+match "donesmithing", "remaining"
+waitrt?
+clear
+put "look in my #{container}"
+waitrt?
+clear
+put "look in #{script.vars[1]} disk"
+waitrt?
+clear
+put "mana"
+matchwait
+
+
+
+
+strongboxs:
+sav = "strongbox"
+goto "smithing"
+
+coffers:
+sav = "coffer"
+goto "smithing"
+
+trunks:
+sav = "trunk"
+goto "smithing"
+
+boxs:
+sav = "box"
+goto "smithing"
+
+chests:
+sav = "chest"
+goto "smithing"
+
+smithing:
+waitrt?
+clear
+put "get #{sav} from #{script.vars[1]} disk"
+waitrt?
+clear
+put "get #{sav} from my #{container}"
+waitfor "you"
+waitrt?
+clear
+put "put my #{sav} on counter"
+waitrt?
+clear
+put "ring bell"
+pause 1
+waitrt?
+clear
+put "pay 5000"
+pause 1
+waitrt?
+clear
+put "get #{sav} from counter"
+waitrt?
+clear
+put "open my #{sav}"
+waitrt?
+clear
+put "get coin"
+pause 1
+waitrt?
+clear
+put "empty my #{sav} into my #{container}"
+pause 4
+waitrt?
+clear
+put "put my #{sav} in barrel"
+waitrt?
+clear
+put "put my #{sav} in barrel"
+pause 2
+goto "locksmithing"
+
+
+donesmithing:
+runScript("go2", true, 3370)
+waitrt?
+clear
+put "depo all"
+put "withdraw 100 silver"
+runScript("go2", true, 2300)

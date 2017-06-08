@@ -1,0 +1,10 @@
+12/09/2013  01:07 AM            62,171 bigshot (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM             2,943 phasescrolls (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM             4,142 raffle (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM            17,016 repogui (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM             6,650 scroll (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM             1,061 shopnotes (dgry's conflicted copy 2013-12-08).csv
+12/09/2013  01:07 AM            14,080 shopnotes (dgry's conflicted copy 2013-12-08).lic
+12/09/2013  01:07 AM           187,878 spell-list (dgry's conflicted copy 2013-12-08).xml
+12/09/2013  01:07 AM            12,967 townsmith (dgry's conflicted copy 2013-12-08).lic
+

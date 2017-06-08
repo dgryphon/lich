@@ -1,0 +1,16 @@
+require "ftools"
+no_kill_all
+no_pause_all
+#hide_me
+
+=begin
+Simple script to list the scripts in your script directory that you've downloaded.  For those of you too lazy or
+too uneducated to find and look in the directory on your own.
+=end
+
+Dir.foreach($script_dir) do |entry|
+	if entry =~ /.lic/
+		echo entry
+    end
+end
+

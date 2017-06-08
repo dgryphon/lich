@@ -1,0 +1,144 @@
+# REQUIRED: Lich v3.43+
+# A script that passively waits for someone to hand you an item; it then loresings to the item, whispers the discovered information to whoever handed it to you, and hands the item back when it's done.
+
+class AutoLoreSingLogFile
+	
+	def initialize(title = nil)
+		@Flename = $script_dir + "myitemnotes.csv"
+	end
+	
+	def write(shopList)
+		f = File.open(@Flename, "a")
+		f.puts shopList
+		#for cmpitm in shopList
+		#	f.puts cmpitm
+		#end		
+		f.close		
+	end
+		
+	def read()
+		begin
+			file = File.open(@Flename, "r")
+			x = Array.new()
+			while (line = file.gets)
+				#store into an array
+				x << line			
+			end
+			file.close	
+			return x
+		rescue
+			echo 'bombed'
+		end
+	end
+end
+
+
+verses = [
+[
+	"%s, I wanna know all about you;Especially what's most important: value!",
+	"Now %s, let us move on to your purpose;Have you got one, or are you just worthless?",
+	"Very well, %s, I'll believe you and move on;But I demand you tell me more, or get thee gone!",
+	"At last, %s, my little rhyme is at an end;Have my abilities charmed you fully, or must I sing it again?",
+],
+#[
+# "You can have as many loresongs as you want, just enclose them in brackets and put %s anywhere the item's name",
+# "should go -- just like above, and just like this commented-out part",
+# "third stanza",
+# "fourth stanza",
+#],
+]
+
+if checkright or checkleft
+	echo
+	respond "You'll need to empty your hands; please find somewhere to store what you're holding."
+	echo
+	wait_while { checkright or checkleft }
+	echo
+	respond "Ah, excellent; waiting for an offer..."
+	echo
+end
+
+def matchtext (command, begintext)
+	returnText = ""
+	foundFirst = false
+	endtext = /No help files matching that entry were found./
+	fput command
+    Thread.new {
+        sleep 0.15		
+		fput "help aslkdfj"
+    };	
+  loop {
+	line = get
+	if line =~ begintext
+		foundFirst = true
+	end
+	if line =~ endtext
+		return returnText
+	end
+	if foundFirst 
+		if not line =~ /LNet/
+			returnText = returnText + line
+		end
+	end
+	
+	}
+end
+
+
+teller = proc { |data, customer|
+	data.chars.to_a.each_slice(1000).to_a.map {|s| fput "whisper #{customer} #{s}" }	
+}
+
+singer = proc { |customer|
+	completeinfoset = ""
+	info = ""
+	songs = verses[rand(verses.length)]
+	fput "speak bard"
+	4.times { |n|
+		wait_until("whisper #{customer} Just a moment, I need mana...") { mana >= 1 + n * 2 }
+		sing_string = sprintf("loresing #{songs[n]}", checkright || checkleft)
+		#info = matchtimeout 5, "Roundtime", "As you sing,"		
+		info = ""		
+
+		begintext = /As you sing/
+		command = sing_string		
+		info = matchtext(command, begintext)
+		
+		waitrt?
+		if !info
+			teller["Hm, I saw no information on that one...", customer]
+			break
+		elsif info =~ /learn nothing new|unable to determine/
+			break
+		end			
+
+		teller[info, customer]
+		completeinfoset = completeinfoset + "\n" + info
+	}
+	fput "speak common"
+	return completeinfoset
+}
+
+@AutoLoreSingshopFile = AutoLoreSingLogFile.new()
+
+loop {
+	
+	person = matchfind "? offers you"
+	fput "accept"
+	sleep 0.15
+		
+	if !checkright and !checkleft
+		teller["Uh, I don't seem to be holding anything... try offering again.", person]
+		# Just incase they did hand us something and Lich is just having a problem detecting what we're holding
+		#giver[person]
+		next
+	end
+	completeinfoset = singer[person]
+	#teller[completeinfoset, person]
+	teller["That's all I can tell you", person]
+	
+	#save results to a file
+	echo completeinfoset
+	@AutoLoreSingshopFile.write(person + ": "+completeinfoset)
+	fput "give #{person}"
+}

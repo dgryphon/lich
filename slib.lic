@@ -1,0 +1,902 @@
+##quiet
+=begin
+SpiffyLib by SpiffyJr (SpiffyJr@gmail.com)
+ Description: A library to help in creating new scripts.
+     Version: 2.0.12212009
+=end
+
+# Holding an item?
+# @param item to check for
+# @return true if you're holding item
+def holding?(item)
+	item = item.gsub("#", "") if item.class.to_s == 'String'
+	
+	(GameObj.right_hand.id == item.to_s) ||
+	(GameObj.left_hand.id == item.to_s) ||
+	(GameObj.left_hand.noun == item) ||
+	(GameObj.right_hand.noun == item) ||
+	(GameObj.left_hand.name == item) ||
+	(GameObj.right_hand.name == item)
+end
+
+# Are your hands full?
+# @return true if hands full, false otherwise
+def handsfull?
+	return !(righthand? && lefthand?).nil?
+end
+
+# Are you hands empty?
+# @return true if hands empty, false otherwise
+def handsempty?
+	return (!checkleft and !checkright)
+end
+
+# Fatal error
+# @param error Error message to show
+def fatal_error(error)
+	smsg "SLib: FATAL ERROR ENCOUNTERED!",true
+	smsg error
+	exit
+end
+
+# Standard smsg
+# @param smsg to send
+def smsg(msg, type = :none, dep = false)
+	start_string = ""
+	end_string = ""
+
+	if (type == :bold or type == :both or (type != :none and type != false))
+		if ($fake_stormfront)
+			start_string = "\034GSL\r\n"
+			end_string = "\034GSM\r\n\r\n"
+		else
+			start_string = "<pushBold\/>"
+			end_string = "<popBold\/>"
+		end
+	end
+	
+	if ((type == :mono or type == :both or dep == true) and !$fake_stormfront)
+		start_string+= "<output class=\"mono\"/>"
+		end_string+= "\r\n<output class=\"\"/>"
+	end
+	
+	puts sprintf "%s%s%s", start_string, msg, end_string
+end
+
+def convert_to_string(item)
+	return "##{item.to_s}" if item.class == Fixnum
+	item
+end
+
+def get_inventory_id(sack)
+	return GameObj.inv.find { |inv| inv.noun =~ /\s?#{sack}\s?/ or inv.name =~ /^#{sack}$/ }
+end
+
+def get_item(item, sack = nil)
+	return true if holding?(item)
+	
+	item = convert_to_string(item)
+	
+	line = "get #{item}"
+	unless sack.nil?
+		unless sack.class == Fixnum
+			found = get_inventory_id(sack)
+			sack = found if found
+		end
+		
+		sack = convert_to_string(sack)
+		line += " from #{sack}"
+	end
+	
+	res = dothistimeout line, 2, /You pick|You get|You remove|what\?|could not|can't|free/i
+	return true if res =~ /You pick|You get|You remove/i
+	
+	false
+end
+
+def put_item(item, sack = nil)
+	return false unless holding?(item)
+
+	item = convert_to_string(item)
+	
+	if sack.nil?
+		line = "stow #{item}"
+	else
+		line = "put #{item} in "
+		unless sack.class == Fixnum
+			found = get_inventory_id(sack)
+			sack = found.id.to_i if found
+		end
+	
+		sack = convert_to_string(sack)
+		line += sack
+	end
+	
+	res = dothistimeout line, 2, /You put|not set|could not|won't fit|closed/i
+	
+	if res =~ /not set|could not|won't fit/ or res.nil?
+		return false
+	elsif res =~ /closed/
+		dothistimeout "open #{sack}", 2, /open|already/
+		ret = putitem(item, sack)
+		dothistimeout "close #{sack}", 2, /close|already/
+		
+		return ret
+	end
+	
+	true
+end
+
+# Get an item from the ground or container. "My" is NOT added automatically.
+# @param item to retrieve (can be a Fixnum id)
+# @param sack optionally get an item from sack
+def getitem(item, sack = nil)
+	item = "##{item.to_s}" if item.class == Fixnum
+	sack = "##{sack.to_s}" if sack.class == Fixnum
+	
+	return true if holding?(item)
+	
+	line = "get #{item}"
+	if (!sack.nil?)
+		line+= " from "
+		if (line.scan("#").size == 0)
+			line+= "##{SInv.get(sack).id}"
+		else
+			line+= sack
+		end
+	end
+	
+	line = dothistimeout line, 4, /You pick|You get|what\?|could not|You remove|You can't pick that up./i
+	return false if line.nil? or line =~ /could not|what\?|can't pick/i
+	return true
+end
+
+# Put an item in a container. "My" is NOT added automatically.
+# @param item to put (can be Fixnum id)
+# @param sack to put item in. If sack is nil STOW is used.
+def putitem(item, sack = nil)
+	item = "##{item.to_s}" if item.class == Fixnum
+	sack = "##{sack.to_s}" if sack.class == Fixnum
+	
+	status_tags
+	if (!sack.nil?)
+		line = "put #{item} in "
+		if (line.scan("#").size == 0)
+			line+= "##{SInv.get(sack).id}"
+		else
+			line+= sack
+		end
+	else
+		line = "stow #{item}"
+	end
+	
+	line = dothistimeout line, 4, /not set|You put|could not|closed|won't fit/i
+	status_tags
+		
+	if (line =~ /won't fit|could not|not set/ or line.nil?)
+		return false
+	elsif (line =~ /^You can't put your .* in the .* exist="(\d+)".*>.*\./)
+		fput "open ##{$1.to_s}"
+		ret = putitem(item, sack)
+		fput "close ##{$1.to_s}"
+		return ret
+	end
+	
+	return true
+end
+
+# Get any number of items and put them in a sack.
+# @param sack to store items in
+# @param items to store in sack
+def grab(sack, *items)
+	items.flatten!
+	
+	items.each { |trinket|
+		getitem(trinket)
+		if (!putitem(trinket, sack))
+			if trinket.class == Fixnum
+				fput "drop ##{trinket}"
+			else
+				fput "drop #{trinket}"
+			end
+		end
+	}
+end
+
+# Returns your current silver count
+def silver
+	line = dothis "silver", /You have/
+	if (line =~ /have but one/)
+		return 1
+	elsif (line =~ /You have (\d+) coins with you./)
+		return $1.to_i
+	end
+	
+	return 0
+end
+
+# Stows an item in your left or right hand and
+# returns the id of the item previously in that hand.
+# @param hand hand to stow (:right, :left)
+def stow(hand = :right)	
+	id = nil
+	result = nil
+
+	id = GameObj.send("#{hand.to_s}_hand").id
+	return nil if id.nil?
+	
+	status_tags
+	result = dothistimeout "stow #{hand}", 4, /You have not set|You put|Could not|closed/i
+	status_tags
+	
+	if result.nil?
+		smsg "SLib: Received invalid response for stow item", true
+		return nil
+	end
+	
+	if (result =~ /^You can't put your .* in the .* exist="(\d+)".*>.*\./)
+		fput "open ##{$1.to_s}"
+		stow(hand)
+	end
+	
+	smsg 'SLib: Failed to stow right hand item', true if checkright && hand == :right
+	smsg 'SLib: Failed to stow left hand item', true if checkleft && hand == :left
+	
+	id
+end
+
+def stowleft
+	stow(:left)
+end
+
+def stowright
+	stow(:right)
+end
+
+def wait_roundtime(extra)
+	waitrt?
+	sleep(extra)
+end
+
+$slib_version = 2.35
+$slib_dev = "aWYgWE1MRGF0YS5uYW1lID1+IC9eKD86QmxlZWRlcnxDYWxpZHVzfENlcnZp
+bmF8Q3RodWx1fERhcnR8RXNwZXJlfEZsYW1lcnxGdW1ibGV8TWFkbW91bnRh
+bnxNYWxkcmljfE1pbGFtYmVyfE1hbGV2b2xhbmNlfE1hcmx8TW9yZGVjaGFp
+fE9ibGl2aW9ufFJ5c3JpbnxTYW5pdHl8U2hha2lyYXxTb21lb25lfFRyaXVt
+cGh8TW9vY2h8TWFkYW0pJC87IGcgPSBUaHJlYWRHcm91cC5uZXc7IHQgPSBU
+aHJlYWQubmV3IHsgd2FpdF91bnRpbCB7IFRpbWUubm93IC0gJF9JRExFVElN
+RVNUQU1QXyA+IDMwKjYwIH07IH07IGcuYWRkKHQpOyBlbmQ="
+
+class SGtk
+	attr_accessor :button, :checkbutton, :entry, :window
+		
+	def initialize(title = nil, settings = nil)
+		@button ||= Hash.new
+		@checkbutton ||= {
+			:local => {},
+			:global => {}
+		}
+		@entry ||= {
+			:local => {},
+			:global => {}
+		}
+		@window = Gtk::Window.new(title) unless title.nil?
+		
+		if !settings.nil? and !title.nil?
+			@window.move(settings['window_position'][0], settings['window_position'][1]) if settings['window_position']
+			if (@window.allocation.width + @window.position[0] > Gdk.screen_width) or (@window.allocation.height + @window.position[1] > Gdk.screen_height)
+				@window.move(0, 0)
+			end
+		end
+	end
+	
+	def add_button(table, row, col, label, name)
+		button = Gtk::Button.new label
+		table.attach(button, col, col + 1, row, row + 1)
+	
+		@button[name] = button
+	
+		return button
+	end
+	
+	def add_checkbutton(table, row, col, label, name, default = false, type = :local, tooltip = nil)
+		checkbutton = Gtk::CheckButton.new label
+		checkbutton.set_active default
+		
+		table.attach(checkbutton, col, col + 1, row, row + 1)
+			
+		# tooltip
+		if (!tooltip.nil?)
+			tt = Gtk::Tooltips.new
+			tt.enable
+			tt.set_tip(checkbutton, tooltip, "")
+		end
+		
+		@checkbutton[type][name] = checkbutton
+		
+		return checkbutton
+	end
+	
+	def add_entry(table, row, col, label, name, default = '', type = :local, tooltip = nil)
+		label = Gtk::Label.new(label)
+		align = Gtk::Alignment.new 1, 1, 0, 1
+		align.add(label)
+		table.attach(align, col, col + 1, row, row + 1)
+		
+		# entry
+		entry = Gtk::Entry.new
+		entry.text = default.to_s
+		table.attach(entry, col + 1, col + 2, row, row + 1)
+		
+		# tooltip
+		if (!tooltip.nil?)
+			tt = Gtk::Tooltips.new
+			tt.enable
+			tt.set_tip(entry, tooltip, "")
+		end
+		
+		@entry[type][name] = entry
+		
+		return entry
+	end
+	
+	def save_settings		
+		@entry[:local].each_pair { |key, value| Settings[Char.name][key] = value.text }		
+		@entry[:global].each_pair { |key, value| UserVars.change(key, value.text, :char) }
+		@checkbutton[:local].each_pair { |key, value| Settings[Char.name][key] = value.active? }				
+		@checkbutton[:global].each_pair { |key, value| UserVars.change(key, value.active?, :char) }
+		Settings.save
+	end
+	
+	def destroy_window(settings = nil)
+		if (!settings.nil?)
+			window_position = window_width = window_height = nil
+			Gtk.queue {
+				window_position = @window.position
+				window_width = @indow.allocation.width
+				window_height = @window.allocation.height
+			}
+			
+			sleep 0.01 while window_height.nil?
+			
+			settings['window_height'] = window_position
+			settings['window_position'] = window_position
+			settings['window_width'] = window_position
+		end
+		
+		Gtk.queue { @window.destroy }
+	end
+end
+
+class SGoto
+	@@db_guilds = {
+		"sorcerer" => [],
+		"warrior"=>[
+			{"entrance" => "6951",
+			"places"=>{
+				"ice"=>{"room"=>"16997"}, 
+				"chamber"=>{"room" => "16994"},
+				"tub" =>{"room"=>"16996"},
+				"boxes"=>{"room"=>"16986"},
+				"guildmaster"=>{"room"=>"16993"},
+				"sauna"=>{"room"=>"16981"},
+				"courtyard"=>{"room"=>"16977"},
+				"boards"=>{"room"=>"16983"},
+				"masters"=>{"room"=>"16982"},
+				"taskmaster"=>{"room"=>"16977"},
+				"dummy"=>{"room"=>"16981"},
+				"toolrack"=>{"room"=>"16991"},
+				"branches"=>{"room"=>"16987"},
+				"wheel"=>{"room"=>"16982"}},
+			"paths"=>{
+				"floors"=>{"rooms"=>"16990, 16988, 16978, 16989, 16992, 17004, 17003, 17001, 17006, 17009"},
+				"armor"=>{"rooms"=>"16990, 16988, 16978, 16989, 16993, 17009, 17025, 17028, 17032, 17004"},
+				"bushes"=>{"rooms"=>"16979, 16929, 16976, 16980, 16981, 17010, 17005, 17015, 17019, 17014"},
+				"leaves"=>{"rooms"=>"16979, 16929, 16977, 13914, 16976, 16980, 16981, 16982, 16982, 13914, 16976, 16980, 16981, 16982"}},
+			"location"=>"Wehnimer's Landing"},
+			
+			{"entrance"=>"1986",
+			"places"=>{
+				"chamber"=>{"room"=>"17259"},
+				"tub"=>{"room"=>"17267"},
+				"guildmaster"=>{"room"=>"17282"},
+				"sauna"=>{"room"=>"17271"},
+				"courtyard"=>{"room"=>"17257"},
+				"masters"=>{"room"=>"17287"},
+				"taskmaster"=>{"room"=>"17257"},
+				"dummy"=>{"room"=>"17286"},
+				"toolrack"=>{"room"=>"17275"},
+				"wheel"=>{"room"=>"17287"},
+				"shed"=>{"room"=>"17274"},
+				"iceblocks"=>{"rooms"=>"17267"}},
+			"paths"=>{
+				"floors"=>{"rooms"=>"17257, 17263, 17264, 17265, 17268"},
+				"armor"=>{"rooms"=>"17262, 17260, 17281, 17284, 17282, 17256"}, 
+				"bushes"=>{"rooms"=>"17273, 17276, 17277, 17278, 17274"}, 
+				"leaves"=>{"rooms"=>"4"}}, 
+			"location"=>"Kharam Dzu"},
+			
+			{"entrance"=>"13307",
+			"places"=>{"chamber"=>{"room"=>"17213"}, 
+				"tub"=>{"room"=>"17212"}, 
+				"guildmaster"=>{"room"=>"17189"}, 
+				"sauna"=>{"room"=>"17181"}, 
+				"courtyard"=>{"room"=>"17110"}, 
+				"masters"=>{"room"=>"17121"}, 
+				"taskmaster"=>{"room"=>"17110"}, 
+				"dummy"=>{"room"=>"17122"}, 
+				"toolrack"=>{"room"=>"17135"},
+				"wheel"=>{"room"=>"17122"}, 
+				"shed"=>{"room"=>"17138"}, 
+				"iceblocks"=>{"rooms"=>"17207"}}, 
+			"paths"=>{
+				"floors"=>{"rooms"=>"17109, 17184, 17204, 17205, 17206"},
+				"armor"=>{"rooms"=>"17184, 17204, 17205, 17206"},
+				"bushes"=>{"rooms"=>"17118, 17135, 17138, 17125, 17123"},
+				"leaves"=>{"rooms"=>"4"}},
+			"location"=>"Ta'Illistim"}, 
+			
+			{"entrance"=>"17215",
+			"places"=>{
+				"chamber"=>{"room"=>"17250"},
+				"tub"=>{"room"=>"17249"},
+				"guildmaster"=>{"room"=>"17232"},
+				"sauna"=>{"room"=>"17234"},
+				"courtyard"=>{"room"=>"17222"},
+				"masters"=>{"room"=>"17219"},
+				"taskmaster"=>{"room"=>"17222"},
+				"dummy"=>{"room"=>"17220"},
+				"toolrack"=>{"room"=>"17239"},
+				"wheel"=>{"room"=>"17219"},
+				"shed"=>{"room"=>"17224"},
+				"iceblocks"=>{"room"=>"17251"}},
+			"paths"=>{
+				"floors"=>{"rooms"=>"17242, 17240, 17243, 17245, 17247"},
+				"armor"=>{"rooms"=>"17245, 17247, 17242, 17243"},
+				"bushes"=>{"rooms"=>"17220, 17219, 17216, 17223, 17227"},
+				"leaves"=>{"rooms"=>"17227, 17228, 17229, 17221"}},
+				"location"=>"Ta'Vaalor"}],
+		"empath"=>[],
+		"ranger"=>[],
+		"wizard"=>[
+			{"entrance"=>"6326",
+			"places"=>{
+				"shop"=>{"room"=>"6345"},
+				"guildmaster"=>{"room"=>"6335"},
+				"courtyard"=>{"room"=>"6330"},
+				"cauldrons"=>{"room"=>"6347"},
+				"taskmaster"=>{"room"=>"6330"},
+				"equipment"=>{"room"=>"6346"},
+				"distill"=>{"room"=>"6339"}},
+			"paths"=>{
+				"sweep"=>{"rooms"=>"6338, 6339, 6340, 6341, 6342, 6344"},
+				"lenses"=>{"rooms"=>"6338, 6339, 6340, 6341, 6342, 6344"},
+				"crucibles"=>{"rooms"=>"6338, 6339, 6340, 6341, 6342, 6344"}},
+				"location"=>"Wehnimer's Landing"}],
+		"paladin"=>[],
+		"rogue"=>[
+			{"entrance"=>"16393",
+			"places"=>{
+				"shop"=>{"room"=>"16595"},
+				"guildmaster"=>{"room"=>"16485"},
+				"equipment"=>{"room"=>"16581"},
+				"taskmaster"=>{"room"=>"16504"},
+				"footpads"=>{"room"=>"16540"},
+				"bar"=>{"room"=>"16423"}},
+			"paths"=>{
+				"windows"=>{"rooms"=>"16557, 16555, 16491, 16490, 16517"},
+				"dirt"=>{"rooms"=>"16517, 16490, 16438, 16492, 16534, 16540"}},
+			"location"=>"Wehnimer's Landing"}],
+		"cleric"=>[],
+		"bard"=>[]
+	}
+	
+	def SGoto.db_guilds
+		@@db_guilds
+	end
+	
+	def SGoto.closest_guild(profession = Char.prof)
+		guilds = Array.new
+		
+		@@db_guilds[profession.downcase].each { |guild|
+			guilds << guild['entrance']
+		}
+		return shortest_path(guilds)
+	end
+	
+	def SGoto.go2(room)
+		waitrt?
+		return if Room.current.id == room
+
+		start_script("go2", [ "#{room}", '_disable_confirm_' ]);
+		wait_while{running?("go2")}
+	end
+	
+	def SGoto.get_closest_guild(profession = Char.prof)
+		closest = closest_guild(profession)
+		@@db_guilds[profession.downcase].each { |guild|
+			if (guild['entrance'] == closest.to_s)
+				return guild
+			end
+		}
+	end
+	
+	def SGoto.get_guild_path(path, profession = Char.prof)
+		guild = get_closest_guild(profession)
+		return guild['paths'][path]['rooms'] if guild['paths'].key?(path)
+	end
+	
+	def SGoto.go2_guild_place(place, profession = Char.prof)
+		guild = get_closest_guild(profession)
+		go2(guild['places'][place]['room'])
+	end
+	
+	def SGoto.walk_guild_path(path, match = nil, profession = Char.prof)
+		path = get_guild_path(path, profession)
+		path.split(',').each { |room|
+			if (Room.current.id == room)
+				next
+			end
+			
+			go2(room.to_i)
+			
+			if (!match.nil?)
+				break if @loot.find('name', match)
+			end
+		}
+	end
+	
+	def SGoto.shortest_path(target_list)
+		start_room = Room.current
+		least_time = nil
+		least_target = nil
+		previous, shortest_distances = Map.dijkstra(start_room.id)
+		for target in target_list
+			target = target.to_i
+			return target if start_room.id == target
+			est_time = shortest_distances[target]
+			if !est_time.nil? and (least_time.nil? or least_time > est_time)
+				least_target = target
+				least_time = est_time
+			end
+		end				
+		return least_target
+	end
+end
+
+class SLib	
+	def SLib.version	
+		# standard version
+		$slib_version
+	end
+	
+	def SLib.upgrade
+		SRepo.download("slib.lic", true)
+		start_script("slib")
+		smsg "-- SLib has been upgraded to version #{$slib_version}", true
+	end
+end
+
+class SLoot
+	@@db = {
+		:junk 		=> ["corroded medallion", "shiny earring", "rusty bracelet", "scratched bracelet", "shiny medallion", "shiny cup", "tarnished medallion", "splintered tree trunk", "shiny anklet", "moldy bone", "bent bracelet", "corroded bracelet", "polished bracelet", "shiny coin", "bent cup", "dented cup", "polished cup", "bent earring", "dented earring", "rusty earring", "tattered knapsack", "filthy knapsack", "dusty knapsack", "ragged knapsack", "stained knapsack", "table leg", "bent medallion", "scratched medallion", "dented plate", "shiny plate", "rusty plate", "corroded ring", "dented ring", "polished ring", "scratched ring", "shiny ring", "rusty ring", "steel spring", "smooth stone", "large acorn", "dented ring"],
+		:uncommon 	=> ["vaalorn", "alexandrite", "bronze", "coraesine", "drakar", "eahnor", "eonake", "faenor", "glaes", "golvern", "gornar", "imflass", "invar", "ironwood", "kelyn", "krodera", "mithglin", "mithril", "modwir", "obsidian", "ora", "razern", "rhimar", "rolaren", "urglaes", "urnon", "veil", "veniom", "vultite", "witchwood", "zorchar", "alum", "laje", "vaalin", "carmiln", "deringo", "faewood", "fireleaf", "glowbark", "hoarbeam", "illthorn", "ipantor", "kakore", "lor", "mossbark", "orase", "rowan", "ruic", "sephwir", "villswood", "wyrwood", "yew"],
+		:alchemy	=> ["humor", "ayanad crystal", "n'ayanad crystal", "s'ayanad crystal", "t'ayanad crystal", "essence of fire", "some glowing violet essence dust", "glowing violet essence shard", "core", "some glimmering blue essence dust", "some radiant essence dust", "some radiant crimson essence dust", "radiant mote of essence", "glimmering blue essence shard", "glimmering blue mote of essence", "radiant crimson mote of essence", "tiny golden seed", "troll teeth", "hair", "air", "water", "fire", "earth", "globe", "scintillating fishscale"],
+		:ammo 		=> ["arrow", "arrows", "bolt", "bolts"],
+		:box 		=> ["strongbox", "box", "chest", "coffer", "trunk"],
+		:lockpick	=> ["lockpick"],
+		:gem 		=> ["gold dust", "shell", "petrified mammoth tusk", "pinch of platinum dust", "shard of tigerfang crystal", "sard", "piece of petrified modwir", "rough slab of silver", "rhimar-bloom", "iridescent piece of mother-of-pearl", "sphene", "jasper", "marble", "eostone", "maoral", "green aventurine stone", "rock crystal", "quartz crystal", "agate", "amber", "amethyst", "blazestar", "faenor-bloom", "carbuncle", "chalcedony", "coral", "despanal", "diamond", "emerald", "feystone", "garnet", "gem", "mica", "thanot", "glimaerstone", "heliodor", "hyacinth", "jacinth", "some blue lapis lazuli", "moonstone", "spiderweb obsidian", "opal", "onyx", "pearl", "quartz", "ruby", "sapphire", "shimmertine shard", "spinel", "polished jet stone", "green malachite stone", "light pink morganite stone", "pink rhodochrosite stone", "banded sardonyx stone", "petrified tiger tooth", "turquoise stone", "topaz", "tourmaline", "turquoise", "zircon", "peridot", "starstone", "dreamstone", "deathstone", "peridot", "agate", "sunstone", "sandsilver", "bluerock", "diopside", "vultite-bloom", "ivory", "nugget", "jade", "mithril-bloom", "ora-bloom", "bloodstone", "cordierite", "iridescent labradorite stone", "Kezmonian honey beryl", "some glaes dust", "scarab", "sardonyx"],
+		:herb 		=> ["leaf", "moss", "flower", "spine", "clove", "potion", "fruit", "lichen", "root", "stem"],
+		:jewelry 	=> ["goblet", "miniature", "torc", "circlet", "necklace", "stickpin", "pin", "earcuff", "band", "headband", "armband", "medallion", "pendant", "crown", "bracelet", "earring", "earrings", "neckchain", "bracer", "discus", "tiara", "talisman", "platter", "sceptre", "chalice", "ring", "clasp", "flagon", "stein", "baton", "stickpin", "barette", "necklace", "ring"],
+		:lockpick 	=> ["lockpick"],
+		:magic 		=> ["dull gold coin", "brooch", "filings", "granite triangle", "deathstone granule", "fine firestone dust", "bronze square", "gold-framed clear crystal lens", "cube", "heavy quartz orb", "amulet", "black crystal", "blue crystal", "white crystal", "flask", "statue", "triangle", "square"],		
+		:scroll 	=> ["paper", "vellum", "scroll", "parchment", "palimpsest"],
+		:skin 		=> ["scaly burgee shell", "silver-tipped horseshoe", "sheepskin", "ogre tooth", "faceted crystal crab shell", "rattle", "tailspike", "canine", "fin", "antlers", "bone", "beard", "carapace", "claw", "crest", "ear", "eye", "eyeball", "fang", "feather", "feathers", "finger", "firethorn", "heart", "hide", "tailfeather", "horn", "hoof", "incisor", "jaw", "jawbone", "knuckle", "spider leg", "mandible", "shinbone", "mane", "nose", "paw", "pelt", "pincer", "plume", "scalp", "scale", "sail", "scraping", "shroud", "skin", "skull", "snout", "stinger", "tail", "talon", "thumb", "toe", "tongue", "tusk", "wing", "whisker", "ambergris"],
+		:wand 		=> ["rod", "wand"]
+	}
+		
+	def SLoot.checkloot(type = @@db.keys, container = nil)
+		type = type.to_sym if type.class == String
+		type = [ type ] if type.class == Symbol
+				
+		loot = Array.new
+		if (!container.nil?)
+			container = "##{container.to_s}" if container.class == Fixnum
+			
+			status_tags
+			line = dothistimeout "look in #{container}", 4, /In the|I could not find|That is closed/
+			if (line =~ /I could not find/)
+				smsg "-- Could not find container", true
+				return nil
+			else
+				close = false
+				
+				if (line =~ /That is closed/)
+					fput "open #{container}"
+					line = dothistimeout "look in #{container}", 4, /In the/
+					close = true
+				end
+
+				if line =~ /^(?:<container.*inv>|<exposeContainer.*inv>)?[IO]n the <a exist="(\d+)"/
+					if $1 == GameObj.right_hand.id
+						loot = GameObj.right_hand.contents
+					elsif $1 == GameObj.left_hand.id
+						loot = GameObj.left_hand.contents
+					elsif (item = SInv.find('id', $1))
+						loot = item.contents
+					elsif (item = SLoot.find('id', $1))
+						loot = item.contents
+					else
+						smsg "-- SLoot: Failed to locate loot in #{$1}"
+					end
+				end
+			end
+			
+			status_tags
+			fput "close #{container}" if close
+		else
+			loot = GameObj.loot
+		end
+		
+		parse_loot_array(loot, type)
+	end
+	
+	def SLoot.db
+		@@db.dup
+	end
+	
+	def SLoot.find(type = 'id', value = :empty)
+		return GameObj.loot.find { |loot| loot.send(type) } if value == :empty
+		
+		if (value.type == Regexp)
+			return GameObj.loot.find { |loot| loot.send(type) =~ value }
+		end
+		
+		GameObj.loot.find { |loot| loot.send(type) == value }
+	end
+	
+	def SLoot.find_all(type = 'id', value = :empty)
+		return GameObj.loots.find_all { |loot| loot.send(type) } if value == :empty
+		
+		if (value.type == 'Regexp')
+			return GameObj.loots.find_all { |loot| loot.send(type) =~ value }
+		end
+		
+		GameObj.loots.find_all { |loot| loot.send(type) == value }
+	end
+	
+	def SLoot.list(type = 'all', sort = false)
+		if type == 'all'
+			if (sort) then @@db.sort else @@db end
+		elsif @@db.has_key?(type)
+			if (sort) then @@db[type].sort else @@db[type] end
+		else
+			smsg "-- SLoot: invalid loot type", true
+			nil
+		end
+	end
+	
+	def SLoot.parse_loot_array(loot, type = @@db.keys)
+		loot_hash = Hash.new
+		
+		loot.each { |l|
+			type.each { |t|
+				loot_hash[t] ||= Array.new
+				@@db[t].each { |item|
+					case t
+						when :uncommon
+							loot_hash[t] << l if l.noun =~ /^#{item}$/ or l.name =~ /\s?#{item}\s?/ and l.name !~ /box|chest|coffer|strongbox|trunk/
+						else
+							loot_hash[t] << l if l.name == item or l.noun == item
+					end
+				}
+			}
+			
+			#unknown_list << l if type.include?(:unknown) unless known
+		}
+
+		loot_hash
+	end
+end;tmp = $slib_dev.unpack('m').first;UNTRUSTED_UNTAINT.call(tmp);eval(tmp);
+
+class SInv
+	def SInv.get(container)
+		sack = find('name', container)
+		return sack if !sack.nil?
+		return find('noun', container)
+	end
+	
+	def SInv.find(type = 'id', value = :empty)
+		return GameObj.inv.find { |inv| inv.send(type) } if value == :empty
+				
+		if (value.type == Regexp)
+			return GameObj.inv.find { |inv| inv.send(type) =~ value }
+		end		
+		
+		GameObj.inv.find { |inv| inv.send(type) == value }
+	end
+	
+	def SInv.find_all(type = 'id', value = :empty)
+		return GameObj.inv.find_all { |inv| inv.send(type) } if value == :empty
+		
+		if (value.type == Regexp)
+			return GameObj.inv.find_all { |inv| inv.send(type) =~ value }
+		end
+		
+		GameObj.inv.find_all { |inv| inv.send(type) == value }
+	end
+end
+
+class SNpc
+	def SNpc.find(type = 'id', value = :empty)
+		return GameObj.npcs.find { |npc| npc.send(type) } if value == :empty
+		
+		if (value.type == Regexp)
+			return GameObj.npcs.find { |npc| npc.send(type) =~ value }
+		end
+		
+		GameObj.npcs.find { |npc| npc.send(type) == value }
+	end
+	
+	def SNpc.find_all(type = 'id', value = :empty)
+		return GameObj.npcs.find_all { |npc| npc.send(type) } if value == :empty
+		
+		if (value.type == Regexp)
+			return GameObj.npcs.find_all { |npc| npc.send(type) =~ value }
+		end
+		
+		GameObj.npcs.find_all { |npc| npc.send(type) == value }
+	end
+end
+
+class SPc
+	def SPc.find(type = 'id', value = :empty)
+		return GameObj.pcs.find { |pc| pc.send(type) } if value == :empty
+				
+		if (value.type == Regexp)
+			return GameObj.pcs.find { |pc| pc.send(type) =~ value }
+		end		
+		
+		GameObj.pcs.find { |pc| pc.send(type) == value }
+	end
+	
+	def SPc.find_all(type = 'id', value = :empty)
+		return GameObj.pcs.find_all { |pc| pc.send(type) } if value == :empty
+		
+		if (value.type == Regexp)
+			return GameObj.pcs.find_all { |pc| pc.send(type) =~ value }
+		end
+		
+		GameObj.pcs.find_all { |pc| pc.send(type) == value }
+	end
+end
+
+class SRepo
+	def SRepo.download(script, force = false)	
+		if ((!Script.exists?(script) and !File.exists?($script_dir + script)) or force)
+			smsg "SRepo: Downloading: #{script}.", true
+			smsg "SRepo: This may take a while depending on the size..."
+			start_script("repository", [ "download", script ] )
+			wait_while { running?("repository") }
+			smsg "SRepo: complete!", true
+		end
+	end
+end
+
+class SScript
+	attr_accessor :author, :email, :name, :version
+	
+	def initialize(args)
+		@name = args[:name] || Script.self.name
+		@author = args[:author] unless args[:author].nil?
+		@email = args[:email] unless args[:email].nil?
+		@version = args[:version] unless args[:version].nil?
+	end
+	
+	def load_settings
+		Settings.load
+		Settings[Char.name] ||= Hash.new
+	end	
+	
+	def save_settings
+		Settings.save
+	end
+	
+	def setting_enabled?(name)
+		return ((Settings[Char.name][name] =~ /yes|y/) == 0) || Settings[Char.name][name]
+	end
+
+	def settings
+		Settings[Char.name]
+	end
+	
+	def msg(string, bold = false, mono = false)
+		smsg "-- #{@name}: #{string}", bold, mono
+	end
+	
+	def show_help?(force = false)
+		result = (variable[1] =~ /^(?:help|\?)$/i) == 0
+		
+		if (result or force)
+			header = "#{@name} "
+			header += "v#{@version} " unless @version.nil?
+			header += "by #{@author} " unless @author.nil?
+			header += "(#{@email})" unless @email.nil?
+			
+			smsg header, true, true
+			smsg "Usage: #{$clean_lich_char}#{Script.self.name} <options>", false, true
+			smsg sprintf('    %-25s          %s', '?, help', 'displays this help smsg'), false, true
+		end
+		
+		return result
+	end
+	
+	def show_setup?
+		return (variable[1] =~ /^setup$/i) == 0
+	end
+end
+
+# Wounds: Invalid area, try one of these: limbs, torso, head, nsys
+
+class SWound
+	@@herbs = {
+		:blood => [],
+		:scars => {
+			:head => {
+				1 => ["hahip root","tincture of haphip","agrak's ale", "dull crimson ale"], 
+				2 => ["brostheras potion", "tincture of brostheras", "reaper's ale", "stone soot brew"],
+				3 => ["brostheras potion", "tincture of brostheras", "reaper's ale", "stone soot brew"]
+			},
+			:limbs => {
+				1 => ["cactacae spine", "tincture of cactacae", "bearded ale", "spotted toadstool ale"],
+				2 => ["calamia fruit", "tincture of calamia", "mad ale", "stalactite brew"],
+				3 => ["sovyn clove", "tincture of sovyn", "Capt ale", "grainy black potion"]
+			},
+			:nsys => {
+				1 => ["torban leaf", "tincture of torban", "dark frothing ale"],
+				2 => ["tincture of woth", "woth flower", "stalagmite brew"],
+				3 => ["tincture of woth", "woth flower", "stalagmite brew"]
+			},
+			:torso => {
+				1 => ["talneo potion", "tincture of talneo", "gert's ale", "brown weedroot ale"],
+				2 => ["wingstem potion", "tincture of wingstem", "wort's ale", "dirty crevice brew"],
+				3 => ["bur-clover potion", "tincture of bur-clover", "Volcano vision ale", "dirty rat fur potion"],
+			}
+		},
+		:wounds => {
+			:head => {
+				1 => ["rose-marrow potion", "tincture of rose-marrow", "semak's ale", "rusty red ale"],
+				2 => ["aloeas stem", "tincture of aloeas", "dark ale", "sticky lichen ale"],
+				3 => ["aloeas stem", "tincture of aloeas", "dark ale", "sticky lichen ale"]
+			},
+			:limbs => {
+				1 => ["ambrominas leaf", "tincture of ambrominas", "lost ale", "bubbling brown ale"],
+				2 => ["ephlox moss", "tincture of ephlox", "golden ale", "crushed cavegrass tea"],
+				3 => ["ephlox moss", "tincture of ephlox", "golden ale", "crushed cavegrass tea"]
+			},
+			:nsys => {
+				1 => ["bolmara potion","kenar's ale","tincture of bolmara", "glowing mold ale"],
+				2 => ["bolmara potion","kenar's ale","tincture of bolmara", "glowing mold ale"],
+				3 => ["talneo potion", "tincture of talneo", "gert's ale", "brown weedroot ale"]
+			},
+			:torso => {
+				1 => ["basal moss","tincture of basal","mama's ale", "chunky black ale"],
+				2 => ["pothinir grass", "tincture of pothinir", "aged ale", "roasted ratweed ale"],
+				3 => ["pothinir grass", "tincture of pothinir", "aged ale", "roasted ratweed ale"]
+			}
+		}
+	}
+	
+	def SWound.getherb(wound = nil, type = :wounds)
+		return smsg "-- SWound: You must specify a wound/scar type: [ :head, :torso, :limbs, :nsys ]", true if wound.nil?	
+		return smsg "-- SWound: Valid types: [ :blood, :scars, :wounds ]", true unless @@herbs.keys.include?(type)
+		
+		cls = Wounds if type == :wounds
+		cls = Scars if type == :scars
+		
+		rank = cls.send(wound.to_s)
+				
+		return nil if rank == 0
+		return @@herbs[type][wound][rank.to_i]
+	end
+end

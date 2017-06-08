@@ -1,0 +1,16 @@
+#stand generic
+#silence_me
+loop {
+	wait_until{!dead?}
+	wait_until{!standing?}
+	wait_until{!muckled?}
+	wait_until{checkroom !~ /\[Dark Palisade, Lovers' Leap\]|\[Teras Isle, Underwater\]|\[Ruined Temple, Antechamber\]/}
+	unless(muckled? or standing?)
+			waitrt?
+			mystance = checkstance
+			fput "stance off" unless $stance_value <= 20
+			fput("stand") unless standing?
+			waitrt?
+			fput "stance #{mystance}"
+	end
+}

@@ -1,0 +1,104 @@
+=begin
+	Kasvor ruleswel
+=end
+ 
+
+exit if (checkright and checkleft)
+ 
+password = 'irock'
+ 
+loop {
+	line = get
+	exit if percentmind <= 50
+ 
+	if line =~ /(.*) (?:says|whispers), "(.*)"/
+		char = $1
+		message = $2.strip
+ 
+		if (message =~ /eblade/i and message =~ /#{password}/)
+			if (checkmana 11)
+				count = (20 + (3 * Spells.minelemental))
+     				fput "whisper #{char} Casting eblade for #{count} swings."
+     				fput "prep 411"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		elsif (message =~ /strength/i and message =~ /#{password}/)
+   			if (checkmana 18)
+     				fput "prep 509"
+     				fput "cast at #{char}"
+				waitcastrt?
+     				fput "prep 509"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		elsif (message =~ /silvers/i and message =~ /#{password}/)
+   			if (checkmana 1)
+     				fput "prep 401"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		elsif (message =~ /brights/i and message =~ /#{password}/)
+   			if (checkmana 6)
+     				fput "prep 406"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		elsif (message =~ /disk/i and message =~ /#{password}/)
+   			if (checkmana 11)
+     				fput "prep 511"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		elsif (message =~ /503/i and message =~ /#{password}/)
+   			if (checkmana 3)
+     				fput "prep 503"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+		#filler up
+  		elsif (message =~ /filler/i and message =~ /#{password}/)
+			waitcastrt?
+   			if (checkmana 11)
+     				fput "prep 511"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+			waitcastrt?
+   			if (checkmana 9)
+     				fput "prep 509"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+			waitcastrt?
+   			if (checkmana 6)
+     				fput "prep 406"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+			waitcastrt?
+   			if (checkmana 1)
+     				fput "prep 401"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+			waitcastrt?
+   			if (checkmana 3)
+     				fput "prep 503"
+     				fput "cast at #{char}"
+   			else
+     				fput "whisper #{char} Sorry, outta mana! #{checkmana/maxmana} mana"
+   			end
+  		end
+ 	end
+}

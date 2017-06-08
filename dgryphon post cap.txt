@@ -1,0 +1,10 @@
+3x spells
+2x lore
+2x scroll
+1x mana control
+2x harness power
+1x dodge
+1x twc
+1x climb/percp/swim
+1x armor
+3x HP

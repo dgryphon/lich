@@ -1,0 +1,63 @@
+#Get herb task
+    start_script("go2", [2403])
+    wait_while { running?("go2") }
+    fput "go cottage"
+    fput "ask mirtag about bounty"
+    
+      bounty? =~ /retrieve ([0-9]+) more samples/ or bounty? =~ /retrieve ([0-9]+) samples/
+        herb_count = $1.to_i
+    if (bounty? =~ /congealed slime/)
+        herb_name = "slime"
+        end
+        if (bounty? =~ /mawflower/)
+        herb_name = "mawflower"
+        end
+        if (bounty? =~ /grave blossom /)
+        herb_name = "blossom"
+        end
+        if (bounty? =~ /deathblossom/)
+        herb_name = "deathblossom"
+        end
+        if (bounty? =~ /fleshbinder bud/)
+        herb_name = "bud"
+        end
+        if (bounty? =~ /green fleshbulb/)
+        herb_name = "fleshbulb"
+        end
+        if (bounty? =~ /fleshsore bulb/)
+        herb_name = "bulb"
+        end
+    #Get silvers
+    start_script("go2", [3370])
+    wait_while { running?("go2") }
+    
+    herb_silvers = herb_count * 2500
+    fput "withdraw #{herb_silvers} silver"
+    
+    #Go to Poloneus' shop
+    start_script("go2", [15860])
+    wait_while { running?("go2") }
+    
+             herb_count.times {
+             dothistimeout "buy #{herb_name}", 0, /^You hand/
+             dothistimeout "put #{herb_name} in my surcoat", 0, /^You put/ if GameObj.right_hand.id != herb_name
+            }
+       
+       
+    start_script("go2", [2403])
+    wait_while { running?("go2") }  
+    fput "go cottage"
+    
+    #Give Mirtag Herbs
+             herb_count.times {
+       dothistimeout "get #{herb_name}", 0,  /^You .*remove/
+             dothistimeout 'give Mirtag', 0, /^You give/ if GameObj.right_hand.id != herb_name
+             } 
+    
+    #Go to bank to deposit excess silvers
+    start_script("go2", [3370])
+    wait_while { running?("go2") }
+    fput "deposit all"
+    fput "withdraw 50 silver"
+    
+    

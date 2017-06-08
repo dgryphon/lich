@@ -1,0 +1,161 @@
+=begin
+
+=end
+
+
+
+echo "ayana weed"
+start_script 'go2' , [ '6960' ]
+wait_while { running?('go2') }
+start_script 'forage' , ["ayana leaf", '50' ]
+wait_while { running?('forage') }
+
+start_script 'go2' , [ '410' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ "ayana leaf" , '50' ]
+wait_while { running?('forage') }
+
+echo "ayana berry"
+start_script 'go2' , [ '3600' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ "ayana leaf" , '50' ]
+wait_while { running?('forage') }
+
+echo "ayana leaf"
+start_script 'go2' , [ '6317' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ "ayana leaf" , '50' ]
+wait_while { running?('forage') }
+
+start_script 'go2' , [ '6960' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ "ayana leaf" , '50' ]
+wait_while { running?('forage') }
+
+echo "pepperthorn"
+
+start_script 'go2' , [ '411' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root', '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '220' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '419' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '436' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '437' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '438' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '439' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'pepperthorn root', '50'  ]
+wait_while { running?('forage') }
+
+
+echo "tkaro root"
+
+start_script 'go2' , [ '414' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'tkaro root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '421' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'tkaro root', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '422' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'tkaro root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '429' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'tkaro root' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '431' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'tkaro root' , '50' ]
+wait_while { running?('forage') }
+
+
+
+
+echo "luckbloom blossom"
+start_script 'go2' , [ '425' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6960' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6959' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6958' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '423' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6319' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+
+
+
+
+
+
+
+echo "luckbloom blossom"
+start_script 'go2' , [ '425' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6960' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6959' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6958' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '423' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom', '50'  ]
+wait_while { running?('forage') }
+start_script 'go2' , [ '6319' ]
+wait_while { running?('go2') }
+start_script 'forage' , [ 'luckbloom blossom' , '50' ]
+wait_while { running?('forage') }
+
+
+
+
+
+
+
+
+
+
+
+

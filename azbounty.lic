@@ -1,0 +1,1609 @@
+##quiet
+=begin
+Azbounty (SpiffyBounty modified)
+ Description: The bounty script to rule them all!
+ Changelog
+	- 9/13/2010
+		* Bug fixes
+=end
+
+@@version = 2.09132010
+
+################################################################################
+# Common variables
+################################################################################
+@loot_script 			= CharSettings['hunter']['loot_script']
+@gem_script              = 'loot-be-gone'
+
+@default_location 		= '-- Default --'
+@paused_scripts 			= Array.new
+@no_pause 				= [ Script.self.name, 'keepalive', 'narost', 'voodoo', 'deathrecover', 'go2' ]
+
+@regex = {
+	'creature_problem' 	=> 'It appears they have a creature problem they\'d like you to solve\.',
+	'child_contact'		=> '^You have made contact with the child',
+	'child_failed' 		=> 'The child you were tasked to rescue is gone and your task is failed\.',
+	'help_resident' 	=> 'It appears that a local resident urgently needs our help in some matter\.',
+	'track_heirloom'	=> 'It appears they need your help in tracking down some kind of lost heirloom\.',
+	'help_dealer'		=> 'The local gem dealer, .*, has an order to fill and wants our help\.',
+	'help_herbalist'	=> 'local herbalist|local healer|local alchemist',
+	'help_furrier'		=> 'The local furrier',
+	'notask' 			=> '^You are not currently assigned a task\.',
+	'succeeded_heirloom'	=> 'You have located the heirloom',
+	'succeeded' 		=> '^You have succeeded in your task and can return to the Adventurer\'s Guild to receive your reward\.$',
+	'succeeded_guard' 	=> '^You succeeded in your task and should report back to',
+	'dangerous' 		=> 'You have been tasked to hunt down and kill a particularly dangerous (.*) that has established a territory (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)',
+	'dangerous_provoked' => 'You have been tasked to hunt down and kill a particularly dangerous (.*) that has established a territory (?:in|on) (?:the )?(.*?)(?: near| between| under|\.).*You have provoked',
+	'kill' 				=> 'You have been tasked to suppress (.*) activity (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)',
+	'gem' 				=> '^The gem dealer',
+	'herb' 				=> 'concoction that requires (?:a|an|some) (.*) found (?:in|on|near) (?:the )?(.*?)(?: near| between| under|\.).*These samples must be in pristine condition\.  You have been tasked to retrieve (\d+) samples\.',
+	'heirloom' 			=> 'unfortunate citizen lost after being attacked by (?:a|an) (.*) (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)',
+	'heirloom_search' 	=> 'SEARCH the area',
+	'rescue' 			=> 'A local divinist has had visions of the child fleeing from (?:a|an) (.*) (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)',
+	'skin' 				=> '^You have been tasked to retrieve (\d+|\w+)s? (.*) of at least .*\.  You can SKIN them off the corpse of (?:a|an) (.*) or ',
+    'bandit'            => 'bandit problem',
+}
+
+@regex['cull'] 			= @regex['dangerous'] + '|' + @regex['kill']
+
+@settings								      = CharSettings.to_hash
+#settings								    = Hash.new
+@settings['hunter'] 						||= Hash.new
+@settings['locations'] 			     		||= Hash.new
+@settings['locations'][@default_location]   ||= Hash.new
+
+$azbounty_rest_reasons = Hash.new
+
+# clean up fried
+@save_fried = UserVars.op['fried']
+before_dying { UserVars.op['fried'] = @save_fried }
+
+# dead man switch
+start_exec_script "while(running? 'azbounty'); sleep 10; fput 'quit' if dead?; end;"
+
+# go2 stuff
+@shortest_path_from_list = proc { |target_list,start_room|
+	least_time = nil
+	least_target = nil
+	previous, shortest_distances = Map.dijkstra(start_room.id)
+	for target in target_list
+		target = target.to_i
+		next target if start_room.id == target
+		est_time = shortest_distances[target]
+		if !est_time.nil? and (least_time.nil? or least_time > est_time)
+			least_target = target
+			least_time = est_time
+		end
+	end				
+	next least_target
+}
+@go2_targets = {
+	'gemshop' 			=> [ 3845, 1439, 1776, 5719, 2422, 1890, 10935, 9475, 10327, 686, 9268, 2786, 4655, 9662, 17436 ],
+	'furrier'			=> [ 12285, 4019, 405, 13054, 2466, 1886, 10934, 9471, 10329, 10081, 9271, 2781, 9687, 9654, 17437 ],
+	'herbalist' 		=> [ 3824, 1851, 10396, 640, 5722, 2406, 11002 ],
+	'advguild' 			=> [ 13048, 3785, 12805, 3778, 12511, 10992, 9445, 10332 ],
+	'advguard' 			=> [ 37, 420, 5576, 3424, 1957, 10915, 9411, 5907, 5827, 5906 ],
+	'advguard2' 		=> [ 3809, 2487 ]
+}
+@closest_target = proc { |target|
+	next @shortest_path_from_list.call(@go2_targets[target], Room[UserVars.op['resting_room_id'].to_i])
+}
+
+# Only run if trusted
+unless $SAFE == 0
+	respond "#{Script.self.name}: This script requires trust permission", :bold
+	respond "#{Script.self.name}: Type #{$lich_char}trust #{Script.self.name}"
+	exit
+end
+
+################################################################################
+# Procedures
+################################################################################
+def msg text
+    if $bigshot
+        #$bigshot.message(text)
+        echo text
+    else
+        echo text
+    end
+end
+
+def go2(target)
+    wait_while { running? 'go2' }
+    unless target.to_i == Room.current.id
+        start_script( 'go2', [target, '_disable_confirm_']  )
+        wait_while { running?('go2') }
+    end
+end
+
+def find_path(destination)
+	unless current_room = Room.current
+		smsg 'Current room is not in the map database', :bold
+		return nil
+	end
+	previous, shortest_distances = Map.dijkstra(current_room.id, destination)
+	unless previous[destination]
+		smsg "You can't get there from here", :bold
+		return nil
+	end
+	path = [ destination ]
+	path.push(previous[path[-1]]) until previous[path[-1]] == nil
+	path.reverse!
+end
+
+def go_next_room(destination)
+	path = Array.new
+	
+	unless current_room = Room.current
+		smsg 'Current room is not in the map database', :bold
+		return nil
+	end
+	unless current_room.id == destination
+		path = find_path(destination) unless path.include?(current_room.id)
+		next_id = path[path.index(current_room.id)+1].to_s
+		#if miniscript = better_miniscript["#{current_room.id},#{next_id}"]
+		#	miniscript.call
+		#else
+			way = current_room.wayto[next_id]
+			if way.class == Proc
+				way.call
+			elsif way.class == String
+				current_room.wayto.delete(next_id) if (move(way) == false) and not muckled?
+			else
+				path = Array.new
+			end
+		#end
+		sleep 0.1
+	end
+end
+
+def bounty_is?(*types)
+    types.collect! { |t| @regex[t] }
+    if bounty? =~ /#{types.join('|')}/
+        return $1, $2
+    else
+        return false
+    end
+end
+
+def parse_critter_area
+    critter, area = nil
+
+    [ 'heirloom', 'kill', 'dangerous', 'dangerous_provoked', 'rescue' ].each { |type|
+        critter, area = bounty_is?(type)
+        if critter and area
+            return critter, area
+        end
+    }
+    return false
+end
+
+def bounty_succeeded?
+    return bounty_is?( 'succeeded', 'succeeded_heirloom', 'succeeded_guard' )
+end
+
+def new_bounty_ready?
+    return !Spell['Next Bounty'].active?
+end
+
+def current_bounty_acceptable?
+    return true if bounty_succeeded?
+
+    # unsupported
+	if bounty_is?('herb', 'skin')
+        return false
+    end
+
+    setting = nil
+    if bounty_is?('creature_problem')
+        setting = 'kill_enable'
+    elsif bounty_is?('track_heirloom')
+        setting = 'heirloom_enable'
+    elsif bounty_is?('help_resident')
+        setting = 'dangerous_enable'
+    elsif bounty_is?('help_dealer')
+        setting = 'gem_enable'
+    elsif bounty_is?('help_furrier')
+        setting = 'skin_enable'
+    elsif bounty_is?('help_herbalist')
+        setting = 'herb_enable'
+    elsif bounty_is?('gem')
+        setting = 'gem_enable'
+    elsif bounty_is?('herb')
+        setting = 'herb_enable'
+    elsif bounty_is?('dangerous')
+        setting = 'dangerous_enable'
+    elsif bounty_is?('kill')
+        setting = 'kill_enable'
+    elsif bounty_is?('heirloom')
+        setting = 'heirloom_enable'
+        if bounty_is?('heirloom_search')
+            setting = 'heirloom_search_enable'
+        end
+    elsif bounty_is?('rescue')
+        setting = 'rescue_enable'
+    end
+    acceptable = (setting and @settings[setting]) ? true : false
+
+    if acceptable
+        # if critter/area, check to see if we have a location
+        critter, area = parse_critter_area()
+
+        if critter or area
+            acceptable = get_hunting_ground( critter, area )
+        end
+    end
+
+    return acceptable
+end
+
+def find_taskmaster
+	msg 'finding taskmaster'
+	go2('advguild')
+	return GameObj.npcs.last.noun
+end
+
+def remove_bounty
+    return if bounty_is?('succeeded')
+
+    put 'bounty'
+	msg 'removing bounty, you have five seconds to kill me'
+	sleep 5
+	
+	npc = find_taskmaster()
+
+	ask_result = dothistimeout "ask #{npc} about remove", 5, /^#{npc}.*?want to be removed|Trying to sneak/	
+	if ask_result =~ /Trying to sneak/
+		fput "ask #{npc} about bounty"
+	else
+		dothistimeout "ask #{npc} about remove", 5, /^#{npc}.*?have removed you/
+	end
+end
+
+def ask_npc_about_bounty
+    location = nil
+
+    if bounty_is?( 'creature_problem', 'help_resident', 'track_heirloom' )
+        location = 'advguard'
+    elsif bounty_is?('help_dealer')
+        location = 'gemshop'
+    elsif bounty_is?('help_herbalist')
+        #location = 'herbalist'
+    elsif bounty_is?('help_furrier')
+        #location = 'furrier'
+    end
+
+    if location
+        if location == 'advguard'
+            find_guard()
+        else
+            destination = @closest_target.call(location)
+            go2(destination)
+        end
+
+        GameObj.npcs.each { |npc|
+            ask_result = dothistimeout "ask #{npc} about bounty", 5, /Yes, (?:I|we) do have a task for you/
+            break if ask_result
+        }
+        fput 'ask areacne about bounty' if Room.current.id == 10327
+    end
+end
+
+def get_new_bounty
+	msg 'getting new bounty'
+ 
+    starting_room = Room.current.id
+    remove_bounty() unless bounty_is?('notask')
+
+	npc = find_taskmaster()
+	res = dothistimeout "ask #{npc} for bounty", 5, /^#{npc}.*?(?:protective escort|creature problem|local gem dealer|local furrier|lost heirloom|local healer|local herbalist|local resident|bandit problem|I'm kind of busy right now)/
+	if res =~ /I'm kind of busy right now.*Come back in about (\w+) minutes/
+        wait_times = { 'fifteen' => 15, 'ten' => 10, 'five' => 5 }
+        wait = wait_times[$1] || 5
+
+		Spell['Next Bounty'].putup
+		Spell['Next Bounty'].timeleft = wait
+	end
+  sleep 1
+    remove_bounty() if bounty_is?('bandit') # don't want bandits spawning
+
+    # talk to npc about bounty?
+    ask_npc_about_bounty()
+
+    # gem bounty? just do it
+    echo bounty?
+    echo bounty_is?('gem')
+    if bounty_is?('gem')
+        echo 'debug 1'
+        $bigshot.run_script(@gem_script, true)
+
+        ready_to_turn_in = (percentmind >= @settings['turn_in_percent'].to_i and !saturated?)
+        if bounty_succeeded? and ready_to_turn_in
+            turn_in_bounty()
+        elsif !bounty_succeeded?
+            remove_bounty()
+        end
+    end
+
+    go2(starting_room) unless Room.current.id == starting_room
+end
+
+def resume_scripts
+	msg 'resuming scripts'
+	@paused_scripts.each { |s| unpause_script(s) }
+	@paused_scripts = Array.new
+end
+	
+def pause_my_scripts
+	msg 'pausing scripts'
+	
+	if running?(@loot_script)
+		msg '-- ... waiting on loot script'
+		wait_while { running?(@loot_script) }
+	end
+	
+	for s in Script.running
+		unless s.paused
+			next if @no_pause.include?(s.name)
+			msg "-- ... pausing #{s.name}"
+			@paused_scripts << s.name
+			
+			pause_script(s.name)
+		end
+	end
+	
+	msg '   ... complete'
+end
+
+def find_guard
+	msg 'finding guard'
+	go2('advguard')
+	
+	return 'purser' if Room.current.id == 10915
+	unless npc = GameObj.npcs.find { |npc| npc.name =~ /guard|sergeant/i }
+        if Room.current.id == 420 or Room.current.id == 3424 # WL/IMT
+            echo 'Could not find guard at advguard, checking advguard2.'
+            go2('advguard2') # advguard2
+            npc = GameObj.npcs.find { |npc| npc.name =~ /guard|sergeant/i }
+        end
+	end
+	
+	if npc.nil?
+		msg 'unable to find guard! Send a log to spiffyjr@gmail.com'
+		msg "#{npc.inspect}"
+	end
+	
+	return npc.noun
+end
+
+def get_inventory(sack)
+	GameObj.inv.find { |inv| inv.name =~ /^#{sack}$/ or inv.noun =~ /\b#{sack}\b/ }
+end
+ 
+def turn_in_heirloom
+	msg 'turning in heirloom'
+	npc = find_guard()
+
+    pause_my_scripts()
+	empty_hands
+
+	sacks = [ get_inventory(UserVars.jewelrysack), get_inventory(UserVars.uncommonsack), get_inventory(UserVars.wandsack), get_inventory(UserVars.lootsack) ].uniq
+		
+	found = false
+	check_heirloom = proc { |item|
+		res = dothistimeout "look ##{item.id}", 3, /^Engraved .* initials|^You see nothing unusual\.$|^The ring appears|^It takes you a moment|^It is difficult to see/
+		if res =~ /^Engraved .* initials/
+			found = true
+			fput "get ##{item.id}"
+			fput "give ##{item.id} to #{npc}"
+		end
+	}
+	
+	close = false
+	sacks.each { |sack|
+		if sack.contents.nil?
+			open_result = dothistimeout "open ##{sack.id}", 5, /^You open|^That is already open\.$/
+			if open_result =~ /^You open/
+				close = true
+			else
+				dothistimeout "look in ##{sack.id}", 5, /In .*? you see/
+				if sack.contents.nil?
+					msg 'fixme'
+					Script.self.kill
+				end
+			end
+		end
+		
+		sack.contents.each { |item| check_heirloom.call(item); break if found }
+		
+		fput "close ##{item.id}" if close
+		break if found
+	}
+	
+	fill_hands
+    resume_scripts()
+
+	unless found
+		msg 'failed to find heirloom for guard! Email spiffyjr@gmail.com with the log'
+        return false
+	end
+    return true
+end
+
+def turn_in_guard
+    msg 'turning task in to guard'
+    npc = find_guard()
+
+	ask_result = dothistimeout "ask #{npc} about bounty", 5, /adventurer.*?guild/i
+end
+
+def turn_in_bounty
+	msg 'turning in bounty'
+    
+    if bounty_is?('succeeded_heirloom')
+        turn_in_heirloom()
+    elsif bounty_is?('succeeded_guard')
+        turn_in_guard()
+    end
+	
+	npc = find_taskmaster()
+	ask_result = dothistimeout "ask #{npc} about bounty", 5, /^#{npc}.*?done with that assignment/
+    go2('bank')
+    fput 'deposit all'
+
+    get_new_bounty() if new_bounty_ready?
+end
+
+def search_heirloom
+    msg 'starting heirloom search'
+
+    # Proc for movement
+    last_room = nil
+    searched_rooms = []
+    wander = proc {		
+        last_room ||= nil
+
+        room = Room.current
+        next_room_options = room.wayto.keys - UserVars.op['hunting_boundaries'].split(',')
+        if next_room_options.length > 1
+            # subtract last room if possible
+            next_room_options.delete_if { |option| option == last_room }
+        end
+        if ( (next_room_options - searched_rooms) > 0 )
+            # subtract searched rooms if possible
+            next_room_options = (next_room_options - searched_rooms)
+        end
+
+        next_room_id = next_room_options[ rand(next_room_options.length) ]
+        way = room.wayto[next_room_id]
+        if way.class == String
+            move(way)
+        else
+            way.call
+        end
+        last_room = room.id
+        searched_rooms.push(room.id)
+    }
+	
+    $bigshot.cast_signs()
+    dothistimeout 'stow all', 5, /You are not holding|You put/
+    go2( UserVars.op['hunting_room_id'] )
+	
+	start_time = Time.now.to_f
+	loop {
+		if Time.now.to_f - start_time > 1200 or $bigshot.wounded?
+			msg 'wounded or timed out! Resting...'
+            return false
+		end
+        $bigshot.cast_signs()
+		
+		# search
+        unless GameObj.npcs.any? { |npc| npc.status !~ /dead|gone/ }
+			fput "kneel" until kneeling?
+			dothistimeout "search", 4, /You intently search the area|interest here/
+		
+			if bounty_is?('succeeded_heirloom')
+                waitrt?
+                $bigshot.run_script(@loot_script, true)
+                return turn_in_heirloom()
+			end
+		end
+
+        # move
+        $bigshot.change_stance('defensive')
+		fput "stand" until standing?
+		wander.call
+	}
+end
+ 
+def kill_dangerous
+    msg 'Found dangerous critter! Bigshot will run until success.'
+
+    # look for critter regex in targets
+    critter, area = parse_critter_area()
+    critter.sub! /.* /, '' # only need noun
+    target = UserVars.op['targets'].split(',').find { |target| target =~ /(?:ancient|grizzled).*#{critter}/ }
+    
+    # otherwise construct it ourselves
+    unless target
+        target = "(?:ancient|grizzled).*#{critter}"
+    end
+    UserVars.op['targets'] = target
+
+    UserVars.op['fried'] = 110 # don't fry
+
+    # load settings/wait for kill
+    $bigshot.load_settings
+    start_script 'bigshot' unless running? 'bigshot'
+    loop do
+      sleep 1
+      break if dead? or bounty_is? 'succeeded_guard' or !running? 'bigshot'
+    end
+
+    # cleanup
+    stop_script('bigshot') if running? 'bigshot'
+    UserVars.op['fried'] = @save_fried
+    $bigshot.run_script(@loot_script, true)
+
+    turn_in_guard()
+    return true
+end
+
+def escort_child
+	msg 'escorting child to guard'
+	
+  $bigshot.run_script( @loot_script, true )
+  waitrt?
+  fput 'stance defensive' unless checkstance == 'defensive' or checkstance == 'guarded'
+	
+  destination = @closest_target.call('advguard')
+	check_time = Time.now.to_f
+	loop {
+		if Room.current.id.to_s == destination.to_s
+        # TBD: if room id is id for WL advguard, and no guard, change destination to advguard2
+        sleep 5
+
+        if guard = GameObj.npcs.find { |npc| npc.name =~ /guard|sergeant/i }
+            ask_result = dothistimeout "ask #{guard} about bounty", 5, /successfully completed your task/i
+            return ask_result
+        elsif Room.current.id == 420 # WL
+            destination = 3809 # advguard2
+        elsif Room.current.id == 3424 # IMT
+            destination = 2487
+        else
+            echo 'failed to find guard'
+            return false
+        end
+		end
+		
+		if ( (Time.now.to_f - check_time) > 1200 or bounty_is?('child_failed') )
+      echo 'debug: failed to escort child'
+      echo (Time.now.to_f - check_time)
+      echo bounty?
+			msg 'failed to escort child'
+      return false
+		end
+		
+		if GameObj[/\bchild\b/i]
+			check_time = Time.now.to_f
+			go_next_room(destination)
+		end
+		sleep 0.25
+	}
+end
+
+# returns false if something goes fatally wrong with bounty
+def do_bounty() 
+    critter, area = parse_critter_area()
+
+	if bounty_is?('herb')
+        msg 'not supported'
+        return false
+	elsif bounty_is?('skin')
+        msg 'not supported'
+        return false
+	elsif bounty_is?('heirloom')
+        set_hunting_ground( critter, area )
+
+        if bounty_is?('heirloom_search')
+            return search_heirloom()
+        else
+            start_script 'bigshot', ['bounty']
+            wait_until { !running?('bigshot') or bounty_is?('succeeded_heirloom') }
+            kill_script 'bigshot' if running? 'bigshot'
+            sleep 1
+
+            if bounty_is?('succeeded_heirloom')
+                      $bigshot.run_script(@loot_script, true)
+                      return turn_in_heirloom()
+            else
+                return true
+            end
+        end
+	elsif bounty_is?('kill')
+        set_hunting_ground( critter, area )
+
+        start_script 'bigshot', ['bounty']
+        wait_until { !running?('bigshot') or bounty_is?('succeeded_guard') }
+        kill_script 'bigshot' if running? 'bigshot'
+        sleep 1
+
+        if bounty_is?('succeeded_guard')
+            return turn_in_guard()
+        else
+            return true
+        end
+    elsif bounty_is?('dangerous', 'dangerous_provoked')
+        set_hunting_ground( critter, area )
+
+        start_script 'bigshot', ['bounty']
+        wait_until { !running?('bigshot') or bounty_is?('dangerous_provoked') }
+        sleep 1
+        
+        if bounty_is?('dangerous_provoked')
+            return kill_dangerous()
+        else
+            kill_script 'bigshot' if running? 'bigshot'
+            return true
+        end
+    elsif bounty_is?('rescue')
+        set_hunting_ground( critter, area )
+
+        start_script 'bigshot', ['bounty']
+        wait_until { !running?('bigshot') or bounty_is?('child_contact') }
+        kill_script 'bigshot' if running? 'bigshot'
+        sleep 1
+
+        if bounty_is?('child_contact')
+            return escort_child()
+        else
+            return true
+        end
+	elsif bounty_is?('gem')
+        $bigshot.run_script(@gem_script, true)
+        return false unless bounty_is?('succeeded')
+	end
+    msg 'fell to bottom of switch statement. Going to return false and bounty will be killed.'
+    return false
+end
+
+def do_fry
+    set_hunting_ground_primary()
+    start_script 'bigshot', ['bounty']
+    sleep 1 until !running?('bigshot')
+end
+
+def set_hunting_ground_primary
+	msg 'switching to primary hunting ground'
+
+	hunting_ground = nil
+	@settings['locations'].each_pair { |area, options|
+		if options['primary'] == true
+			hunting_ground = area
+			break
+		end
+	}
+	msg "error setting primary hunting ground... I'm probably fucked!" if hunting_ground.nil?
+
+	# Set hunter settings
+	@settings['hunter'].each_pair { |key,value| UserVars.op[key.to_s] = value }
+	@settings['locations'][hunting_ground].each_pair { |key, value|
+        UserVars.op[key.to_s] = value
+    }
+	UserVars.save
+end
+
+def get_hunting_ground( critter, area )
+	@settings['locations'].each { |loc, options|
+		if options['area'].strip.downcase == area.downcase and options['targets'].include?(critter)
+            return loc
+		end
+	}
+    return nil
+end
+
+def set_hunting_ground( critter, area )
+	msg "changing hunting ground based on #{critter}"
+		
+	map = get_hunting_ground( critter, area )
+	if map.nil?
+		msg "  ... no hunting location set for \"#{critter}\" around \"#{area}\""
+		return
+	end
+	msg "   ... hunting ground set to \"#{map}\""
+	
+	# Set hunter settings
+	@settings['hunter'].each_pair { |key,value| UserVars.op[key.to_s] = value }
+	@settings['locations'][map].each_pair { |key, value|
+        if key == 'targets'
+            # strip non-bounty critters
+            value = value.split(',').find { |token| token =~ /#{critter}/ }
+            value.strip
+        end
+        UserVars.op[key.to_s] = value
+    }
+	UserVars.save
+end
+
+def do_rest
+    $bigshot_should_rest = false # for the hack
+    $azbounty_rest_reasons[$rest_reason] += 1 if $rest_reason && $rest_reason !~ /^none\.?$/
+
+    # pre-rest
+    go2($bigshot.RESTING_ROOM_ID) unless Room.current.id == $bigshot.RESTING_ROOM_ID
+    $bigshot.RESTING_COMMANDS.each { |rc| fput rc }
+    echo $bigshot.RESTING_SCRIPTS.inspect # DEBUG
+    $bigshot.RESTING_SCRIPTS.each { |rs|
+        args = rs.split(' ')
+        name = args.shift
+        
+        $bigshot.run_script( name, true, args )
+        wait_while { running? 'go2' }
+        
+        go2($bigshot.RESTING_ROOM_ID) unless Room.current.id == $bigshot.RESTING_ROOM_ID
+    }
+
+    # rest
+    count = 0
+    until $bigshot.should_hunt?
+        # get bounty?
+        unless current_bounty_acceptable?
+            get_new_bounty() if new_bounty_ready?
+        end
+
+        if count % 4 == 0
+            put  'experience'
+        elsif count % 4 == 1
+            put 'bounty'
+        end
+        count += 1
+
+        msg "Azbounty rest history:"
+        $azbounty_rest_reasons.each_pair { |r, c| msg "#{r.sub /\./, '' }: #{c}" }
+        msg "Azbounty isn't moving because: #{$not_hunting_reason}" if $not_hunting_reason
+        fput 'join sylvester' if Char.name == 'Azathoth'
+        sleep 60
+
+        # it's possible we've been waiting on mind for a gem bounty
+        ready_to_turn_in = proc { percentmind >= @settings['turn_in_percent'].to_i and !saturated? }
+        if bounty_succeeded? and ready_to_turn_in.call
+            turn_in_bounty()
+            go2($bigshot.RESTING_ROOM_ID) unless Room.current.id == $bigshot.RESTING_ROOM_ID
+        end
+    end
+end
+
+setup = proc {
+	gtk_generic = {}
+	gtk_hunter = {}
+	gtk_location = {}
+	gtk_azbounty = {}
+	
+	location = @default_location
+	
+	# Locations
+	gtk_generic['new_hunting_ground'] = Gtk::Entry.new
+	gtk_generic['create'] = Gtk::Button.new('_Create')
+	gtk_generic['copy'] = Gtk::Button.new('Copy De_faults')
+	gtk_generic['delete'] = Gtk::Button.new('_Delete')
+	gtk_generic['autofill'] = Gtk::Button.new('_Auto-fill')
+	gtk_generic['primary'] = Gtk::Button.new('Show _Primary')
+	gtk_generic['hunting_area'] = Gtk::ComboBox.new(true)
+	
+	gtk_location['area'] = Gtk::Entry.new
+	gtk_location['skins'] = Gtk::Entry.new
+	gtk_location['herb'] = Gtk::CheckButton.new('Herb location')
+	gtk_location['primary'] = Gtk::CheckButton.new('Primary location')
+	
+	# Hunting
+	gtk_location['hunting_room_id'] = Gtk::Entry.new
+	gtk_location['hunting_boundaries'] = Gtk::Entry.new
+	gtk_location['targets'] = Gtk::Entry.new
+	gtk_location['hunting_stance'] = Gtk::Entry.new
+	gtk_location['hunting_commands'] = Gtk::Entry.new
+	gtk_location['hunting_commands_b'] = Gtk::Entry.new
+	gtk_location['hunting_commands_c'] = Gtk::Entry.new
+	gtk_location['disable_commands'] = Gtk::Entry.new
+	gtk_location['flee_count'] = Gtk::Entry.new
+	gtk_location['invalid_targets'] = Gtk::Entry.new
+	gtk_location['always_flee_from'] = Gtk::Entry.new
+	gtk_hunter['fried'] = Gtk::Entry.new.set_text(@settings['hunter']['fried'])
+	gtk_hunter['oom'] = Gtk::Entry.new.set_text(@settings['hunter']['oom'])
+	gtk_hunter['encumbered'] = Gtk::Entry.new.set_text(@settings['hunter']['encumbered'])
+		
+	# Resting
+	gtk_hunter['wounded_eval'] = Gtk::Entry.new.set_text(@settings['hunter']['wounded_eval'])
+	gtk_hunter['rest_till_exp'] = Gtk::Entry.new.set_text(@settings['hunter']['rest_till_exp'])
+	gtk_hunter['rest_till_mana'] = Gtk::Entry.new.set_text(@settings['hunter']['rest_till_mana'])
+	gtk_hunter['rest_till_spirit'] = Gtk::Entry.new.set_text(@settings['hunter']['rest_till_spirit'])
+	gtk_hunter['resting_room_id'] = Gtk::Entry.new.set_text(@settings['hunter']['resting_room_id'])
+	gtk_hunter['resting_commands'] = Gtk::Entry.new.set_text(@settings['hunter']['resting_commands'])
+	gtk_hunter['resting_scripts'] = Gtk::Entry.new.set_text(@settings['hunter']['resting_scripts'])
+	gtk_hunter['hunting_prep_commands'] = Gtk::Entry.new.set_text(@settings['hunter']['hunting_prep_commands'])
+	gtk_hunter['hunting_scripts'] = Gtk::Entry.new.set_text(@settings['hunter']['hunting_scripts'])
+	gtk_hunter['signs'] = Gtk::Entry.new.set_text(@settings['hunter']['signs'])
+	gtk_hunter['loot_script'] = Gtk::Entry.new.set_text(@settings['hunter']['loot_script'])
+	gtk_hunter['wracking_spirit'] = Gtk::Entry.new.set_text(@settings['hunter']['wracking_spirit'])
+	gtk_hunter['use_wracking'] = Gtk::CheckButton.new('Enable wracking/power').set_active(@settings['hunter']['use_wracking'])
+	gtk_hunter['spam'] = Gtk::CheckButton.new('Spam commands').set_active(@settings['hunter']['spam'])
+	
+	# Ammo & Wands
+	gtk_hunter['ammo_container'] = Gtk::Entry.new.set_text(@settings['hunter']['ammo_container'])
+	gtk_hunter['ammo'] = Gtk::Entry.new.set_text(@settings['hunter']['ammo'])
+	gtk_hunter['fresh_wand_container'] = Gtk::Entry.new.set_text(@settings['hunter']['fresh_wand_container'])
+	gtk_hunter['dead_wand_container'] = Gtk::Entry.new.set_text(@settings['hunter']['dead_wand_container'])
+	gtk_hunter['wand'] = Gtk::Entry.new.set_text(@settings['hunter']['wand'])
+	gtk_hunter['hide_for_ammo'] = Gtk::CheckButton.new('Hide to gather').set_active(@settings['hunter']['hide_for_ammo'])
+	gtk_hunter['wand_if_oom'] = Gtk::CheckButton.new('Use wands').set_active(@settings['hunter']['wand_if_oom'])
+	
+	# Options
+	gtk_azbounty['dangerous_enable'] = Gtk::CheckButton.new('Kill dangerous').set_active(@settings['dangerous_enable'])
+	gtk_azbounty['kill_enable'] = Gtk::CheckButton.new('Cull').set_active(@settings['kill_enable'])
+	gtk_azbounty['heirloom_enable'] = Gtk::CheckButton.new('Heirloom (loot)').set_active(@settings['heirloom_enable'])
+	gtk_azbounty['skin_enable'] = Gtk::CheckButton.new('Skin (N/A)').set_active(@settings['skin_enable'])
+	gtk_azbounty['rescue_enable'] = Gtk::CheckButton.new('Rescue child').set_active(@settings['rescue_enable'])
+	gtk_azbounty['gem_enable'] = Gtk::CheckButton.new('Gems').set_active(@settings['gem_enable'])
+	gtk_azbounty['heirloom_search_enable'] = Gtk::CheckButton.new('Heirloom (search)').set_active(@settings['heirloom_search_enable'])
+	gtk_azbounty['herb_enable'] = Gtk::CheckButton.new('Forage (N/A)').set_active(@settings['herb_enable'])
+	gtk_azbounty['force_complete'] = Gtk::CheckButton.new('Force complete').set_active(@settings['force_complete'])
+	gtk_azbounty['turn_in_percent'] = Gtk::Entry.new.set_text(@settings['turn_in_percent'])
+	
+	window = window_action = nil
+
+	# Procs
+	clean_value = proc { |value|
+		if value.class == Gtk::Entry
+			value.text.strip
+		elsif value.class == Gtk::CheckButton
+			value.active?
+		end
+	}
+	
+	restore_value = proc { |object,value|
+		if object.class == Gtk::CheckButton
+			object.active = value
+		elsif object.class == Gtk::Entry
+			object.text = value
+		end
+	}
+	
+	save_settings = proc {
+		respond 'azbounty: settings saved'
+		
+		gtk_hunter['new_hunting_ground'].text = ''
+		
+		gtk_hunter.each_pair { |key,value|
+			@settings['hunter'][key] = clean_value.call(value)
+		}
+		
+		gtk_location.each_pair { |key,value|
+			if key == "primary" && value.active?
+				@settings['locations'].keys.each { |l|
+					next if l == location
+					@settings['locations'][l]['primary'] = false
+				}
+			end
+			
+			@settings['locations'][location][key] = clean_value.call(value)
+		}
+		
+		gtk_azbounty.each_pair { |key,value| 
+			@settings[key] = clean_value.call(value)
+		}
+	}
+		
+	update_hunter_fields = proc {
+		@settings['locations'][location].each_pair { |key,value|			
+			restore_value.call(gtk_location[key],value) if gtk_location.include?(key)
+		}
+	}
+	
+	update_hunting_area = proc {
+		loop {
+			break unless gtk_generic['hunting_area'].model.iter_first
+			gtk_generic['hunting_area'].remove_text(0)
+		}
+		
+		@settings['locations'].keys.sort.each { |loc| gtk_generic['hunting_area'].append_text(loc) }
+		gtk_generic['hunting_area'].active = 0
+	}
+	
+	update_disabled_fields = proc {
+		disabled = [
+			'area',
+			'herb',
+			'skins',
+			'hunting_room_id',
+			'hunting_boundaries',
+			'targets',
+			'always_flee_from',
+			'primary',
+			'delete',
+			'autofill'
+		]		
+		
+		if location == @default_location
+			disabled.each { |key|
+				if gtk_location.include?(key)
+					widget = gtk_location[key]
+				elsif gtk_generic.include?(key)
+					widget = gtk_generic[key]
+				end
+				widget.sensitive = false
+				
+				if widget.class == Gtk::Entry
+					widget.text = ''
+				elsif widget.class == Gtk::CheckButton
+					widget.active = false
+				end
+			}
+		else
+			disabled.each { |key|
+				if gtk_location.include?(key)
+					widget = gtk_location[key]
+				elsif gtk_generic.include?(key)
+					widget = gtk_generic[key]
+				end
+				widget.sensitive = true
+			}
+		end
+	}
+	
+	update_selected_combobox = proc { |area|
+		index = 0
+		
+		if area == nil
+			@settings['locations'].keys.sort.each { |key|
+				break if @settings['locations'][key]['primary'] == true
+				index += 1
+			}
+		else
+			@settings['locations'].keys.sort.each { |key|
+				break if area.strip == key.strip
+				index += 1
+			}
+		end
+		
+		index = 0 if index == @settings['locations'].keys.size
+		gtk_generic['hunting_area'].active = index
+	}
+	
+	Gtk.queue {
+		#
+		# Tooltip information for all widgets
+		#
+		ttips = Gtk::Tooltips.new.enable
+		ttips_text = { }
+		
+		ttips_text.each_pair { |widget,tip|
+			if widget = gtk_globals[widget] || gtk_hunter[widget]
+				ttips.set_tip(widget,tip,'')
+			end
+		}
+		
+		#
+		# Primary window
+		#
+		window = Gtk::Window.new
+		window.title = "azbounty v#{@@version} configuration for #{Char.name}"
+		window.border_width = 3
+		window.resizable = false
+		window.resize(450, 300)
+		
+		#
+		# Notebook for tabs at top
+		#
+		nb = Gtk::Notebook.new.set_show_border(true).set_tab_border(3)
+		
+		#
+		# Notebook Page 1 - Locations
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)
+		
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Information</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		lbl = Gtk::Label.new.set_markup('<span color="blue" weight="bold">Adding a Location</span>')
+		vb_fr.pack_start(lbl.set_wrap(true).set_width_request(525).set_padding(0,5),false)
+		
+		lbl = Gtk::Label.new.set_markup("Fill in the name under \"New\" and then press the create " +
+			"button. The new location will show up under \"Hunting Area\". Use the tabs above " +
+			"to configure the location.")
+		vb_fr.pack_start(lbl.set_wrap(true).set_width_request(525),false)
+		
+		lbl = Gtk::Label.new.set_markup('<span color="blue" weight="bold">Editing a Location</span>')
+		vb_fr.pack_start(lbl.set_wrap(true).set_width_request(525).set_padding(0,5),false)
+		
+		lbl = Gtk::Label.new.set_markup("Select the location from the \"Hunting Area\" drop down " +
+			"and use the tops above to configure the location.")
+		vb_fr.pack_start(lbl.set_wrap(true).set_width_request(525),false)
+		
+		#
+		# Page 1, Frame 1 - Locations
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Hunting Locations</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('New:')).set_width_request(75),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['new_hunting_ground'].set_max_length(50).set_width_chars(50)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['create']),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['primary']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Locations:')).set_width_request(75),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['hunting_area'].set_width_request(308)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['delete']),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['copy']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Area name:')).set_width_request(75),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['area'].set_max_length(25).set_width_chars(25)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_generic['autofill']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Area skins:')).set_width_request(75),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['skins'].set_width_chars(25)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['primary'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['herb'].set_width_request(129)),false)
+		vb_fr.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Locations'))
+		
+		#
+		# Notebook Page 2 - Location Setup
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)
+		
+		#
+		# Page 2, Frame 1 - Map
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Map</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Starting room:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_room_id']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Boundaries:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_boundaries']),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 2, Frame 2 - Targetting
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Targeting</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Targets:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['targets'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Stance:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_stance']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Ignore:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['invalid_targets']),false)
+		vb_fr.pack_start(hb,false)
+
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Flee count:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['flee_count']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Always flee:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['always_flee_from']),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 2, Frame 3 - Commands
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Commands</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('A:')).set_width_request(50),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_commands'].set_width_request(469)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('B:')).set_width_request(50),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_commands_b'].set_width_request(469)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('C:')).set_width_request(50),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['hunting_commands_c'].set_width_request(469)),false)
+		vb_fr.pack_start(hb,false)
+
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Fried:')).set_width_request(50),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_location['disable_commands'].set_width_request(469)),false)
+		vb_fr.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Location Setup'))
+		
+		#
+		# Notebook Page 3 - Resting
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)
+				
+		#
+		# Page 3, Frame 1 - Resting
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Resting</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Commands:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['resting_commands'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Scripts:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['resting_scripts'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Room ID:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['resting_room_id'].set_width_chars(5)),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 3, Frame 2 - Should Rest
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Should Rest</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+				
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Wounded:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['wounded_eval'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('mind >=')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['fried'].set_max_length(3).set_width_chars(3)),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('mana <=')).set_width_request(110),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['oom'].set_max_length(3).set_width_chars(3)),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('encumbrance >=')).set_width_request(110),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['encumbered'].set_max_length(3).set_width_chars(3)),false)
+		vb_fr.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Resting'))
+		
+		#
+		# Notebook Page 4 - Resting
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)
+		
+		#
+		# Page 4, Frame 1 - Hunting
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Hunting</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Commands:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['hunting_prep_commands'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Scripts:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['hunting_scripts'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Spells:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['signs'].set_width_request(418)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Loot script:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['loot_script']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Wracking spirit:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['wracking_spirit']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['use_wracking'].set_width_request(175)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['spam'].set_width_request(135)),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 4, Frame 2 - Should Hunt
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Should Hunt</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('mind <=')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['rest_till_exp'].set_max_length(3).set_width_chars(3)),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('mana >=')).set_width_request(110),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['rest_till_mana'].set_max_length(3).set_width_chars(3)),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('spirit >=')).set_width_request(110),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['rest_till_spirit'].set_max_length(3).set_width_chars(3)),false)
+		vb_fr.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Hunting'))
+		
+		#
+		# Notebook Page 4 - Ammo & Wands
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)\
+		
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Information</b></big>'))
+		pg_fr.add(vb_fr)
+		
+		#
+		# Page 4, Frame 1 - Ammo
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Ammo</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Container:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['ammo_container']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Ammo:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['ammo']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['hide_for_ammo']),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 4, Frame 2 - Wands
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Wands</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['wand_if_oom']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Fresh container:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['fresh_wand_container']),false)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Dead container:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['dead_wand_container']),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Wand:')).set_width_request(100),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_hunter['wand']),false)
+		vb_fr.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Ammo & Wands'))
+		
+		#
+		# Notebook Page 5 - Bounties
+		#
+		vb_nb = Gtk::VBox.new(false,1).set_border_width(3)\
+		
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Information</b></big>'))
+		pg_fr.add(vb_fr)
+		
+		
+		lbl = Gtk::Label.new.set_markup("The bounties tab allows configuration of what bounties you want " +
+			"azbounty to handle as well as turn in options for bounties. Critter bounties are bounties that " +
+			"require killing a critter while gather bounties generally don't involve killing. Gems uses loot-be-gone with stockpile=on.")
+		lbl.set_wrap(true).set_width_request(525).set_padding(0,10)
+		vb_fr.pack_start(lbl,false)
+		vb_nb.pack_start(pg_fr,false)
+		
+		#
+		# Page 5, Frame 1 - Critter tasks
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Critter Bounties</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['dangerous_enable'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['kill_enable'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['heirloom_enable'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['skin_enable'].set_width_request(129)),false)
+		vb_fr.pack_start(hb,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['rescue_enable'].set_width_request(129)),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 5, Frame 2 - Gather tasks
+		#
+		vb_fr = Gtk::VBox.new(false,1).set_border_width(3)
+		pg_fr = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Gather Bounties</b></big>'))
+		pg_fr.add(vb_fr)
+		vb_nb.pack_start(pg_fr,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['gem_enable'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['heirloom_search_enable'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['herb_enable'].set_width_request(129)),false)
+		vb_fr.pack_start(hb,false)
+		
+		#
+		# Page 5, Frame 3 - Options
+		#
+		vb_nb_3 = Gtk::VBox.new(false,1).set_border_width(3)
+		fr_pg1_3 = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Options</b></big>'))
+		fr_pg1_3.add(vb_nb_3)
+		vb_nb.pack_start(fr_pg1_3,false)
+		
+		hb = Gtk::HBox.new(false,1)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['force_complete'].set_width_request(129)),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(Gtk::Label.new('Turn in:')).set_width_request(60),false)
+		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_azbounty['turn_in_percent'].set_max_length(3).set_width_chars(3)))
+		vb_nb_3.pack_start(hb,false)
+		
+		nb.append_page(vb_nb, Gtk::Label.new('Bounties'))
+		
+		# Save/Close buttons
+		hb_saveclose = Gtk::HBox.new
+		save = Gtk::Button.new('_Save')
+		close = Gtk::Button.new('E_xit')
+		
+		save.signal_connect('clicked') { save_settings.call }
+		close.signal_connect('clicked') { window_action = :done }
+		
+		hb_saveclose.pack_start(save,false)
+		hb_saveclose.pack_start(close,false)
+		
+		# Primary VerticalBox to split up Notebook and Save/Close buttons
+		vb_main = Gtk::VBox.new(false,5)
+		vb_main.border_width = 3
+		
+		vb_main.pack_start(nb,false)
+		vb_main.pack_start(Gtk::Alignment.new(1,0,0,0).add(hb_saveclose),false)
+		
+		#
+		# Signals
+		#
+		gtk_generic['autofill'].signal_connect('clicked') {
+			Gtk.queue {			
+				area = nil
+				critter = nil
+				skin = nil
+			
+				if bounty_is?( 'heirloom', 'dangerous', 'kill', 'rescue' )
+					critter = $1.strip if $1
+					area = $2.strip if $2
+					
+					critter = $3.strip if $3
+					area = $4.strip if $4
+					
+					critter = $5.strip if $5
+					area = $6.strip if $6
+					
+					critter = $7.strip if $7
+					area = $8.strip if $8
+				elsif bounty_is?('skin')
+					skin = $2.strip
+					critter = $3.strip
+				elsif bounty_is?('herb')
+					area = $2.strip
+				else
+					respond "autofill failed: unable to determine area, critter, or skin from current bounty"
+				end
+				
+				unless area.nil?
+					gtk_location['area'].text = area
+				end
+				
+				unless critter.nil?
+					critters = gtk_location['targets']
+					unless critters.text =~ /#{critter}/
+						cur_critters = critters.text.split(',')
+						cur_critters << critter
+						critters.text = cur_critters.join(',')
+					end
+				end
+				
+				skins = gtk_location['skins']
+				unless skin.nil? or skins.text =~ /#{skin}/
+					cur_skins = skins.text.split(',')
+					cur_skins << skin
+					skins.text = cur_skins.join(',')
+				end
+				
+				nb.next_page if skin or area or critter
+			}
+		}
+		gtk_generic['create'].signal_connect('clicked') {
+			area = gtk_generic['new_hunting_ground'].text.strip
+			if @settings['locations'].include?(area)
+				respond "create location: that location already exists"
+			elsif area.nil? or area == ''
+				respond "create location: you must enter a location name"
+			else
+				@settings['locations'][area] = Hash.new
+				@settings['locations'][@default_location].each_pair { |key,value| @settings['locations'][area][key] = value }
+				@settings['locations'][area]['bounty_critter_only'] = true
+				@settings['locations'][area]['herb'] = false
+				
+				update_hunting_area.call
+				update_selected_combobox.call(area)
+			end
+		}
+		gtk_generic['hunting_area'].signal_connect('changed') {
+			location = gtk_generic['hunting_area'].active_text
+			update_hunter_fields.call
+			update_disabled_fields.call
+		}
+		gtk_generic['copy'].signal_connect('clicked') {
+			respond "copying defaults to all hunting locations"
+			@settings['locations'][@default_location].each_pair { |key,value|
+				next if [ 'primary', 'bounty_critter_only' ].include?(key)
+				next if value.nil? or value == ''
+				
+				@settings['locations'].each_key { |key2|
+					next if key2 == @default_location
+					@settings['locations'][key2][key] = value
+				}
+			}
+		}
+		gtk_generic['delete'].signal_connect('clicked') {
+			unless gtk_generic['hunting_area'].active == -1
+				@settings['locations'].delete(gtk_generic['hunting_area'].active_text.strip)
+				gtk_generic['hunting_area'].remove_text(gtk_generic['hunting_area'].active)
+				update_hunting_area.call
+			end
+		}
+		gtk_generic['primary'].signal_connect('clicked') { update_selected_combobox.call(nil) }
+		window.signal_connect('delete_event') { respond window.allocation.width; window_action = :exit }
+		
+		update_hunting_area.call
+		update_selected_combobox.call(nil)
+		
+		window.add(vb_main)	
+		window.show_all
+		window.keep_above = true # On windows keep_above is required AFTER show_all
+	}
+	
+	before_dying { Gtk.queue { window.destroy } }
+	wait_while { window_action.nil? }
+	undo_before_dying # Don't ask me what this does - I stripped it from Tillmen's code
+	Gtk.queue { window.destroy }
+}
+
+################################################################################
+# Program Start
+################################################################################
+@settings['locations'].each_pair { |area, options|
+	if options['primary']
+		hunting_ground = area
+		break
+	end
+}
+
+# Cleanup before we die
+@fried_percent = UserVars.op['fried']
+before_dying {
+	UserVars.op['fried'] = @fried_percent
+}
+
+# Argument detection
+if script.vars[1] =~ /^change$/i
+	change_hunting_ground(script.vars[2]).call
+elsif script.vars[0] =~ /^(cull|heirloom|rescue|gem|skin) (true|false|on|off)$/
+	key = "#{$1}_enable"
+	value = $2
+	
+	if value =~ /true|on/
+		@settings[key] = true
+	else
+		@settings[key] = false
+	end
+	
+	msg "set #{key} to #{value}", :bold
+elsif script.vars[1] =~ /^settings$/i
+	msg 'Dumping settings'
+	@settings.to_hash.each_pair { |key,value| msg( "#{key}: #{value}" ) unless value.class == Hash }
+elsif script.vars[1] =~ /^resetgui$/i
+	@settings['window_height'] = nil
+	@settings['window_position'] = nil
+	@settings['window_width'] = nil
+elsif script.vars[1] =~ /^setup$/i
+	setup.call
+elsif script.vars[1] =~ /^(?:help|\?)$/
+    msg "azbounty #{@@version}"
+    msg "Azathoth modified this from sbounty2.lic - created by SpiffyJr"
+end
+
+exit unless script.vars[1].nil?
+
+# load bigshot object
+unless $bigshot
+    start_script( 'bigshot', ['load'] )
+    wait_while { running?('bigshot') }
+    Bigshot.new
+end
+
+turn_in_guard() if bounty_is?('succeeded_guard')
+ask_npc_about_bounty() # in case we start with this kind of bounty
+
+# we set force_rest to true after we fry,
+# in case percentmind drops between finishing
+# the hunt and arriving at the rest point
+force_rest = false
+
+loop {
+    break if dead?
+    
+    # turn in bounty if it's done and mind is between turn_in_percent and saturated
+    ready_to_turn_in = (percentmind >= @settings['turn_in_percent'].to_i and !saturated?)
+    if bounty_succeeded? and ready_to_turn_in
+        turn_in_bounty()
+    end
+
+    if $bigshot.should_rest? or force_rest
+        msg 'Bigshot says I should rest.'
+        do_rest()
+        force_rest = false
+    end
+    msg 'Bigshot thinks I should hunt.'
+
+    # get new bounty if bounty is unacceptable
+    unless current_bounty_acceptable?
+        if Spell[9003].timeleft <= 3
+            # if it's almost ready, let's wait
+            msg '... but bounty will be ready soon. Waiting.'
+            sleep( Spell[9003].timeleft * 60 )
+        end
+
+        get_new_bounty() if new_bounty_ready?
+    end
+
+    unless $bigshot.should_rest? # check this again, just in case we caught a lucky gem bounty
+        # if bounty is good and unfinished, attempt
+        if current_bounty_acceptable? and !bounty_succeeded? 
+            msg 'Attempting current bounty.'
+            result = do_bounty()
+            turn_in_guard() if bounty_is?('succeeded_guard')
+
+            unless result
+                msg 'Bounty failed. Getting new bounty.'
+                get_new_bounty()
+            end
+        else
+            msg 'Frying in primary ground'
+            do_fry()
+            force_rest = true
+        end
+    end
+
+    # cleanup
+    stop_script 'bigshot' if running? 'bigshot'
+    wait_while { running?(@loot_script) }
+    #stop_script 'go2' if running? 'go2'
+}

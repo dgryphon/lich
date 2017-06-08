@@ -1,0 +1,103 @@
+def cast_portal
+	wait_until { checkmana >= 30 }
+	result = dothistimeout 'inc 930', 2, /forms an elliptical portal of swirling blues and blacks/
+	if result =~ /forms an elliptical portal of swirling blues and blacks/
+		move 'go mist'
+	elsif result.nil?
+		cast_portal
+	end
+end
+
+def landing_ice_go
+	fput "tell familiar to leave" if Spell[920].active?
+	start_script "go2", [2547]
+	wait_while{ running?('go2') }
+	Spell[920].cast
+	start_script "famgo2", [2538]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	fput "tell fam go ne"
+	move 'ne'
+	start_script "famgo2", [2517]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	fput "tell fam go n"
+	move 'n'
+	start_script "famgo2", [2498]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	start_script "go2", [2487]
+	wait_while{ running?('go2') }
+	exit
+end
+
+def ice_landing_go
+	fput "incant 920" if !Spell[920].active? && Spell[920].affordable? || Spell[920].timeleft <= 5 && Spell[920].affordable?
+	start_script "famgo2", [2497]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	fput "tell familiar go sw"
+	move 'sw'
+	start_script "famgo2", [2516]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	fput "tell familiar go s"
+	move 's'
+	start_script "famgo2", [2537]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	fput "tell fam go sw"
+	move 'sw'
+	fput "tell familiar to go bridge"
+	move 'go bridge'
+	start_script "famgo2", [2554]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	start_script "go2", [228]
+	wait_while{ running?('go2') }
+	put ;go2 228
+	exit
+end
+
+def ice_rift_go
+	fput "incant 920" if !Spell[920].active? && Spell[920].affordable? || Spell[920].timeleft <= 5 && Spell[920].affordable?
+	start_script "famgo2", [2877]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	start_script "go2", [2635]
+	wait_while{ running?('go2') }
+	exit
+end
+
+def rift_ice_go
+	fput "tell familiar to leave" if Spell[920].active?
+	start_script "go2", [2877]
+	wait_while{ running?('go2') }
+	Spell[920].cast
+	start_script "famgo2", [3041]
+	wait_while{ running?('famgo2') }
+	cast_portal
+	start_script "go2", [2487]
+	wait_while{ running?('go2') }
+	exit
+end
+
+def rift_ice_ring_go
+	fput "incant 920" if !Spell[920].active? && Spell[920].affordable? || Spell[920].timeleft <= 5 && Spell[920].affordable?
+	start_script "go2", [2877]
+	wait_while{ running?('go2') }
+	multifput("remove my ring", "wear my ring")
+	exit
+end
+
+if script.vars[1] == "landingice"
+	landing_ice_go
+elsif script.vars[1] == "icelanding"
+	ice_landing_go
+elsif script.vars[1] == "icerift"
+	ice_rift_go
+elsif script.vars[1] == "riftice"
+	rift_ice_go
+elsif script.vars[1] == "rifticering"
+	rift_ice_ring_go
+end

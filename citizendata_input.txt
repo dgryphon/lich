@@ -1,0 +1,171 @@
+# Used by citizendata.lic
+<?xml version='1.0' ?>
+<TOWNS>
+	<TOWN name="wl" entrance="336">
+		<ROOM lichid="337" xygonid="1" />
+		<ROOM lichid="375" xygonid="2" />
+		<ROOM lichid="3878" xygonid="3" />
+		<ROOM lichid="373" xygonid="4" />
+		<ROOM lichid="374" xygonid="5" />
+		<ROOM lichid="338" xygonid="6" />
+		<ROOM lichid="370" xygonid="7" />
+		<ROOM lichid="371" xygonid="8" />
+		<ROOM lichid="369" xygonid="9" />
+		<ROOM lichid="372" xygonid="10" />
+		<ROOM lichid="339" xygonid="11" />
+		<ROOM lichid="366" xygonid="12" />
+		<ROOM lichid="367" xygonid="13" />
+		<ROOM lichid="365" xygonid="14" />
+		<ROOM lichid="368" xygonid="15" />
+		<ROOM lichid="340" xygonid="16" />
+		<ROOM lichid="362" xygonid="17" />
+		<ROOM lichid="363" xygonid="18" />
+		<ROOM lichid="361" xygonid="19" />
+		<ROOM lichid="364" xygonid="20" />
+		<ROOM lichid="341" xygonid="21" />
+		<ROOM lichid="358" xygonid="22" />
+		<ROOM lichid="359" xygonid="23" />
+		<ROOM lichid="357" xygonid="24" />
+		<ROOM lichid="360" xygonid="25" />
+		<ROOM lichid="342" xygonid="26" />
+		<ROOM lichid="354" xygonid="27" />
+		<ROOM lichid="355" xygonid="28" />
+		<ROOM lichid="353" xygonid="29" />
+		<ROOM lichid="356" xygonid="30" />
+		<ROOM lichid="343" xygonid="31" />
+		<ROOM lichid="350" xygonid="32" />
+		<ROOM lichid="351" xygonid="33" />
+		<ROOM lichid="349" xygonid="34" />
+		<ROOM lichid="352" xygonid="35" />
+		<ROOM lichid="344" xygonid="36" />
+		<ROOM lichid="345" xygonid="37" />
+		<ROOM lichid="346" xygonid="38" />
+		<ROOM lichid="347" xygonid="39" />
+		<ROOM lichid="348" xygonid="40" />
+	</TOWN>
+	<TOWN name="vo" entrance="1441">
+		<ROOM lichid="9008" xygonid="1" />
+		<ROOM lichid="9009" xygonid="2" />
+		<ROOM lichid="9010" xygonid="3" />
+		<ROOM lichid="9011" xygonid="4" />
+		<ROOM lichid="9012" xygonid="5" />
+		<ROOM lichid="9013" xygonid="6" />
+		<ROOM lichid="9014" xygonid="7" />
+		<ROOM lichid="9015" xygonid="8" />
+		<ROOM lichid="9016" xygonid="9" />
+		<ROOM lichid="9017" xygonid="10" />
+		<ROOM lichid="9018" xygonid="11" />
+		<ROOM lichid="9019" xygonid="12" />
+		<ROOM lichid="9020" xygonid="13" />
+		<ROOM lichid="9021" xygonid="14" />
+		<ROOM lichid="9022" xygonid="15" />
+	</TOWN>
+	<TOWN name="imt" entrance="2380">
+		<ROOM lichid="2372" xygonid="1" />
+		<ROOM lichid="2373" xygonid="2" />
+		<ROOM lichid="2374" xygonid="3" />
+		<ROOM lichid="2376" xygonid="4" />
+		<ROOM lichid="2377" xygonid="5" />
+		<ROOM lichid="2379" xygonid="6" />
+		<ROOM lichid="3447" xygonid="7" />
+		<ROOM lichid="3446" xygonid="8" />
+		<ROOM lichid="3444" xygonid="9" />
+		<ROOM lichid="3442" xygonid="10" />
+		<ROOM lichid="3441" xygonid="11" />
+		<ROOM lichid="3439" xygonid="12" />
+		<ROOM lichid="3440" xygonid="13" />
+		<ROOM lichid="2310" xygonid="14" />
+		<ROOM lichid="2311" xygonid="15" />
+		<ROOM lichid="2312" xygonid="16" />
+		<ROOM lichid="2314" xygonid="17" />
+		<ROOM lichid="2315" xygonid="18" />
+		<ROOM lichid="2316" xygonid="19" />
+		<ROOM lichid="2317" xygonid="20" />
+	</TOWN>
+	<TOWN name="zul" entrance="9423">
+		<ROOM lichid="9423" xygonid="1" />
+		<ROOM lichid="9424" xygonid="2" />
+		<ROOM lichid="9425" xygonid="3" />
+		<ROOM lichid="9426" xygonid="4" />
+		<ROOM lichid="9427" xygonid="5" />
+		<ROOM lichid="9428" xygonid="6" />
+	</TOWN>
+	<TOWN name="rr" entrance="10868">
+		<ROOM lichid="10873" xygonid="1" />
+		<ROOM lichid="10877" xygonid="2" />
+		<ROOM lichid="10876" xygonid="3" />
+		<ROOM lichid="10875" xygonid="4" />
+		<ROOM lichid="10874" xygonid="5" />
+	</TOWN>
+	<TOWN name="kd" entrance="1973">
+		<ROOM lichid="1973" xygonid="1" />
+		<ROOM lichid="1974" xygonid="2" />
+		<ROOM lichid="1975" xygonid="3" />
+		<ROOM lichid="1976" xygonid="4" />
+		<ROOM lichid="1977" xygonid="5" />
+	</TOWN>
+	<TOWN name="ti" entrance="33">
+		<ROOM lichid="641" xygonid="1" />
+		<ROOM lichid="642" xygonid="2" />
+		<ROOM lichid="734" xygonid="3" />
+		<ROOM lichid="735" xygonid="4" />
+		<ROOM lichid="736" xygonid="5" />
+		<ROOM lichid="737" xygonid="6" />
+		<ROOM lichid="732" xygonid="7" />
+		<ROOM lichid="733" xygonid="8" />
+		<ROOM lichid="731" xygonid="9" />
+		<ROOM lichid="730" xygonid="10" />
+		<ROOM lichid="16405" xygonid="11" />
+		<ROOM lichid="16407" xygonid="12" />
+		<ROOM lichid="16408" xygonid="13" />
+		<ROOM lichid="16409" xygonid="14" />
+		<ROOM lichid="16412" xygonid="15" />
+		<ROOM lichid="16413" xygonid="16" />
+		<ROOM lichid="16414" xygonid="17" />
+		<ROOM lichid="16417" xygonid="18" />
+		<ROOM lichid="16418" xygonid="19" />
+		<ROOM lichid="16419" xygonid="20" />
+	</TOWN>
+	<TOWN name="tv" entrance="3520">
+		<ROOM lichid="10462" xygonid="1" />
+		<ROOM lichid="10459" xygonid="2" />
+		<ROOM lichid="10456" xygonid="3" />
+		<ROOM lichid="10453" xygonid="4" />
+		<ROOM lichid="10452" xygonid="5" />
+		<ROOM lichid="10451" xygonid="6" />
+		<ROOM lichid="10463" xygonid="7" />
+		<ROOM lichid="10460" xygonid="8" />
+		<ROOM lichid="10457" xygonid="9" />
+		<ROOM lichid="10454" xygonid="10" />
+		<ROOM lichid="10441" xygonid="11" />
+		<ROOM lichid="10450" xygonid="12" />
+		<ROOM lichid="10449" xygonid="13" />
+		<ROOM lichid="10448" xygonid="14" />
+		<ROOM lichid="10447" xygonid="15" />
+		<ROOM lichid="10464" xygonid="16" />
+		<ROOM lichid="10461" xygonid="17" />
+		<ROOM lichid="10458" xygonid="18" />
+		<ROOM lichid="10455" xygonid="19" />
+		<ROOM lichid="10443" xygonid="20" />
+		<ROOM lichid="10444" xygonid="21" />
+		<ROOM lichid="10445" xygonid="22" />
+		<ROOM lichid="10446" xygonid="23" />
+	</TOWN>
+	<TOWN name="fwi" entrance="12266">
+		<ROOM lichid="12266" xygonid="1" />
+		<ROOM lichid="3870" xygonid="2" />
+		<ROOM lichid="3869" xygonid="3" />
+		<ROOM lichid="12265" xygonid="4" />
+		<ROOM lichid="12264" xygonid="5" />
+		<ROOM lichid="12263" xygonid="6" />
+		<ROOM lichid="12262" xygonid="7" />
+		<ROOM lichid="12267" xygonid="8" />
+		<ROOM lichid="12268" xygonid="9" />
+		<ROOM lichid="12269" xygonid="10" />
+		<ROOM lichid="12270" xygonid="11" />
+		<ROOM lichid="12271" xygonid="12" />
+		<ROOM lichid="12272" xygonid="13" />
+		<ROOM lichid="12273" xygonid="14" />
+		<ROOM lichid="3872" xygonid="15" />
+	</TOWN>
+</TOWNS>

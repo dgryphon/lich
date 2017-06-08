@@ -1,0 +1,70 @@
+################
+# FORAGE: 
+#  Author: Azanoth
+#  USAGE:
+#           ;forage <herb> <locations>
+#  EXAMPLE:
+#           ;forage tkaro root 5500 5400 6590 4390 5670
+################
+
+##
+# SETTINGS
+@restRoom = 1194
+
+## main
+#
+def main
+	fput "603"
+	fput "stance def"
+	input = variable[0]
+	
+	if(input =~ /^(.*?)\s([\d|\s]*)$/)		# separate out herb string
+		herb = $1
+		locations = $2.split(" ")
+		echo locations
+		
+		while(true)
+			fput "inc 603" if checkmana >= 3
+			locations.each do |loc|
+				runScript("go2", true, loc, '_disable_confirm_')
+				fullForage(herb)
+			end
+			runScript("go2", true, @restRoom, '_disable_confirm_')
+			sleep 1800
+		end
+	end
+end
+
+## fullForage
+#	Forage the room dry
+def fullForage(herb = "tkaro root")
+	fput "kneel"
+	fput "forage #{herb}"
+	while(get !~ /no hint of what you are look|someone has been foraging here recently/)
+		fput "stow #{righthand}" if righthand?
+		fput "stow #{lefthand}" if lefthand?
+		if(get =~ /won't fit/)
+			runScript("go2", true, @restRoom, '_disable_confirm_')
+			kill_script("forage")
+		end
+		
+		fput "forage #{herb}"
+		sleep 1
+		break if checkrt == 0
+		waitrt?
+	end
+end
+
+##
+# runScript: run indicated script
+# waitWhile = true/false to pause primary script until secondary script ends
+def runScript(script, waitWhile = false, *args)
+	if(waitWhile)
+		start_script script, args
+		wait_while{running?(script)}
+	else
+		start_script script, args
+	end
+end
+	
+main

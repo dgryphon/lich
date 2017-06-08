@@ -1,0 +1,9 @@
+=begin
+A script to test for loresinging
+Usage: ;loresing (adjective) (item)
+by: Dgry
+=end
+
+if checkmana > 10  
+  fput "incant 519"
+end

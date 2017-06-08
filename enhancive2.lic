@@ -1,0 +1,204 @@
+=begin
+
+# Author: Vindicate
+# Categories: lich, utility
+# Tags: utility
+# Version: 1.2
+
+Used to wear and remove enhancives
+
+1.	Enter FULL name of enhancives into enhance Array
+		$enhance_all	array of complete list of enhancives that are owned and in the enhancesack
+		$enhance	array of enhancives that you want to wear / remove	
+
+2.	Be sure enhancesack is added to Lich settings (;settings add enhancesack = <your sack>)
+3.	Usage :enhance <wear|remove|inventory>
+4.	It will automatically check inventory of complete enhancives after removal and signal anything missing
+
+
+Any questions email Michael.Schlecht@Bunge.com
+
+
+=end
+
+
+### modify array here
+
+$enhance_all = ["lacquered azure vambraces"]
+
+$enhance = ["lacquered azure vambraces"]
+
+###
+
+class Enhancive
+
+	attr_accessor :container
+
+	def initialize(container = "#{Lich.enhancesack}")
+	
+		@container = container		
+
+	end
+
+	def wear
+
+		get_pockets
+
+		my_pockets
+
+		my_pockets.contents.each{ |item|
+
+		if item.name =~ /#{$enhance.join('|')}/
+
+			fput "get ##{item.id} in my #{container}"
+
+			fput "wear ##{item.id}"
+		
+		end
+	}
+
+	stow_pockets
+	
+	end
+
+	def remove
+
+		get_pockets
+
+		body_inv = GameObj.inv
+
+		for obj in body_inv.contents
+
+			if obj.name =~ /#{$enhance_all.join('|')}/
+
+				fput "remove ##{obj.id}"
+
+				fput "put ##{obj.id} in my #{container}"
+
+			end
+
+		end
+		
+		double_check_inventory
+	
+		stow_pockets
+	
+	end
+	
+	def double_check_inventory
+		
+		my_pockets
+	
+		$enhance_all.each {|loot_item|
+		
+		unless my_pockets.contents.any?{|item| item.name =~ /#{loot_item}/}
+
+		respond "#{monsterbold_start}\n\nMissing #{loot_item}\n\n\n#{monsterbold_end}"
+
+		end
+		}
+	
+	end
+
+	def inventory
+		
+		get_pockets
+
+		my_pockets
+	
+		$enhance_all.each {|loot_item|
+		
+		unless my_pockets.contents.any?{|item| item.name =~ /#{loot_item}/}
+
+		respond "#{monsterbold_start}\n\nMissing #{loot_item}\n\n\n#{monsterbold_end}"
+
+		end
+	}
+
+		stow_pockets
+	
+	end
+
+	def my_pockets
+
+		my_pockets = GameObj.inv.find{|item| item.noun =~ /#{container}/i}
+
+		if my_pockets.contents.nil? 
+  
+			fput "look in my #{container}"
+
+		end
+
+		return my_pockets
+
+	end
+
+	def get_pockets
+
+		body_inv = GameObj.inv
+
+		find_pockets = body_inv.find{|sat|
+
+		sat.noun =~ /#{container}/
+
+	}
+
+	if find_pockets == nil
+
+		fput "get my #{container} in my #{Lich.lootsack}"
+
+		fput "wear my #{container}"
+	
+		@stowed = true
+		
+	else
+		
+		@stowed = false
+
+	end
+
+	#fput "open my #{container}"
+	
+	end
+	
+	def stow_pockets
+	
+		#fput "close my #{container}"
+
+		fput "remove my #{container}" if @stowed
+
+		fput "put my #{container} in my #{Lich.lootsack}" if @stowed
+	
+	end
+
+end
+
+def check_args
+
+	trinkets = Enhancive.new
+
+	case variable[1].downcase
+		
+		when /wear|wea|we|w/
+			trinkets.wear
+		when /remove|r|re|rem/
+			trinkets.remove
+		when/inventory|i|in|inv/
+			trinkets.inventory
+
+		else
+			echo
+			echo	"Please enter a Variable: Wear, Remove, Inventory"
+			echo
+			exit
+			
+	end
+	
+	
+end
+
+check_args
+
+
+
+

@@ -1,0 +1,23 @@
+=begin
+copied from krakiipedia with superficial modifications to make it easy to interpret in game window.  ~Moredin
+=end
+
+echo '  Determining the Proper Potion'
+echo '  Start Bonus     Aura Color     End Bonus     #Pours  Temper Time   Potion      Cost   '
+echo '         0 (0x)      None      +1 to +5  (1x)     1     1 to 2d      Rohnuru     3500   '
+echo '  +1 to +5 (1x)      Red       +5 to +10 (2x)     2     2 to 3d      Duqnuru     5500   '
+echo ' +6 to +10 (2x)      Orange   +11 to +15 (3x)     3     2 to 3d      Duqnuru     5500   '
+echo '+11 to +15 (3x)      Yellow   +16 to +20 (4x)     4     4 to 5d      Dirtokh     10,000 '
+echo '+16 to +20 (4x)      Green    +21 to +25 (5x)     5     5 to 7d      Dirtokh     10,000 '
+echo '+21 to +25 (5x)      Blue     +26 to +30 (6x)     6     6 to 9d      Mirtokh     35,000 '
+echo '+26 to +30 (6x)      Indigo   +31 to +35 (7x)     7     8 to 11d     Mirtokh     35,000 '
+echo '+31 to +35 (7x)      Violet   +36 to +40 (8x)     8     >9d          Bromin      Special'
+echo '+36 to +40 (8x)      Copper   +41 to +45 (9x)     9     Unknown      Aleteh      Special'
+echo '+41 to +45 (9x)      Silver   +46 to +50 (10x)    10    Unknown      Grenshol    Special'
+echo '+46 to +50 (10x)     Gold                                                               '
+echo '  0 to +30 (0x-6x)   None     Reputed to have special properties     Sisfu       17,500 '
+echo '  0 to +30 (0x-6x)   None     Pre-temper for enhancive items         Ayveneh            '
+echo '  0 to +30 (0x-6x)   None     Pre-temper for sanctified items        Eoveneh            '
+echo '  0 to +50 (0x-10x)  None     Reverses a temper (takes ~1 day)       Sarmoc             '
+
+

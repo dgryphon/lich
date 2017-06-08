@@ -1,0 +1,16 @@
+room = Room.current
+next_room_options = room.wayto.keys
+echo next_room_options
+
+next_room = next_room_options[rand(next_room_options.length)]
+echo next_room
+way = room.wayto[next_room]
+echo way
+echo 'test'
+Room[3408].wayto['228'].call
+echo way
+echo 'test2'
+Room[3408].waytoRoom[228]
+echo way
+echo 'test3'
+

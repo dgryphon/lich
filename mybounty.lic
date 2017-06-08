@@ -1,0 +1,277 @@
+# if on the list then do it
+# if not on the list of acceptable ones then remove it from the list
+# if no bounty check timer
+#@acceptableBountyTypes = ['herb', 'guard', 'success', 'gem', 'bandit', 'fur']
+@acceptableBountyTypes = ['herb', 'guard', 'success', 'gem', 'fur']
+# 2429 - supernode
+restspot = 3408
+	
+#=end
+#------------------------------------------------------------------------
+class MyBounty
+
+bountyType  = "None"
+@@herbType = ""
+#=begin
+@@coinamt = 0
+
+def initialize
+	@@coinamt = 0
+end
+
+#------------------------------------------------------------------------
+
+def dropTask
+      goAdv()
+      for npc in checknpcs
+      	fput "ask #{npc} for removal"
+            #exit
+      	fput "ask #{npc} for removal"
+      end
+end
+
+def newTask
+      goAdv()
+      for npc in checknpcs
+      	fput "ask #{npc} for bounty"
+      end
+end
+
+#------------------------------------------------------------------------
+
+# sets bountyItem, bountyType, bountyAmnt
+def checkBounty
+#checks for adv guild tasks
+# first check to see if completed and you need to check with a guard
+	fput "bounty"
+	line = get
+  until (line =~ /assigned |told you:|have been tasked|succeeded in your/)
+    line = get
+  end
+#end
+
+echo line
+	if (line =~ /gate guards/)
+    bountyType  = "guard"
+	elsif (line =~ /Mirtag/)
+    bountyType  = "herb"
+  elsif (line =~ /gem dealer/)
+    bountyType = "gem"
+	elsif (line =~ /bandit/)
+    bountyType  = "bandit"
+	elsif (line =~ /return to the Adventurer/)
+    bountyType  = "success"
+	elsif (line =~ /not currently assigned a task/)
+    bountyType  = "None"
+  elsif (line =~ /local furrier/)
+    bountyType = "fur"
+  else
+    bountyType  = "other"
+  end
+  
+	#pull out info	
+	if (line =~ /congealed slime/)
+		@@herbType = "slime"
+            @@coinamt = 1000
+	end
+	if (line =~ /mawflower/)
+		@@herbType = "mawflower"
+            @@coinamt = 1000
+	end
+	if (line =~ /grave blossom /)
+		@@herbType = "blossom"
+            @@coinamt = 1000
+	end
+	if (line =~ /deathblossom/)
+		@@herbType = "deathblossom"
+            @@coinamt = 1000
+	end
+	if (line =~ /fleshbinder bud/)
+		@@herbType = "bud"
+            @@coinamt = 1500
+	end
+	if (line =~ /green fleshbulb/)
+		@@herbType = "fleshbulb"
+            @@coinamt = 1500
+	end
+	if (line =~ /fleshsore bulb/)
+		@@herbType = "bulb"
+            @@coinamt = 1500
+	end
+
+	if line =~ /retrieve ([0-9]+) (samples|more samples|more sample)/
+	  #herbsleft = $1.to_i
+	  @@coinamt = @@coinamt * $1.to_i
+	end
+	
+      return bountyType
+end
+
+#------------------------------------------------------------------------
+
+def goGuard
+	start_script('go2', [ 'bank', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+      fput "withdraw 15 silver"
+	start_script('go2', [ 'advguard', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	fput "ask guard for bounty"
+	if (get =~ /Who are you trying to ask/)
+		start_script('go2', [ 'advguard2', '_disable_confirm_' ])
+		wait_while { running?('go2') }
+		fput "ask guard for bounty"
+	end
+end
+
+#------------------------------------------------------------------------
+
+def goRest(restspot)
+	start_script('go2', [ restspot, '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	fput "go table"
+end
+
+#------------------------------------------------------------------------
+
+def goAdv
+	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+end
+
+#------------------------------------------------------------------------
+
+def doTask(bountyType)
+	if (bountyType == "herb")
+    doHerbs()
+	elsif (bountyType == "guard")
+		goGuard()
+  elsif (bountyType == "bandit")
+		doBandit()
+		exit
+	elsif (bountyType == "gem")
+	  echo "did gem"
+	  doGem()
+  elsif (bountyType == "success")
+		turnIn()
+	end
+end
+
+#------------------------------------------------------------------------
+
+def doGem
+  start_script('go2', [ 'gemshop', '_disable_confirm_' ])      	
+	wait_while { running?('go2') } 
+  for npc in checknpcs
+   	fput "ask #{npc} for bounty"
+  end  
+  goRest(3408)
+  MakeNoise()
+  exit	
+end
+
+#------------------------------------------------------------------------
+
+def MakeNoise
+  puts 7.chr
+  pause 1
+  puts 7.chr
+  pause 1
+  puts 7.chr  
+end
+
+#------------------------------------------------------------------------
+
+def doBandit
+  #m.goRest(restspot)
+  goRest(3408)
+  start_script('waggle')      	
+	wait_while { running?('waggle') }              
+	MakeNoise()
+	exit
+end
+
+#------------------------------------------------------------------------
+def doHerbs
+	start_script('go2', [ '2406', '_disable_confirm_' ])      	
+	wait_while { running?('go2') }            
+  for npc in checknpcs
+   	fput "ask #{npc} for bounty"
+  end  
+	checkBounty()
+	start_script('go2', [ 'bank', '_disable_confirm_' ])      	
+	wait_while { running?('go2') } 
+	fput "deposit all"           
+      fput "withdraw #{@@coinamt} silver"
+	start_script('go2', [ '15860', '_disable_confirm_' ])      	
+	wait_while { running?('go2') }            
+	fput "buy #{@@herbType}"
+      line = get
+      #while (line =~ /merchant and receive/)
+      until (line =~ /have enough silver to purchase/)
+echo line
+        fput "put #{@@herbType} in my cloak"		
+		    waitfor "you put"
+		    fput "buy #{@@herbType}"		
+		    line = get
+      end
+	start_script('go2', [ '2406', '_disable_confirm_' ])      	
+	wait_while { running?('go2') }            
+	fput "get my #{@@herbType} from cloak"
+	fput "give #{@@herbType} to mirtag"		
+      line = get
+echo line
+# change to look at bounty type
+# if bounty type changes to hall then leave, otherwise keep looking for herbs
+# if no herbs found then buy more
+      #while (line =~ /before I can finish my | you remove/)
+      until (line =~ /pickup your full reward/)
+            fput "get my #{@@herbType} from my cloak"		
+		        waitfor "you remove"
+		        fput "give #{@@herbType} to mirtag"		
+		        line = get
+      end
+	@@herbType = ""
+	@@coinamt = 0
+	turnIn()	
+end
+
+#------------------------------------------------------------------------
+
+def turnIn
+goRest(3408)
+echo percentmind
+  wait_while {percentmind() > 60}
+  newTask()
+  start_script('go2', [ 'bank', '_disable_confirm_' ])      	
+  wait_while { running?('go2') }            
+  fput "deposit all"
+goRest(3408)
+end
+
+#------------------------------------------------------------------------
+end
+
+#check current bounty
+while true
+      m = MyBounty.new
+      bt = m.checkBounty()
+echo '-'
+echo bt
+echo '-'
+	if @acceptableBountyTypes.include?(bt)
+echo 'valid bounty'
+	  	m.doTask(bt)
+	else
+        	if bt  == "None"
+      		#check timer if timer gone...
+            	m.goRest(restspot)
+			echo "resting until out of the timer"
+                  wait_while {checkspell "9003"}
+			echo 'out of timer'
+                  m.newTask()
+        	else
+            	m.dropTask()
+            	m.goRest(restspot)
+        	end
+	end
+end

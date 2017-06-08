@@ -1,0 +1,58 @@
+
+=begin
+# blah blah blah
+=end
+
+container = alchemy_sack_var = GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack.strip)}/i } || GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack).sub(' ', ' .*')}/i }
+reagents = /radiant crimson essence dust|radiant crimson mote of essence|glowing violet mote of essence|pristine sprite's hair|glowing violet essence shard|some essence of water|some essence of fire|s'ayanad crystal|t'ayanad crystal/
+
+status_tags
+
+	if table = (GameObj.loot.to_a + GameObj.room_desc.to_a).find { |obj| obj.noun == 'table'}
+	echo 'here'
+	echo table
+		count = Hash.new
+		dothistimeout "look on ##{table.id}", 3, /On the|On the table you see/
+		fput "look on ##{table.id}"
+		line = get
+		until (line =~ /On the (.*) table you see (.*)/)
+			line = get
+		end		
+
+		line2 = $2.to_s
+		
+		line2.gsub! 'and', ','
+		line2.gsub! '.', ''
+		contents = line2.split(',')
+		
+		# if contents is empty then populate contents with an array
+
+
+	#if table.contents.empty?
+				echo "in the else"
+			empty_hands
+			dothistimeout "get my note", 10, /^You remove|^You already have that\./
+			for obj in contents
+				echo obj.strip
+				if obj.strip =~ reagents
+					#unless count[obj.name]
+					
+					#determine the correct verb
+					findit = obj.split(' ')
+					for adjseek in findit
+						
+					end
+					
+					#dothis "buy #{obj.split.last}", /decide to purchase the/
+					#dothis "put #{obj.split.last} in my #{container}", /^You put|^I could not find what you were referring to\./
+					
+					#buy reagent and put it away																			
+					#count[obj.name] = all_sack_contents.call.find_all { |o| o.name == obj.name }.length
+				end
+			end		
+
+	#end
+end
+#start_script 'alchemy', ['jar']
+
+

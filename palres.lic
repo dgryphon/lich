@@ -1,0 +1,8 @@
+=begin
+=end
+
+fput "whisper #{script.vars[1]} Welcome to the wonderful world of paladin rescues, here is your catalog of options!"
+fput "whisper #{script.vars[1]} Option 1: I can plant flowers on your gravesite, and continue on my way."
+fput "whisper #{script.vars[1]} Option 2: I get you back to town."
+fput "whisper #{script.vars[1]} Option 3: I can give you a battle raise.  This means you'll be brought back to full health, spells, spirit, and mana - even if you weren't before you died.  You'll be able to immediately resume hunting, I can even help if you'd like, and walk back to town under your own power.  Just make sure you're back in town before 10 minutes expires.  If you haven't tried this before, you should give it a whirl."
+fput "whisper #{script.vars[1]} Let me know how you'd like to proceed."

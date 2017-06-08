@@ -1,0 +1,92 @@
+
+acceptableBountyTypes = ['herb']
+restspot = 3611
+bountyType = "None"
+
+=begin
+# if on the list then do it
+# if not on the list of acceptable ones then remove it from the list
+# if no bounty check timer	
+=end
+
+#check current bounty
+echo 'here'
+#while true
+echo 'here'
+	checkBounty()
+	if acceptableBountyTypes.include?(bountyType)
+	  	doTask()
+	else
+        	if bountyType = "None"
+      		#check timer if timer gone...
+                  if checkspell "bounty"
+exit
+			
+ 			end
+                  newTask()
+        	else
+            	dropTask()
+                  goRest(restspot)
+        	end
+	end
+#end
+
+
+
+def dropTask
+      goAdv()
+      for npc in checknpcs
+      	fput "ask #{npc} for removal"
+      	fput "ask #{npc} for removal"
+      end
+end
+
+def newTask
+      goAdv()
+      for npc in checknpcs
+echo 'asking'
+      	fput "ask #{npc} for bounty"
+      end
+end
+
+def checkBounty
+# first check to see if completed and you need to check with a guard
+	fput "bounty"
+	line = get
+	line = get
+	line = get
+	line = get
+	line = get
+	line = get
+	if (line =~ /gate guards/)
+		goGuard
+	elsif (line =~ /You are not currently assigned a task/)
+        bountyType = "None"
+      end
+end
+
+#go to guild and ask for removal from task
+def goGuard
+	start_script('go2', [ 'advguard', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	fput "ask guard for bounty"
+	if (get =~ /Who are you trying to ask/)
+		echo("no guard go out west gate")
+		fput "move climb stair"
+		fput "move north"
+		fput "move gate"
+		fput "ask guard for bounty"
+	end
+end
+
+def goRest(restspot)
+	start_script('go2', [ restspot, '_disable_confirm_' ])
+	wait_while { running?('go2') }
+end
+
+def goAdv
+	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+end
+
+

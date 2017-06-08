@@ -1,0 +1,234 @@
+=begin
+	Generates a PC post from your shop inventory
+	
+	Dependencies: 0lib
+
+	Required: Lich 4.3.12
+
+	m444w on the PC
+
+=end
+
+if $SAFE > 0
+  echo "This script needs to be trusted to work properly. (;trust #{script.name})"
+  exit
+end
+start_script '0lib' if not running? "0lib"
+
+Dir.mkdir( $script_dir + "pshops" ) unless File.directory?( $script_dir + "pshops" )
+
+class Shop_Item < Unknown_O
+	attr_accessor :props
+	def initialize(item)
+		@id 				 = item[:id]
+		@props 				 = {}
+		item.each do |key, value| @props[key] = value end
+		@props[:enhancives]  = []
+		@props[:resistances] = []
+		@props[:specials]    = []
+		self
+	end
+	def add_special(prop)
+		@props[:specials].push prop
+	end
+	
+	def inspect
+		inspect_success = /You carefully inspect|careful inspection|You carefully count|goat|Inspecting that may not be a sound idea/
+        result = Library.do "inspect ##{@id}", inspect_success
+        if result =~ inspect_success
+            begin
+	            Timeout::timeout(0.1) do
+	            	while(line = get)
+		            	case line
+			            	when /^You estimate that (.*?) can store ([a-zA-Z -]+) with enough space for ([a-zA-Z ]+)/
+			            		@props[:space]= $2
+			            		@props[:number_of_items]= $3
+			        
+			            	when /^You determine that you could wear the (.*?) ([a-zA-Z ]+)/
+			            		@props[:location]= $2
+			            	when /^You determine that you could not wear/
+			            		# silent
+			            	when /allows you to conclude that it is ([a-zA-Z ]+)/
+			            			@props[:armor_type] = $1
+			            	when /requires skill in ([a-zA-Z ]+) to use effectively/
+			            		@props[:weapon_type]= $2
+			            		if line =~ /It appears to be a modified ([a-zA-Z -]+)/
+			            			@props[:weapon_base]= $1
+			            		else
+			            			@props[:weapon_base]= @props['noun']
+			            		end
+			            	
+			            	when /^It looks like this item has been mainly crafted out of ([a-zA-Z -]+)/
+			            		@props[:material]= $1
+			            		break
+			      
+			            	else
+			            		Client.notify "Inspect could not parse: #{line}"
+			            end
+		            end
+	            end
+	        rescue Timeout::Error
+	      		# Silent
+	       	end
+        else
+        	Client.notify "Unmatched inspect result:"
+        	respond result
+        end
+        Client.notify("Item error: inspect item timed out") if result == false
+       	#if inspect.length > 0 then @props['inspect']= inspect.join "\n" end
+        return self
+	end
+	def gather_info
+		inspect
+		take
+		while line = get
+			if    line =~ /^It imparts a bonus of (\+|\-)([0-9]+) more than usual|^It imparts no bonus more than usual/	# enchant
+				@props[:enchant] = $2 ? $2.to_i : 0.to_i
+			elsif line =~ /^It has been infused with the power of (a|an) ([a-zA-Z ]+)/        						# flares
+				@props[:flares] = $2
+			elsif line =~ /It provides a bonus of ([0-9]+) to ([a-zA-Z -]+)/ or line =~ /It provides a penalty of ([-0-9]+) to ([a-zA-Z -]+)/                    						# enhancives
+				lines = line.split('.')
+				lines.each do |ln|
+					if ln  =~ /It provides a bonus of ([0-9]+) to ([a-zA-Z -]+)/ or ln =~ /It provides a penalty of ([-0-9]+) to ([a-zA-Z -]+)/ 
+						enhancive = {
+						:type  => $2,
+						:bonus => $1.to_i
+						}
+						@props[:enhancives].push enhancive
+					end
+				end
+				
+			elsif line =~ /used by adventurers who have not trained ([0-9]+) times/              						# age requirement
+				i = @props[:enhancives].length-1
+				@props[:enhancives][i][:age_req] = $1
+			elsif line =~ /^It is ([a-zA-Z ]+) resistant to ([a-zA-Z ]+) attacks/										# resistances
+				resistance = {
+					:type  => $2,
+					:level => $1
+				}
+				@props[:resistances].push resistance
+			elsif line =~ /^It is currently imbedded with the ([a-zA-Z -']+) spell/
+				@props[:spell] = $1
+
+			elsif line =~ /^It could be activated by ([a-zA-Z -']+) it/
+				@props[:activator] = $1
+
+			elsif line =~ /^It has ([a-zA-Z -']+) charges remaining|^It does not have any charges left/
+				@props[:spell_charges] = $1 ? $1.to_i : 0.to_i
+				
+			elsif line =~ /The ([a-zA-Z-]+) looks to have ([a-zA-Z -']+) remaining/
+				@props[:enhancive_charges] = $2
+				# continue
+			elsif line =~ /It helps defend its wielder/
+				add_special line
+
+			elsif line =~ /It is a magical item which could be imbedded with a spell/
+				@props[:imbeddable] = true
+			elsif line =~ /It is weighted to inflict more critical blows/
+				@props[:weighting] = line
+			
+			elsif line =~ /The item doesn't seem to do anything|The bow seems to be out of charges/
+				add_special "fusion item"
+				
+			elsif line =~ /You can PULL/
+				break;
+			else
+				Client.notify "Uncategorized property"
+				respond line
+			end
+		end
+		self
+	end
+	def data
+		@props.delete(:enhancives)  if @props[:enhancives].length == 0
+		@props.delete(:resistances) if @props[:resistances].length == 0
+		@props.delete(:specials)    if @props[:specials].length == 0
+		@props.delete(:quantity)    if @props[:quantity] == 1
+		@props.delete(:id)
+		@props.delete(:noun)
+		@props.delete_if do |key, value| value.nil? end
+		@props
+	end
+end
+
+hide_me
+
+shop = Shop_O.new
+items = {}
+shop.rooms { |room|
+	script.want_downstream = false
+	script.want_downstream_xml = true
+	Client.notify "Parsing room"
+	start = Library.do 'shop inven', /INVENTORY/
+	items[self.wing] = []
+	while (line = get)
+		if line =~ /(On|In) (a|an) \<a exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>.../ #container start
+			# continue
+		elsif line =~ /\<a exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>(.*?): ([0-9]+) \(([0-9]+)\)/ # normal format
+			#Client.notify "Found #{[$3, $4].join('')}"
+			item = {
+				:id       => $1, 
+				:noun     => $2, 
+				:name     => [$3, $4].join(''), 
+				:price    => $5.to_i,
+				:quantity => $6.to_i
+			}
+            items[self.wing].push item
+        elsif line =~ /item: price \(quantity\)/ || line.chomp == ''
+        	#continue
+        elsif line =~ /prompt time/
+        	break;
+		else
+			Client.notify "breaking on"
+			respond line
+			break;
+		end
+	end
+	script.want_downstream = true
+	script.want_downstream_xml = false
+	items[self.wing].map! do |item| Shop_Item.new(item).gather_info end
+}
+
+post = VBulletin.new
+post.open_bold.add_line("To get to my shop simply copy and paste this into your command line:").close_bold
+post.add_line ";e r = 338; start_script 'go2', [r]; wait_until{Room.current.id == r }; fput 'go spire'\n"
+
+items.each do |wing, sale|
+	post.enter.open_size(2).open_bold.open_underline.add_line("ROOM: #{wing.upcase}").close_underline.close_bold.close_size
+	sale.each do |item|
+		props = item.data
+		post.enter.open_bold.open_color("#333").add("#{props[:name]} ").add(" [#{VBulletin.commafy(props[:price])}]").close_color.close_bold.enter
+		post.open_indent.open_color('#666')
+		
+		if props[:specials]
+			post.open_italics
+			props[:specials].each do |special| post.add_line "#{special}" end 
+			post.close_italics
+		end
+		
+		if props[:resistances]
+			props[:resistances].each do |resistance| 
+				post.add_line "#{resistance[:type]} (#{resistance[:level]})" 
+			end 
+		end
+
+		if props[:enhancives]
+			props[:enhancives].each do |enhancive|
+				post.add "#{enhancive[:type]} ... #{enhancive[:bonus]}"
+				post.add " (level: #{enhancive[:age_req]})" if enhancive[:age_req]
+				post.enter
+			end
+			post.add_line "Enhancive Charges: #{props[:enhancive_charges]}"
+		end
+		
+		[:name, :resistances, :price, :enhancives, :enhancive_charges, :specials].each do |key| props.delete(key) if props[key] end
+		
+		props.each do |key, value| post.add_line "#{key}: #{value}" end
+		
+		post.close_color.close_indent.enter
+	end
+end
+
+sales = File.new( $script_dir + "pshops/#{Char.name}.log", "w" )
+sales.puts( post.to_s )
+sales.close

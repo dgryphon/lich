@@ -1,0 +1,18 @@
+    crusader = GameObj.npcs.find { |npc| npc.noun =~ /squirrel/ }
+    while !(crusader.status =~ /dead|gone/)
+	echo 'here'
+    if Spell[240].active?
+      echo "target critter = #{crusader}"
+      if checkmana > 12
+       waitcastrt?
+       waitrt?
+       fput "release"
+       fput "prepare 312"
+       fput "cast #{crusader}"
+       sleep 4
+      end
+    else
+      Spell[240].cast
+    end
+    end
+    

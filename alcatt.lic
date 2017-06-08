@@ -1,0 +1,28 @@
+=begin
+#alcatt.lic
+#attacks + skins with alchemy
+# --Dgry
+# email: dgry@hotmail.com
+=end
+
+  put 'stance off'  
+loop { 
+  target = GameObj.npcs.find { |npc| npc.status.nil? }
+  if target
+     #fput "attack ##{target.id}"
+     fput "incant 908"
+     waitcastrt
+  else
+    break;
+  end  
+}
+  put 'stance def'
+  #put 'stow staff'
+  #waitfor 'you put'
+  #put 'get my dagger'
+  #for npc in checknpcs
+  # 	put "skin #{npc}"
+  #end  
+  #fetchloot
+  #put 'get staff'
+  

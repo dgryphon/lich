@@ -1,0 +1,183 @@
+######################################################################
+# Fletch
+#   By: Azanoth
+#   Date: 08-27.2009
+# USAGE:
+#       ;fletch <shaftcontainer> <experience_percent_to_rest_at>
+#       (Or just hard-code the variables so runtime arguments are unnecessary.)
+#
+#	Please just use 'a dagger' and 'a handaxe'
+######################################################################
+$FLETCH_VERSION = "1.0"
+# - Haste cast added: if user knows 506 and has adequate mana
+######################################################################
+# User-defined variables start here
+######################################################################
+@SHAFTCONTAINER = "cloak"; 					#Defaults		
+@XP_TO_STOP = 80;
+
+######################################################################
+# Body
+######################################################################\
+def haste
+	if(Spells.wizard >= 5)
+		until(checkspell(506) || checkmana(6) == false)
+			put "incant 506"
+
+			pause 1
+		end
+	end
+end
+
+def checkrest
+	until(percentmind < @XP_TO_STOP)
+	      pause 30
+	      fput "exp"
+	end
+end
+
+
+if(variable[0]) 						# Optional runtime variables
+	@SHAFTCONTAINER = variable[0];
+end
+if(variable[1])
+	@XP_TO_STOP = variable[1];
+end
+
+start:
+	match "getdagger", "You glance down at your empty hands"
+	match "getshaft1", "You glance down to see nothing in your right hand and a dagger in your left hand"
+	match "getshaft1", "You glance down to see nothing in your right hand and a drake dagger in your left hand"
+	match "getshaft2", "You glance down to see a dagger in your right hand and nothing in your left hand"
+  match "getshaft2", "You glance down to see a drake dagger in your right hand and nothing in your left hand"	
+	match "swap", "a dagger in your right hand and a single rough arrow shaft in your left hand"
+	match "cutshaft1", "ou glance down to see a single rough arrow shaft in your right hand and a dagger in your left"
+	match "cutshaft2", "down to see a single arrow shaft in your right hand and a dagger in your left ha"
+  match "cutshaft1", "ou glance down to see a single rough arrow shaft in your right hand and a drake dagger in your left"
+	match "cutshaft2", "down to see a single arrow shaft in your right hand and a drake dagger in your left ha"	
+	fput "glance"
+	matchwait
+
+getdagger:
+	fput "get my dagger"
+	goto "gotdagger"
+
+gotdagger:
+	fput "swap"
+	goto "getshaft1"
+
+getshaft1:
+	match "getshaft1", "seconds"
+	match "cutshaft1", "You remove"
+	match "putdagger", "get what?"
+	fput "get 1 my shaft"
+	matchwait
+	
+getshaft2:
+	fput "swap"
+	match "getshaft2", "seconds"
+	match "cutshaft1", "You remove"
+	match "putdagger", "get what?"
+	fput "get 1 my shaft"
+	matchwait
+
+swap:
+	fput "swap"
+	goto "cutshaft1"
+
+cutshaft1:
+	haste
+	match "alreadynocked", "You need to measure"
+	match "cutshaft12", "Roundtime"
+	fput "cut my shaft with my dagger"
+	matchwait
+
+cutshaft12:
+	match "expcheck1", "arrow shaft in your right hand"
+	match "start", "You glance down to see nothing in your right hand"
+	fput "glance"
+	matchwait
+
+expcheck1:
+	checkrest
+	goto "cutshaft2"
+
+cutshaft2:
+	match "cutshaft3", "Generally,"
+	match "cutshaft2", "seconds"
+	match "alreadynocked", "already had"
+	fput "cut nock in my shaft with my dagger"
+	matchwait
+
+cutshaft3:
+	match "cutshaft4", "You carefully"
+	match "start", "might as well toss it"
+	match "alreadynocked", "already had"
+	fput "cut nock in my shaft with my dagger"
+	matchwait
+
+alreadynocked:
+	fput "drop shaft"
+	goto "start"
+	
+cutshaft4:
+	pause 1
+	fput "put shaft in waste"
+	fput "put shaft in crate"
+	fput "north"
+	fput "drop shaft"
+	fput "south"
+	pause 1
+	fput "clean table"
+	goto "expcheck2"
+
+expcheck2:
+	checkrest
+	goto "start"
+
+putdagger:
+	pause 1
+	fput "stow dagger"
+	goto "makeshaft"
+
+makeshaft:
+	pause 1
+	match "finish", "I could not find"
+	match "getaxe", "You see nothing unusual"
+	fput "look wood"
+	matchwait
+	
+getaxe:
+	pause 1
+	match "getwood", "You remove"
+	fput "get handaxe"
+	matchwait
+
+getwood:
+	pause 1
+	match "woodgone", "I could not find"
+	match "cutshaft", "You remove"
+	fput "get wood"
+	matchwait
+
+cutshaft:
+	haste
+	fput "cut arrow shafts"
+	pause 1
+	fput "put my shafts in my #{@SHAFTCONTAINER}"
+	pause 1
+	match "woodgone", "I could not find"
+	match "getwood", "You see nothing unusual"
+	fput "look wood"
+	matchwait
+
+woodgone:
+	pause 1
+	fput "stow handaxe"
+	match "start", "You see a"
+	match "finish", "I could not find"
+	fput "exam shaft"
+	matchwait
+
+finish:
+	echo "You need more wood!"

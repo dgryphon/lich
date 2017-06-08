@@ -1,0 +1,489 @@
+require "ftools"
+no_kill_all
+no_pause_all
+#hide_me
+
+=begin
+read the help before bugging me:  ;shop help
+
+Disclaimer: This is the alpha alpha version of this script.  I'm releasing it hoping enough complaints will
+encourage me to actually make it decent.
+
+A passive script for tracking shop sales, it makes a note anytime you use a shop verb
+Add to favorites so that it's always running - ;fav add global shopnotes.
+Usage: ;shop
+by: Dgry (suggestions/bugs) dgry@hotmail.com
+known bugs: 
+
+suspected bugs:
+-changing your shop description may break the tracking
+-extending your shop rooms or changing exits may break the tracking
+-having duplicate rooms may break the tracking - for example if you have a 3 room shop with a rack and table
+-having more than two people on same computer using this script - will need to do character check
+-breathing wrong may break the tracking. See disclaimer
+
+=end
+
+action = proc { |client_string|
+	if client_string =~ /^(?:<c>)?#{$lich_char}((?:shop).*)/i
+		if scr = (Script.running + Script.hidden).find { |val| val.name == 'shopnotes' }
+			scr.downstream_buffer.shove("#{$clean_lich_char}#{$1}")
+		else
+			UpstreamHook.remove('shopnotes')
+		end
+		nil
+	else
+		client_string
+	end
+}
+UpstreamHook.add('shopnotes', action)
+
+class FileIO
+	
+	def initialize(title = nil)
+		@Filename = $script_dir + "shopnotes.csv"
+	end
+	
+	def write(shopList)
+		f = File.open(@Filename, "w")
+		for cmpitm in shopList
+			f.puts cmpitm
+		end		
+		f.close		
+	end
+		
+	def read()
+		begin
+			file = File.open(@Filename, "r")
+			x = Array.new()
+			while (line = file.gets)
+				#store into an array
+				x << line			
+			end
+			file.close
+			return x
+		rescue
+			echo 'bombed'
+		end
+	end
+end
+
+class ShopList
+
+	def initialize()
+		@shopFile = FileIO.new()
+		@shopList = Array.new
+		@logList  = Array.new
+	end
+
+	# takes new list and replaces current items in @shopList
+	def update(x)
+		#update @logList
+		@logList = @shopFile.read()
+		#replace @shopList with x
+		@shopList = x		
+		#merge lists
+		newList = mergeLists(@shopList, @logList)
+		#write result to file
+		echo 'in update'
+		echo newList
+		echo 'in update2'
+		@shopFile.write(newList)
+	end
+	
+	#assume lists are either in order or reverse order
+	def mergeLists(shop, log)
+		
+		echo 'shop inventory'
+		echo shop
+		echo 'shop inventory'
+		
+		echo 'log'
+		echo log
+		echo 'log'
+		
+		shopSales = Array.new
+		newSales = Array.new
+		
+		#ignore all items from the log that are not from the current shop
+		currentShop = shop[0].split(",")[0]
+								
+		#identify the new items
+		for item in shop
+			found = false			
+						
+			for line in log
+														
+				if (line.delete("\n").eql?(item))
+					found = true	
+					#log.delete(line)					
+				end				
+			end
+						
+			if found == false
+				newSales << item
+			end		
+		end
+		
+		#identify the sales items
+		for item in log
+			found = false			
+						
+			for line in shop
+														
+				if (item.delete("\n").eql?(line))
+					found = true	
+					#shop.delete(line)					
+				end				
+			end
+
+			# if the log has an item that is not in the shop and the shop matches the log line
+			# mark it as a sold item
+			if (found == false && item.include?(currentShop))
+				shopSales << item
+			end		
+		end
+
+		mynewList = Array.new
+		mynewList << shop
+		mynewList << log
+		
+		echo '----------new list -------------'
+		echo mynewList
+		echo '----------new list end-------------'
+
+		if shopSales.to_s.include?('balance:')
+			salesBalance = (shopSales.to_s[/#{currentShop}, balance: ([0-9]+)*/, 1]).to_i
+			priorBalance = (newSales.to_s[/#{currentShop}, balance: ([0-9]+)*/, 1]).to_i
+			respond 'You earned '+(priorBalance - salesBalance).to_s + ' coins.'
+			for item in shopSales
+				if !(item.include?('balance:'))
+					respond "Sold: "+item 
+				end
+			end
+		end
+		
+		#at this point we have 4 lists
+		  #current shop inventory list - contains relevant information to current room
+		  #current log list - contains entries for other shops/rooms
+		  #potential new sales items
+		  #potential sold items
+		  
+		
+		#at this point we are down to specific differences		  
+		  #these include shop balances
+		  #these also include missing items and new items
+		  #missing items will be in the log - these should be marked as sales
+		  #new items will be in the shop but not the log, these should be added to the list without question
+		  #items that match
+			#items that mostly match will have everything except the quantity matching
+			   #if it's in the log number is higher reduce number and mark as a sale
+			   #if the log number is lower, increase number and mark as new
+		
+		
+		#the current shop view will *ALWAYS* be the baseline for building the new log
+				
+		#add the log to the sales list at this point
+				
+		echo '--------Sales------------'
+		echo shopSales
+		echo '--------end Sales------------'
+
+		echo '--------new items------------'
+		echo newSales
+		echo '--------end new items------------'
+		
+		#newList = Array.new
+			
+#		for item in log
+#			if shop.include?(item)
+#				#newList << 'test'
+#				shop.remove(item)
+#				log.remove(item)
+#				newList << item
+#			else
+#				echo 'shop did not contain'
+#				echo item
+#				echo 'shop did not containend'
+#				#complicated - could be a new shop
+#				#could be a sale
+#				#could be a reduction in volume
+#			end
+#		end
+	
+		#determine order of log by calculating missing elements
+		#current will always have less
+		#missing items will be moved to a ledger file
+			#add timestamps to sales
+		#traverse log of active items and map @shopList to log items
+		#return newly created list
+		return newList
+	end
+	
+	def add()
+		#intercept player command
+		#update @logList based on existing @shopList - obtained via shop inventory
+		#reroute player command
+		#update @logList adding new item to the bottom of active items
+		#write result to file
+	end
+	
+	def remove()
+		#intercept player command
+		#update @logList based on existing @shopList - obtained via shop inventory
+		#reroute player command
+		#update @logList removing item from @logList
+		#write result to file	
+	end
+	
+	def priceChange()
+		#intercept player command
+		#update @logList based on existing @shopList - obtained via shop inventory
+		#reroute player command
+		#update @logList changing item price
+		#write result to file	
+	end
+	
+	#returns current list of items based on last refresh
+	def inventory()
+		#update @logList
+		@logList = @shopFile.read()
+		#display list of active items
+		for item in @logList
+			#if status is active, display in a formated way
+			csvItemNum, csvShopName, csvShopRoomName, csvContainer, csvName, csvPrice, csvVolume, csvStatus = item.split(",")
+			if (csvStatus.strip =~ /ACTIVE/)			
+				respond displayItem(item)
+			end			
+		end
+	end
+	
+	#last ten items to sell
+	def last10sales()
+		#update @logList
+		@logList = @shopFile.read()
+		#display list of last 10 sales
+		#for item in @logList
+			#if status is sale, display in a formated way
+		#end	
+	end
+	
+	def recentSales()
+		#update @logList
+		@logList = @shopFile.read()
+		#display list of sales since last timestamp
+		#for item in @logList
+			#if status is sale, display in a formated way
+		#end		
+	end
+	
+	#returns full history of shop sales/current items
+	def history()
+		#update @logList
+		@logList = @shopFile.read()
+		#display list of all items and statuses
+		for item in @logList
+			#if status is active, display in a formated way
+			csvItemNum, csvShopName, csvShopRoomName, csvContainer, csvName, csvPrice, csvVolume, csvStatus = item.split(",")
+			respond displayItem(item)
+		end		
+	end
+
+	def displayItem(itm)
+		csvItemNum, csvShopName, csvShopRoomName, csvContainer, csvName, csvPrice, csvVolume, csvStatus = itm.split(",")
+		if (csvStatus.strip =~ /ACTIVE/)
+			#if it's active then I want
+			#item number, shop name, container, itemname, item price, item volume		
+			returnString = csvItemNum.strip + ': ' + csvShopName.strip + ', ' +csvContainer.strip + ', ' +csvName.strip + ', ' + csvPrice.strip + ', ' + csvVolume.strip
+		else
+			#if it's a sale then I want		
+			#Item number, shopname, container, itemname, item sales price, status(timestamp)		
+			returnString = csvItemNum.strip + ': ' + csvShopName.strip + ', ' +csvContainer.strip + ', ' +csvName.strip + ', ' + csvPrice.strip + ', ' + csvStatus.strip
+		end
+		return returnString
+	end
+
+	#compares list to log - may not be needed
+	def compare()	
+	end
+
+	
+#		x = read()								
+#		#find the item in the array
+#	
+#		f = File.open(@Filename, "w")
+#		i = 0
+#		
+#		
+#		#here's what I want to happen here
+#		  #mapit - make three lists
+#		     # fist list is the current inventory
+#			 # second list is the file inventory
+#			 # third list is a new list mapping each item
+#			   #third list is created by first adding current inventory
+#			   #then going through file list and matching items from it to the third list
+#			   # if an item is found then leave as is
+#			   # if an item is not found then list as a decrepency
+#			# write out third list to file
+#			
+#			
+#			#needs to save according to character name and shop name
+#			
+#				
+#		#if you use the file list, then may not find anything
+#		#if you use the inventory list, may not find anything
+#		for item in @shopList
+#			
+#			#seperate items from containers
+#			#valid item in shop list
+#			if (item =~ /(.*): ([0-9]+) \(([0-9]+)\)/)									
+#				shpName   = $1.to_s
+#				shpPrice  = $2.to_s
+#				shpVolume = $3.to_s
+#			else  # must be a container
+#				if (item =~ /Inventory for/)
+#					shopName = item
+#				else
+#					container = item
+#				end
+#				next
+#			end
+#									
+#			# this is a valid item in the csv file
+#			# gets a list of items from the file
+#			echo "GOT HERE THEN"
+#			#f.puts shopName.strip+ ', ' +  shopRoomName.strip+ ', ' +  container.strip+ ', ' +  shopName.strip+ ', ' + shopPrice.strip+ ', ' + shopVolume.strip+ ', ' + 'ACTIVE'
+#			f.puts shopName.strip+ ', ONE, ' +  container.strip+ ', ' +  shpName.strip+ ', ' + shpPrice.strip+ ', ' + shpVolume.strip+ ', ' + 'ACTIVE'
+#						
+#            x.each {|cmpitm| 			
+#				csvShopName, csvShopRoomName, csvContainer, csvName, csvPrice, csvVolume, csvStatus = cmpitm.split(",")
+#
+#				if (container.strip == csvContainer.strip && shpName.strip == csvName.strip && shpPrice.strip == csvPrice.strip && shpVolume.strip == csvVolume.strip)
+#					cmpitm.replace('ITEMWASDELETED')
+#					#would like to have this become matched
+#				end				
+#			}
+#			
+#				# assume they are the same numbers
+#				# use the old array as a baseline
+#				# if a mismatch occurs, if missing from the old, add as new
+#				# if a mismatch occurs, missing from the new, mark as sold 
+#				
+#			#else
+#			#	container = item
+#								
+#			#end
+#		end
+#
+#		
+#		echo 'herenow'
+#		for cmpitm in x
+#			if !('ITEMWASDELETED' == cmpitm)
+#				csvShopName, csvShopRoomName, csvContainer, csvName, csvPrice, csvVolume, csvStatus = cmpitm.split(",")
+#				echo 'writing an item to the file'
+#				f.puts cmpitm
+#				#f.puts csvContainer.strip + ', ' + csvName.strip + ', ' + csvPrice.strip + ', ' + csvVolume.strip		
+#				# would like to have this become sold
+#			end
+#		end
+#		
+#		f.close
+#		
+#	end
+#
+end
+
+
+s = ShopList.new()
+
+while line = get
+
+	if line =~ /^#{$lich_char}shop help$/ || line =~ /^#{$lich_char}shop$/
+		respond
+		respond "A passive script for tracking shop sales."
+		respond "Add to favorites so that it's always running - ;fav add global shopnotes."
+		respond "If an item is removed from your shop between ;shop inventories, it will be assumed to be sold"
+		respond "Usage: "
+		respond ";shop help        - displays this help"		
+		respond ";shop inventory   - current list of shop items (as of the last time you updated)"
+		respond ";shop remove #    - deletes one of your shop items from the file"
+		respond ";shop sales       - displays last 10 sales and estimates the profit"
+		respond ";shop totals      - displays all of your sales and estimates"
+		respond ";shop exit        - exits program"
+		respond
+
+	elsif line =~ /^#{$lich_char}shop inventory$/	
+		s.inventory()
+
+	elsif line =~ /^#{$lich_char}shop history$/	
+		s.history()		
+		
+	elsif line =~ /^#{$lich_char}shop sales$/	
+		s.sales()		
+
+	elsif line =~ /item: price \(quantity\)/	
+		x = Array.new()				
+		if checkroom =~ /\[(.*)'s (.*)\]/
+			roomName = $1.to_s
+		end
+        Thread.new {
+                sleep 1		
+				fput "shop with"				
+        };		
+		while !(line =~ /bank account is currently/) 
+			line = get						
+			if line =~/(On|In)(.*).../
+				containerName = $2.to_s
+			elsif line =~ / (.*): (.*)\((.*)\)/
+				echo line
+				itemName = $1.to_s
+				price = $2.to_s
+				quant = $3.to_s
+				x << roomName+","+containerName+","+itemName +", "+price+", "+quant
+			else
+				echo line
+			end		
+		end
+		
+		if line =~ /Your shop's bank account is currently (.*) silvers./
+			x << roomName+", balance: "+$1.to_s
+		end		
+		s.update(x)
+		
+	elsif line =~ /SHOP INVENTORY/	
+		x = Array.new()
+		while !(line =~ /current balance is/) 
+			line = get		
+			#parse this line for relevant information
+			  #pull out room ID
+			  #pull out container information
+			if line =~ /Inventory for (.*)'s/  
+				roomName = $1.to_s
+			elsif line =~/(On|In)(.*).../
+				containerName = $2.to_s
+			elsif line =~ / (.*): (.*)\((.*)\)/
+				echo line
+				itemName = $1.to_s
+				price = $2.to_s
+				quant = $3.to_s
+				x << roomName+","+containerName+","+itemName +", "+price+", "+quant
+			end
+								 
+		end
+		
+		if line =~ /Your current balance is (.*)./
+			x << roomName+", balance: "+$1.to_s
+		end		
+		s.update(x)
+	
+	elsif line =~ /^#{$lich_char}shop exit$/				
+		UpstreamHook.remove('shopnotes')
+		exit
+		
+    elsif line =~ /^#{$lich_char}shop sales$/	
+		@shopList = s.read()
+		printList(@shopList)
+	end
+		
+end
+

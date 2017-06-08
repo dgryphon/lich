@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+# This script allows you to save notes on people and check them quickly and easily (or anything else, indexed by keyword). Notes are automatically timestamped.
+
+filename = $script_dir + "pcnotes.txt"
+
+help = <<HELP
+#{$clean_lich_char}pcnotes  ....................  Show all notes.
+#{$clean_lich_char}pcnotes (name)  .............  Show only notes for the given name.
+#{$clean_lich_char}pcnotes add (name) (note)  ..  Add a note associated with the given name.
+#{$clean_lich_char}pcnotes del (name)  .........  Delete the note associated with the given name.
+#{$clean_lich_char}pcnotes del (name) (#)  .....  For names with multiple notes, delete the given one.
+
+You can add as many notes for a given name as you want; if multiple notes for one name exist, specify which note # to delete or it will default to deleting the last note.
+HELP
+
+if script.vars[1] =~ /^help$/i
+	respond help
+	exit
+end
+
+if script.vars.empty?
+	data = File.open(filename) { |f| f.readlines.collect { |line| line.chomp } }
+	respond
+	respond(data)
+	respond
+	exit
+end
+
+if script.vars[1] =~ /^add$/i
+	name, note = script.vars[2].capitalize, script.vars[3..-1].join(" ")
+	File.open(filename, "a") { |f| f.puts "#{name}: #{note}     (#{Time.now.strftime('%D')})" }
+	respond
+	respond "Note has been saved!"
+	respond
+	exit
+elsif script.vars[1] =~ /^del(?:ete)?$/i
+	name = script.vars[2]
+	data = File.open(filename) { |f| f.readlines.collect { |line| line.chomp } }
+	del = data.find_all { |line| line =~ /^#{name}:/i }
+	if del.empty? then del = data.find_all { |line| line =~ /^#{name}[^\s]+:/i } end
+	if script.vars[3]
+		line = del[script.vars[3].to_i - 1]
+		if !line then line = del.last end
+	else
+		line = del.last
+	end
+	respond "The following note will be deleted.  If this is correct, send y(es) to the script (by typing `;s yes').  If it's wrong, kill the script."
+	respond
+	respond line
+	respond
+	waitfor "^y(?:es)?$"
+	data.delete(line)
+	File.open(filename, "w") { |f| f.puts data }
+	respond
+	respond "Note has been deleted!"
+	respond
+	exit
+else
+	name = script.vars[1]
+	data = File.open(filename) { |f| f.readlines.collect { |line| line.chomp } }
+	lines = data.find_all { |line| line =~ /^#{name}:/i }
+	if lines.empty? then lines = data.find_all { |line| line =~ /^#{name}[^:]+:/i } end
+	if lines.empty?
+		respond "I'm sorry, but there are no notes that are filed under the name `#{name}'."
+		exit
+	end
+	respond
+	respond(lines)
+	respond
+	exit
+end

@@ -1,0 +1,137 @@
+
+
+taskgiver = 'Halline'
+restspot = 3611
+
+#ask hall about task
+def askTask(taskgiver)
+
+	gemgiver = 'zircon'
+
+	fput "ask #{taskgiver} for bounty"
+	line = get
+
+	if line =~ /(.*) (?:says|whispers), "(.*)"/
+		char = $1
+		message = $2.strip
+	end
+
+	# gem task
+	if (message =~ /The local gem dealer/)
+ 		echo("gem message")
+	 	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+		wait_while { running?('go2') }
+		fput "ask #{gemgiver} for bounty"
+		start_script('go2', [ restspot, '_disable_confirm_' ])
+		wait_while { running?('go2') }
+	
+	# skin task
+	elsif (message =~ /furrier/)
+		echo("fur message")
+
+	# kill task
+	elsif message =~ /It appears they have a creature problem/
+		echo("dangerous creature message")
+		goguard()
+	
+		fput "bounty"
+		#check bounty description and remove or keep
+
+		if (get =~ /tasked to hunt down and kill/ && get =~ 'silverback orc')
+			#good bounty	
+			start_script('go2', [ restspot, '_disable_confirm_' ])
+			wait_while { running?('go2') }	
+		else
+			#bad bounty, return to hall and have removed
+		 	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+			wait_while { running?('go2') }
+			fput "ask #{gemgiver} for removal"
+			fput "ask #{gemgiver} for removal"
+			start_script('go2', [ restspot, '_disable_confirm_' ])
+			wait_while { running?('go2') }	
+		end
+
+	# heirloom
+	elsif message =~ /tracking down some kind of lost heirloom/
+		echo("heirloom")
+		goguard()
+	
+		fput "bounty"
+		#check bounty description and remove or keep
+
+		if (get =~ /Hunt down the creature and LOOT the item from its corpse/ && get =~ 'silverback orc')
+			#good bounty	
+			start_script('go2', [ restspot, '_disable_confirm_' ])
+			wait_while { running?('go2') }	
+		else
+			#bad bounty, return to hall and have removed
+		 	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+			wait_while { running?('go2') }
+			fput "ask #{gemgiver} for removal"
+			fput "ask #{gemgiver} for removal"
+			start_script('go2', [ restspot, '_disable_confirm_' ])
+			wait_while { running?('go2') }	
+		end
+	
+	elsif message =~ /already been assigned a task/
+		echo("already assigned message")
+
+	else
+		echo("no matches message")
+		echo (line)
+		fput "ask #{taskgiver} for removal"	
+		fput "ask #{taskgiver} for removal"
+	#	start_script('go2', [ restspot, '_disable_confirm_' ])
+	#	wait_while { running?('go2') }
+#		goRest(restspot)
+	end
+
+end
+  
+
+#def go to the guard and ask about a task
+
+#def go to the guard and turn in a task
+
+#go to guild and ask for removal from task
+def goGuard
+	start_script('go2', [ 'advguard', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+	fput "ask guard for bounty"
+	if (get =~ /Who are you trying to ask/)
+		echo("no guard go out west gate")
+		fput "move climb stair"
+		fput "move north"
+		fput "move gate"
+		fput "ask guard for bounty"
+	end
+end
+
+def goRest(restspot)
+	start_script('go2', [ restspot, '_disable_confirm_' ])
+	wait_while { running?('go2') }
+end
+
+def goAdv
+	start_script('go2', [ 'advguild', '_disable_confirm_' ])
+	wait_while { running?('go2') }
+end
+
+
+#checks for adv guild tasks
+# first check to see if completed and you need to check with a guard
+fput "bounty"
+line = get
+line = get
+line = get
+line = get
+line = get
+line = get
+if (line =~ /gate guards/)
+	goGuard
+elsif (line =~ /You are not currently assigned a task/)
+	goAdv
+	askTask(taskgiver)
+end
+
+goRest(restspot)

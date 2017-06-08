@@ -1,0 +1,69 @@
+person=script.vars[1]
+
+echo "Asking for #{person}'s skills.."
+skills=LNet.get_data(person,'skills')
+skills.default=0
+
+points=0.4 * (skills['Two Weapon Combat']+skills['Armor Use']+skills['Shield Use']+skills['Combat Maneuvers']+skills['Ambush']+skills['Multi Opponent Combat']+skills['Dodging'])
+points+=0.3*(skills['Edged Weapons']+skills['Blunt Weapons']+skills['Two-Handed Weapons']+skills['Ranged Weapons']+skills['Thrown Weapons']+skills['Polearm Weapons']+skills['Brawling'])
+points+=skills['Physical Fitness']
+
+spell_ranks=skills['Major Elemental']+skills['Minor Elemental']+skills['Minor Mental']+skills['Major Spirit']+skills['Minor Spirit']+skills['Wizard']+skills['Sorcerer']+skills['Ranger']+skills['Paladin']+skills['Empath']+skills['Cleric']+skills['Bard']
+
+level=LNet.get_data(person,'info')['Level']
+
+echo person+"\'s redux points: "+points.to_s
+echo person+"\'s spell ranks : "+spell_ranks.to_s
+echo person+"\'s level       : "+level.to_s
+
+if level<9 then
+	echo "Too low a level to have redux."
+	exit
+end
+
+redux100=proc { |x| 0.6576*(x-109.25)/(x-44.35) }
+redux66=proc { |x| 0.71354*(x-112.42)/(x-33.03) }
+
+diffRedux100=proc{ |x| 0.6576*(109.25-44.35)/((x-44.35)*(x-44.35)) }
+diffRedux66=proc{ |x| 0.71354*(112.42-33.03)/((x-33.03)*(x-33.03)) }
+
+reduxI=proc { |x,L| ((L-66.0)*redux100[x]-(L-100.0)*redux66[x])/34.0 }
+diffReduxI = proc { |x,L| ((L-66.0)*diffRedux100[x]-(L-100.0)*diffRedux66[x])/34.0 }
+reduxI2=proc { |x,L| 34.0/((L-66.0)/redux100[x]-(L-100.0)/redux66[x]) }
+
+diffReduxI =proc { |x,L| ((L-66.0)*diffRedux100[x]-(L-100.0)*diffRedux66[x])/34.0 }
+
+alow=0.0
+ahigh=50.0
+
+iterations=0
+MAX_ITERATIONS=200
+
+t=69.7+18096.3/(level+357.9)
+echo "t = "+t.to_s
+
+iterations=0
+
+while ahigh-alow>0.001 and iterations<MAX_ITERATIONS
+	azero=ahigh-(ahigh-alow)*reduxI2[ahigh,level]/(reduxI2[ahigh,level]-reduxI2[alow,level])
+	if reduxI2[azero,level]*reduxI2[alow,level]>0
+		alow=azero
+	elsif reduxI2[ahigh,level]*reduxI2[azero,level]>0
+		ahigh=azero
+	else
+		alow=azero
+		ahigh=azero
+	end
+	iterations=iterations+1
+end
+
+a=(ahigh+alow)/2.0
+
+echo "a = "+a.to_s
+
+c=diffReduxI[points,level]*(points-a)*(points-a)/(t-a)
+
+echo "c = "+c.to_s
+
+echo "Projected redux: "+[0,c*(points-t)/(points-a)].max.to_s
+echo "THIS DOES NOT TAKE SPELL RANKS INTO ACCOUNT"

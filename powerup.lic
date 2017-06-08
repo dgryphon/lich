@@ -1,0 +1,21 @@
+=begin
+Power's up paladin
+=end
+
+
+
+
+spells = ['1603', '1618', '1619', '140']
+
+loop {
+	spells.each { |num|
+		if Spell[num].known? and Spell[num].affordable? and !Spell[num].active?
+			Spell[num].cast
+
+			
+			waitrt?
+			waitcastrt?
+		end
+	}
+sleep 1
+}

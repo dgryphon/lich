@@ -1,0 +1,99 @@
+@cards = nil
+
+def shouldPull(myArr)
+
+	#better with a keypair face + number
+	b = Hash.new(0)
+	
+	myArr.each do |v|
+		b[v] += 1
+	end
+	
+	returnVal = false;
+	prevV = 0
+	
+	b.each do |k, v|
+		if (k == 'knave' && v > 1) 
+			returnVal = true
+		end
+
+		if (k == 'dame' && v > 1) 
+			returnVal = true
+		end
+
+		if (k == 'knight' && v > 1) 
+			returnVal = true
+		end
+
+		if (k == 'sword' && v > 1) 
+			returnVal = true
+		end		
+		
+		if (k == 'ten' && v > 1) 
+			returnVal = true
+		end		
+		
+		if (v > 2)
+			returnVal = true
+		end
+		
+		if (v > 1)
+			prevV = prevV + 1
+		end
+				
+	end
+	
+	if (prevV > 1)
+		returnVal = true
+	end
+	
+	return returnVal
+
+end
+
+
+
+while line = get
+
+	if line =~ /Now opening the table for bets!  Hurry up and sit at the table if you want in on this round, and put those bets down!/
+		fput 'bet 249999'		
+	end
+		
+	if line =~ /What will it be, Hevalt\?  Do you wish to pull back a third of your original wager, or do you wish to let it ride/
+		@cards = Array.new
+	    fput 'look Hevalt tile'
+		#process line
+		until (line =~ /Your tiles are/)		
+			line = get
+		end
+		#parse line string for card nouns
+	    if line =~ /Your tiles are the ([a-z]*) of [a-z]*\, the ([a-z]*) of [a-z]*\, and the ([a-z]*) of [a-z]*\./
+			@cards.push($1.to_s)
+			@cards.push($2.to_s)
+			@cards.push($3.to_s)
+		end
+				
+		fput 'look house tile'
+		#process line
+		until (line =~ /The house tile is/ || line =~ /I could not find what you were referring t/ )		
+			line = get
+		end		
+
+		if line =~ /The house tile is the ([a-z]*) of [a-z]*\./
+			#add to cards
+			@cards.push($1.to_s)
+		end
+		
+		#decide
+		echo @cards
+		#process info
+
+		if shouldPull(@cards)
+			fput 'tap Hevalt tile'
+		else
+			fput 'pull Hevalt tile'
+		end		
+	
+	end
+end
+

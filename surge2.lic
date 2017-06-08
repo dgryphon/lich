@@ -1,0 +1,15 @@
+#surge2.lic
+#keeps up surge - works with cooldown
+# --grog42
+
+loop {
+	if (Spell['surge of strength'].active?)
+		waitfor "You begin to lose touch with your internal sources of strength"
+	elsif (stamina < 60)
+		respond("Not enough stamina")
+		wait_while { stamina < 60 }
+	else
+		fput "cman surge"
+		pause 1
+	end
+}

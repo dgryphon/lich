@@ -1,0 +1,89 @@
+#My take on block/parry/dodge
+		
+	#CharSettings[:block] = 0
+	#CharSettings[:parry] = 0
+	#CharSettings[:dodge] = 0
+	#CharSettings[:defended] = 0
+	#CharSettings[:total] = 0
+	
+	def message(text)
+		string = ''
+		if $fake_stormfront then string.concat("\034GSL\r\n ")
+		else string.concat("<pushBold\/>")
+		end
+		if( text.index('\n') )
+			text.split('\n').each { |line| string.concat("| #{line}") }
+		else
+			string.concat('| ' + text)
+		end
+		if $fake_stormfront then string.concat("\034GSM\r\n ")
+		else string.concat("<popBold\/>")
+		end
+		puts string
+	end
+	
+	def outputMsg
+		CharSettings[:total] = CharSettings[:block] + CharSettings[:parry] + CharSettings[:dodge] + CharSettings[:defended]
+		respond "BLOCKED    :#{CharSettings[:block]} - #{sprintf "%.2f", CharSettings[:block]*100.0/CharSettings[:total]}%"
+		respond "PARRIED    :#{CharSettings[:parry]} - #{sprintf "%.2f", CharSettings[:parry]*100.0/CharSettings[:total]}%"
+		respond "DODGED     :#{CharSettings[:dodge]} - #{sprintf "%.2f", CharSettings[:dodge]*100.0/CharSettings[:total]}%"
+		respond "DEFENDED   :#{CharSettings[:defended]} - #{sprintf "%.2f", CharSettings[:defended]*100.0/CharSettings[:total]}%"
+		respond "TOTAL      :#{CharSettings[:total]}"	
+	end 
+
+
+action = proc { |client_string|
+	begin
+		if client_string =~ /^(?:<c>)?outputstats/i
+			if scr = (Script.running).find { |val| val.name == 'blockparrydodge2' }
+				scr.downstream_buffer.shove('outputMsg')	
+			end
+			nil
+		else
+			client_string
+		end
+		if client_string =~ /^(?:<c>)?resetstats/i
+			CharSettings[:block] = 0
+			CharSettings[:parry] = 0
+			CharSettings[:dodge] = 0
+			CharSettings[:defended] = 0
+			CharSettings[:total] = 0
+			message "COUNTER RESET"
+		else
+			client_string
+		end			
+	rescue
+		UpstreamHook.remove('blockparrydodge2')
+		client_string
+	end
+	}
+before_dying { UpstreamHook.remove('blockparrydodge2') }
+#before_dying { CharSettings.save }
+UpstreamHook.add('blockparrydodge2', action)
+
+
+while line = get
+	
+	if line=~ /You barely manage to block |between yourself and the attack!|You gauge the attack and expertly deflect it with your |between yourself and the attack!|With no room to spare, you block the attack with your|Amazingly, you manage to block the attack with your|At the last moment, you block the attack with your|With extreme effort, you block the attack with your|With incredible finesse, you deflect the attack with your|You easily block the attack with your|You skillfully block the attack with your|With blinding speed, you block the attack with your|You skillfully block the missile with your/
+		CharSettings[:block] = CharSettings[:block] + 1
+		message "BLOCKED"
+	end
+	if line=~ /With no room to spare, you manage to parry the blow with your|You barely manage to fend off the attack with your|At the last moment, you parry the blow with your|between yourself and the incoming strike, deflecting it harmlessly to the side!|With extreme effort, you beat back the attack with your|Amazingly, you manage to parry the attack with|You skillfully deflect the attack with your|With blinding speed, you parry the attack with your|With incredible finesse, you parry the attack with your|between yourself and the blow!|You easily parry the attack with your|You gauge the attack and expertly parry it with your/
+		CharSettings[:parry] = CharSettings[:parry] + 1
+		message "PARRIED"
+	end
+	if line=~ /You barely dodge the attack!|You evade the attack by a hair!|You evade the attack with incredible finesse!|You gracefully avoid the attack!|With blinding speed, you dodge the attack!|You dodge just in the nick of time!|You evade the attack with ease!|You move slightly, letting the attack pass harmlessly by!|You skillfully dodge the attack!|You evade the attack by inches!|By amazing chance, you evade the attack!|You move at the last moment to evade the attack!/
+		CharSettings[:dodge] = CharSettings[:dodge] + 1
+		message "DODGED"
+	end
+	if line=~ /AS:/
+		CharSettings[:defended] = CharSettings[:defended] + 1
+		message "DEFENDED"
+	end
+	
+	if line =~ /outputMsg/
+		outputMsg()
+	end
+end
+
+

@@ -1,0 +1,51 @@
+sync_spells = [ 101, 102, 103, 104, 105, 107, 112, 115, 117, 120, 140,
+                201, 202, 203, 207, 210, 211, 215, 218, 219, 240,
+                303, 307, 310, 313, 314,
+                401, 402, 403, 406, 414, 425, 430,
+                503, 509,
+                601, 613,
+                905, 911, 916,
+                9009, # Raise Dead Cooldown
+                9903, 9907, 9910, 9913, # warding, defending, deflection, shields
+                9909, # staunching
+]
+
+status_tags
+loop {
+  loop {
+    line = get
+    if line =~ /ActiveSpells/
+      sleep 0.1
+      #echo "ActiveSpells updated"
+      break
+    end
+  }
+  XMLData.active_spells.each { |spell_name, end_time|
+    if spell_name == 'Raise Dead Recovery'
+      spell_name = 'Raise Dead Cooldown'
+    end
+    spell = Spell[spell_name]
+    xml_time_left = ((end_time - Time.now) / 60) + 1.0
+    if spell.refreshable? && spell.known? && eval(spell.duration) <= 1.0
+      xml_time_left = [ xml_time_left, eval(spell.duration) ].min
+    end
+    if xml_time_left < spell.timeleft || xml_time_left - spell.timeleft > 1.05 || !spell.active?
+      echo "Updating: %s (%d), %s, %.2f vs %.2f" %
+        [ spell.name, spell.num, spell.active?, spell.timeleft, xml_time_left ]
+      spell.timeleft = xml_time_left
+      spell.active = spell.timeleft > 0
+    end
+  }
+
+  Spell.active.each { |spell|
+    spell_name = spell.name
+    if spell_name == 'Raise Dead Cooldown'
+      spell_name = 'Raise Dead Recovery'
+    end
+    if sync_spells.include?(spell.num) && !XMLData.active_spells.include?(spell_name)
+      echo "Removing active spell: #{spell.name}, #{spell.timeleft}"
+      spell.timeleft = 0
+      spell.active = false
+    end
+  }
+}

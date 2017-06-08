@@ -1,0 +1,962 @@
+##############################################################
+# CITIZEN DATA
+#  Author:      Azanoth
+#  Purpose:    Parse playershops for data
+#  Requires:   citizendata_shoplocations.xml.txt
+#  Outputs:    /lich/scripts/citizendata/<town_name>.xml
+#                  /lich/scripts/citizendata/citizendata_output.log
+#  WARNING:  All psinet container and zoom features should be disabled - See 'baggage' tab in psinet options
+##############################################################
+#fixme: add =usage
+#fixme: add set showdeaths off, set logon off, set logoff off, set disconnect off, set announcetps off
+#fixme: add set showspellname off and prevent lines from being logged that are composed entirely of digits
+
+unless $SAFE == 0
+	echo "This script needs to be trusted to work properly.  (;trust #{script.name})"
+	exit
+end
+
+if $platinum
+	echo 'This script is only intended for gathering data in PRIME!'
+	exit
+end
+
+# Initialization
+Dir.mkdir( $script_dir + "citizendata" ) unless File.directory?( $script_dir + "citizendata" )
+require 'rexml/document'
+require 'net/ftp'
+require 'net/http'
+require 'uri'
+include REXML
+
+# Handle erroneous starts
+if(Room.current.id == 4)
+    echo "Error: Script started in unmapped room."
+    exit 1
+end
+
+# Error output (txt)
+$Citizen_version = 1.0
+$Citizen_error = File.new( $script_dir + "citizendata/#{Char.name}.log", "a" )
+$Citizen_error.puts("New Session with Version #{$Citizen_version} - Started at #{Time.new.to_s}")
+
+# Shop locations input (xml)
+$Citizen_xml_file = $script_dir + "citizendata_input.txt"
+$Citizen_file = File.new( $Citizen_xml_file )
+$Citizen_doc = Document.new( $Citizen_file )
+$Citizen_root = $Citizen_doc.root
+
+##############################################################
+# OBJECTS
+##############################################################
+class Exterior_Room_Object
+    @lichid = nil
+    @xygonid = nil
+    @shops = nil
+    
+    def initialize(lichid, xygonid)
+        @lichid = lichid.value.to_i
+        @xygonid = xygonid.to_i
+        @shops = Array.new
+    end
+    
+    def lichid
+        return @lichid
+    end
+    
+    def xygonid
+        return @xygonid
+    end
+    
+    def shops
+        return @shops
+    end
+    
+    def find_shops
+        ## create list of non_shop loot objects
+        non_shop_nouns = [ "steps", "stairs", "alley", "gate", "arch", "mouth", "bench", "barrel" ]
+        non_shop_names = [ "large double-doored archway", "large stucco warehouse" ] # These are warehouses/emporiums
+        
+        ## find shops
+        GameObj.loot.each { |loot_object|
+            @shops.push( Shop_Object.new( loot_object.noun, loot_object.name, loot_object.id ) ) if non_shop_nouns.index(loot_object.noun).nil? && non_shop_names.index(loot_object.name).nil?
+        }
+    end
+    
+end
+
+class Shop_Object
+    @noun = nil
+    @name = nil
+    @rooms = nil
+    
+    def initialize(noun, name, id)
+        @noun = noun
+        @id = id
+        @name = name
+        @rooms = Array.new
+    end
+    
+    def noun
+        return @noun
+    end
+    
+    def name
+        return @name
+    end
+    
+    def id
+        return @id
+    end
+    
+    def rooms
+        return @rooms
+    end
+    
+    def add_room(interior_room_object)
+        @rooms.push(interior_room_object)
+    end
+    
+    def go_shop
+        move( "go ##{@id}" )
+    end
+end
+
+class Interior_Room_Object
+    @player_shop_name = nil
+    @room_name = nil
+    @room_description = nil
+    @cardinal_identifier = nil
+    @container_list = nil
+    @sign_info = nil
+    
+    def initialize( cardinal_identifier, player_shop_name = checkarea )
+        @container_list = Array.new
+        @cardinal_identifier = cardinal_identifier
+        @room_name = checkarea
+        @player_shop_name = player_shop_name
+        @container_list = Array.new
+        find_info
+        
+        ## format out trailing ']'
+        @room_name = @room_name[0..-2] while(@room_name[-1] == 93)
+        @player_shop_name = player_shop_name[0..-2] while(@player_shop_name[-1] == 93)
+    end
+    
+    def shop_name
+        return @player_shop_name
+    end
+    
+    def room_name
+        if @room_name[-1] == "]"
+            return @room_name[0..-2]
+        else
+            return @room_name
+        end
+    end
+    
+    def room_description
+        return @room_description
+    end
+    
+    def cardinal_identifier
+        return @cardinal_identifier
+    end
+    
+    def containers
+        return @container_list
+    end
+    
+    def sign_info
+        return @sign_info
+    end
+    
+    ##
+    # find_info: fill out room_name, room_description, container_list, and sign_info
+    def find_info
+        ## get room_name
+        @room_name = checkarea
+        
+        ## get room_description
+        @room_description = checkroomdescrip
+        
+        ## get sign_info
+        if GameObj.loot.size > 0
+            GameObj.loot.each { |sign|
+                status_tags
+                fput "read #{sign.noun}"
+                result = matchtimeout(5, "it reads:")
+                while(line = get)
+                    next if line =~ /^<dialogData/
+                    break if line =~ /^<prompt|^<output/
+                    line = line.gsub(/<.*?>/, '')
+                    next if line.length < 5
+                    if(@sign_info == nil)
+                        @sign_info = line unless line =~ /^\*.*\*/
+                    else
+                        @sign_info << "\n".concat(line) unless line =~ /^\*.*\*/
+                    end
+                end
+                status_tags
+            }
+        end
+        
+        ## get room_desc list
+        room_descs = Array.new
+        GameObj.room_desc.each { |room_desc|
+            room_descs.push(room_desc)
+        }
+        
+        ## cross-reference with not_containers, remove non-containers
+        not_containers = [ "wall", "ceiling", "permit", "floor", "helmet", "snowshoes",
+                                  "candelabrum", "flowerpot", "Hearthstone", "bear", "candelabra",
+                                  "sculpture", "anvil", "tapestry", "portrait", "Wehnimer", "spiderweb",
+                                  "rug", "fountain", "longsword", "ship", "panel", "painting", "armor",
+                                  "flowers", "head", "plate", "vase", "pillows", "mask", "skeleton", "fan",
+                                  "flag", "statue", "mat", "plaque", "mandolin", "plant" ]
+        delete_list = Array.new
+        room_descs.each { |desc|
+                delete_list.push(desc) if not_containers.index(desc.noun).nil? == false
+        }
+        delete_list.each { |desc|
+            room_descs.delete(desc)
+        }
+        
+        ## use room_nouns list to make container objects
+        room_descs.each { |desc|
+            [ "look on", "look in" ].each { |cmd|
+                fput "#{cmd} ##{desc.id}"
+                result = matchtimeout(5, "There is nothing", "you see", "That is closed", "I could not find")
+                if result == false
+                    error_message("#{cmd} reported back false for #{desc.name}")
+                else
+                    @container_list.push( Container_Object.new( desc.noun, cmd, desc.id ) ) if result =~ /you see/
+                end
+            }
+        }
+        
+        ## find_items
+        @container_list.each { |container| container.find_items }
+    end
+end
+
+class Container_Object
+    @noun = nil
+    @name = nil
+    @look_command = nil # e.g. look in or look on
+    @items = nil
+    @id = nil
+    
+    def initialize(noun, look_command, id)
+        @noun = noun
+        @look_command = look_command
+        @id = id
+        @items = Array.new
+    end
+    
+    def noun
+        return @noun
+    end
+    
+    def name
+        return @name unless @name == nil
+        return @noun
+    end
+    
+    def id
+        return @id
+    end
+    
+    def look_command
+        return @look_command
+    end
+    
+    def items
+        return @items
+    end
+    
+    def find_items
+        ## get @name and contents_string
+        status_tags
+        line = ""
+        attempts = 0
+        contents_string = nil
+        while(contents_string.nil?)
+            fput "#{@look_command} ##{@id}" # look on/in container
+            result = matchtimeout(5, "you see", "There is nothing")
+            if(result == false || result =~ /There is nothing/)
+                if(@look_command == "look in")
+                    @look_command = "look on"
+                else
+                    @look_command = "look in"
+                end
+                attempts += 1
+                if attempts >= 3 # stop trying
+                    error_message = "Attempt to look on/in #{@noun} failed, moving on..."
+                    message( error_message )
+                    $Citizen_error.puts( error_message )
+                    status_tags
+                    return
+                end
+            elsif(result =~ /([IO]n) the (.*?) you see (.*?)\./)
+                contents_string = $3
+                name_string = $2
+                contents_string = contents_string[2..-1] if($contents_string =~ /^a a/) # snag simu's display bug
+                @name = />(.*?)<\/a>/.match(name_string).captures[0] # e.g. >(speckled marble counter)</a>
+            end
+        end
+        status_tags
+        
+        ## parse contents_string and create items
+        contents = contents_string.scan(/<a.*?<\/a>/)
+        contents.each { |item|
+            id, noun, name = nil
+            if(item =~ /exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>/) # normal format
+                id, noun, name = /exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>/.match(item).captures
+            else # simu display bug format
+                id, name = /exist=\"(.*?)\">(.*?)<\/a>/.match(item).captures
+                noun = name.split(" ")[-1]
+            end
+            
+            ## Create item_object
+            if(id.nil? || noun.nil? || name.nil?)
+                error_message = "Error: Item in container #{@name} not created because of id, noun, or name being nil: #{id.nil?}, #{noun.nil?}, #{name.nil?}"
+                message( error_message )
+                $Citizen_error.puts( error_message )
+            else
+                @items.push( Item_Object.new(id, noun, name) )
+            end
+        }
+    end
+end
+
+class Item_Object
+    @id = nil
+    @noun = nil
+    @name = nil
+    @price = nil
+    @take_item_info = nil
+    @inspect_item_info = nil
+    @read_item_info = nil
+    @exam_item_info = nil
+    
+    def initialize(id, noun, name)
+        @id = id
+        @noun = noun
+        @name = name
+        find_info
+    end
+    
+    def sf_id
+        return @id
+    end
+    
+    def noun
+        return @noun
+    end
+    
+    def name
+        return @name
+    end
+    
+    def price
+        return @price
+    end
+    
+    def take_item_info
+        return @take_item_info
+    end
+    
+    def inspect_item_info
+        return @inspect_item_info
+    end
+    
+    def read_item_info
+        return @read_item_info
+    end
+    
+    def exam_item_info
+        return @exam_item_info
+    end
+    
+    def find_info
+        status_tags
+        ## find @take_item_info
+        fput "get ##{@id}"
+        result = matchtimeout(10, "will cost")
+        if(result =~ /will cost (\d+) coins/)
+            @price = $1
+            while(line = get)
+                next if line =~ /^<dialogData/
+                next if line =~ /^\d+$/
+                break if line =~ /^<prompt|^<output|have to buy it if you want it/
+                line = line.gsub(/<.*?>/, '')
+                next if line.length < 5
+                if(@take_item_info.nil?)
+                    @take_item_info = line.strip
+                else
+                    @take_item_info << "<br />".concat(line.strip)
+                end
+            end
+        end
+        error_message("Item error: get item timed out") if result == false
+        
+        ## find @inspect_item_info
+        fput "inspect ##{@id}"
+        result = matchtimeout(5, "You carefully inspect", "careful inspection", "You carefully count", "goat")
+        if(result =~ /You carefully inspect (.*?)\.|careful inspection|You carefully count|goat/)
+            temp_name = $1
+            if(temp_name && result !~ /You carefully inspect your/) # include long descriptions - fixed for make-up phial/vial bug
+                @name = temp_name.gsub(/<.*?>/, '')
+            end
+            while(line = get)
+                next if line =~ /^<dialogData/
+                next if line =~ /^\d+$/
+                break if line =~ /^<prompt|^<output/
+                line = line.gsub(/<.*?>/, '')
+                next if line.length < 5
+                if(@inspect_item_info.nil?)
+                    @inspect_item_info = line.strip
+                else   
+                    @inspect_item_info << "<br />".concat(line.strip)
+                end
+            end
+        end
+        error_message("Item error: inspect item timed out") if result == false
+        
+        ## find @read_item_info
+        fput "read ##{@id}"
+        while(line = get)
+            next if line =~ /^<dialogData/
+            next if line =~ /^\d+$/
+            break if line =~ /^<prompt|^<output/
+            break if line =~ /There is nothing there to read|Try holding the/
+            line = line.gsub(/<.*?>/, '')
+            next if line.length < 5
+            if(@read_item_info.nil?)
+                @read_item_info = line.strip
+            else
+                @read_item_info << "<br />".concat(line.strip)
+            end
+        end
+        
+        ## find @exam_item_info
+        fput "exam ##{@id}"
+        while(line = get)
+            next if line =~ /^<dialogData/
+            break if line =~ /^<prompt|^<output/
+            break if line =~ /You see nothing unusual\./
+            line = line.gsub(/<.*?>/, '')
+            next if line.length < 5
+            if(@exam_item_info.nil?)
+                @exam_item_info = line.strip
+            else
+                @exam_item_info << "<br />".concat(line.strip)
+            end
+        end
+        
+        status_tags
+    end
+end
+
+##############################################################
+# FUNCTIONS
+##############################################################
+##
+# setup_variables: deprecated
+# output to $citizendata_firstroom, $citizendata_lastroom, and $testshop
+def setup_variables
+    $citizendata_firstroom = 1
+    $citizendata_lastroom = 40
+end
+
+##
+# create_rooms: creates a list of room objects corresponding to the closest town
+# uses identify_closest_entrance
+def create_rooms
+    ## Identify closest town
+    closest_entrance = identify_closest_entrance
+    closest_town = nil
+    XPath.each($Citizen_doc, 'TOWNS/TOWN') { |town|
+        if(town.attributes["entrance"].to_i == closest_entrance)
+            closest_town = town
+            $closest_town_name = town.attributes["name"]
+        end
+    }
+    
+    ## Create room objects and populate room_objects array
+    room_objects = Array.new
+    XPath.each(closest_town, 'ROOM') { |room|
+        xygonid = room.attribute("xygonid").value.to_i
+        if( xygonid >= $citizendata_firstroom && xygonid <= $citizendata_lastroom ) # add to room_objects if within range
+            room_objects.push( Exterior_Room_Object.new( room.attribute("lichid"), xygonid ) )
+        end
+    }
+
+    # return
+    return room_objects
+end
+##
+# identify_closest_entrance: scans XML list of towns for closest entrance id
+# used by create_rooms
+# uses shortest_path
+def identify_closest_entrance
+    ## Populate list of entrances
+    towns = $Citizen_root.elements.to_a("//TOWN")
+    entrance_list = Array.new
+    towns.each { |town|
+        entrance_id = town.attributes["entrance"]
+        entrance_list.push( entrance_id ) unless entrance_id == 0 || entrance_id == nil
+    }
+
+    ## Find closest entrance
+    closest_entrance = shortest_path(entrance_list)
+    return closest_entrance
+end
+##
+# shortest_path: given a list of room id's, finds one with the shortest path
+# credit to SpiffyJr
+def shortest_path(target_list)
+    start_room = Room.current
+    least_time = nil
+    least_target = nil
+    previous, shortest_distances = Map.dijkstra(start_room.id)
+    for target in target_list
+            target = target.to_i
+            return target if start_room.id == target
+            est_time = shortest_distances[target]
+            if !est_time.nil? and (least_time.nil? or least_time > est_time)
+                    least_target = target
+                    least_time = est_time
+            end
+    end				
+    return least_target
+end
+##
+# error_message: echoes message and sends it to log
+def error_message(message)
+    $Citizen_error.puts(message)
+    message(message)
+end
+##
+# message: prints a message using MONSTER BOLD
+# credit to SpiffyJr
+def message(message)
+	puts "#{monsterbold_start}| #{message}#{monsterbold_end} "
+end
+##
+# go2: self-explanatory
+def go2(room_id)
+    start_script("go2", [ room_id, '_disable_confirm_' ])
+    wait_while{running?("go2")}
+end
+##
+# populate_output_document: add elements to xml document
+def populate_output_document ( citizen_output )
+    exterior_room_list = $exterior_room_list
+    $exterior_room_count = 0
+    shop_count = 0
+    shop_room_count = 0
+    container_count = 0
+    item_count = 0
+    
+    ## add highest element
+    top_order_element = citizen_output.add_element("EXTERIOR_ROOMS")
+    
+    ## add exterior rooms
+    exterior_room_list.each { |exterior_room|
+        $exterior_room_count += 1
+        next if exterior_room.shops.size == 0
+        exterior_room_element = top_order_element.add_element("EXTERIOR_ROOM")
+        ## add key attributes
+        add_attribute(exterior_room_element, "town", $closest_town_name)
+        add_attribute(exterior_room_element, "exlichid", exterior_room.lichid)
+        add_attribute(exterior_room_element, "exxygonid", exterior_room.xygonid)
+        
+        ## add shops
+        exterior_room.shops.each { |shop|
+            next if shop.rooms.size == 0
+            shop_element = exterior_room_element.add_element("SHOP")
+            add_attribute(shop_element, "noun", shop.noun)
+            add_attribute(shop_element, "name", shop.name)
+            ## add key attributes
+            add_attribute(shop_element, "town", $closest_town_name)
+            add_attribute(shop_element, "exlichid", exterior_room.lichid)
+            add_attribute(shop_element, "exxygonid", exterior_room.xygonid)
+            add_attribute(shop_element, "shop", [ $closest_town_name, shop_count ].join(""))
+            
+            ## add rooms
+            shop.rooms.each { |room|
+                next if room.containers.size == 0
+                interior_room_element = shop_element.add_element("INTERIOR_ROOM")
+                add_attribute(interior_room_element, "room_name", room.room_name)
+                add_attribute(interior_room_element, "shop_name", shop.name)
+                add_attribute(interior_room_element, "cardinal", room.cardinal_identifier)
+                add_attribute(interior_room_element, "description", room.room_description)
+                add_attribute(interior_room_element, "sign_info", room.sign_info)
+                ## add key attributes
+                add_attribute(interior_room_element, "town", $closest_town_name)
+                add_attribute(interior_room_element, "exlichid", exterior_room.lichid)
+                add_attribute(interior_room_element, "exxygonid", exterior_room.xygonid)
+                add_attribute(interior_room_element, "shop", [ $closest_town_name, shop_count ].join(""))
+                add_attribute(interior_room_element, "shop_room", room.cardinal_identifier)
+                
+                ## add containers
+                room.containers.each { |container|
+                    next if container.items.size == 0
+                    container_element = interior_room_element.add_element("CONTAINER")
+                    add_attribute(container_element, "noun", container.noun)
+                    add_attribute(container_element, "look_command", container.look_command)
+                    ## add key attributes
+                    container_key = "#{container.look_command.split(" ")[-1]} the #{container.name}"
+                    add_attribute(container_element, "town", $closest_town_name)
+                    add_attribute(container_element, "exlichid", exterior_room.lichid)
+                    add_attribute(container_element, "exxygonid", exterior_room.xygonid)
+                    add_attribute(container_element, "shop", [ $closest_town_name, shop_count ].join(""))
+                    add_attribute(container_element, "shop_room", room.cardinal_identifier)
+                    add_attribute(container_element, "container", container_key)
+                    
+                    ## add items
+                    container.items.each { |item|
+                        item_element = container_element.add_element("ITEM")
+                        add_attribute(item_element, "noun", item.noun)
+                        add_attribute(item_element, "name", item.name)
+                        add_attribute(item_element, "price", item.price)
+                        add_attribute(item_element, "take_item_info", item.take_item_info)
+                        add_attribute(item_element, "inspect_item_info", item.inspect_item_info)
+                        add_attribute(item_element, "read_item_info", item.read_item_info)
+                        add_attribute(item_element, "exam_item_info", item.exam_item_info)
+                        ## add key attributes
+                        add_attribute(item_element, "stormfront_id", item.sf_id)
+                        add_attribute(item_element, "town", $closest_town_name)
+                        add_attribute(item_element, "exlichid", exterior_room.lichid)
+                        add_attribute(item_element, "exxygonid", exterior_room.xygonid)
+                        add_attribute(item_element, "shop", [ $closest_town_name, shop_count ].join(""))
+                        add_attribute(item_element, "shop_room", room.cardinal_identifier)
+                        add_attribute(item_element, "container", container_key)
+                        add_attribute(item_element, "item", item_count)
+                        add_attribute(item_element, "room_name", room.room_name)
+
+                        item_count += 1
+                    }
+                    container_count += 1
+                }
+                shop_room_count += 1
+            }
+            shop_count += 1
+        }
+    }
+    
+    return citizen_output
+end
+##
+# populate_output_document_2: playershops 3.0
+def populate_output_document_2 ( citizen_output )
+    exterior_room_list = $exterior_room_list
+    $exterior_room_count = 0
+    shop_count = 0
+    shop_room_count = 0
+    container_count = 0
+    item_count = 0
+    
+    ## add highest element
+    top_order_element = citizen_output.add_element("EXTERIOR_ROOMS")
+    
+    ## add exterior rooms
+    exterior_room_list.each { |exterior_room|
+        $exterior_room_count += 1
+        next if exterior_room.shops.size == 0
+        exterior_room_element = top_order_element.add_element("EXTERIOR_ROOM")
+        
+        town_converter = Hash.new
+        town_converter = { "wl" => "Wehnimer's Landing",
+                                    "imt" => "Icemule Trace",
+                                    "kd" => "Teras Isle",
+                                    "fwi" => "Four Winds Isle",
+                                    "rr" => "River's Rest",
+                                    "vo" => "Solhaven",
+                                    "ti" => "Ta'Illistim",
+                                    "tv" => "Ta'Vaalor",
+                                    "zul" => "Zul Logoth"
+                                }
+        ## add key attributes
+        add_attribute(exterior_room_element, "town", town_converter[$closest_town_name])
+        add_attribute(exterior_room_element, "lich_id", exterior_room.lichid)
+        add_attribute(exterior_room_element, "xygon_id", exterior_room.xygonid)
+        
+        ## add shops
+        exterior_room.shops.each { |shop|
+            next if shop.rooms.size == 0
+            shop_element = exterior_room_element.add_element("SHOP")
+            add_attribute(shop_element, "noun", shop.noun)
+            add_attribute(shop_element, "name", shop.name)
+            
+            ## add rooms
+            shop.rooms.each { |room|
+                next if room.containers.size == 0
+                interior_room_element = shop_element.add_element("INTERIOR_ROOM")
+                add_attribute(interior_room_element, "name", room.room_name)
+                add_attribute(interior_room_element, "cardinal", room.cardinal_identifier)
+                add_attribute(interior_room_element, "description", room.room_description)
+                add_attribute(interior_room_element, "sign", room.sign_info)
+                
+                ## add containers
+                room.containers.each { |container|
+                    next if container.items.size == 0
+                    container_element = interior_room_element.add_element("CONTAINER")
+                    container_key = "#{container.look_command.split(" ")[-1]} the #{container.name}"
+                    add_attribute(container_element, "name", container_key)
+                    
+                    ## add items
+                    container.items.each { |item|
+                        item_element = container_element.add_element("ITEM")
+                        add_attribute(item_element, "noun", item.noun)
+                        add_attribute(item_element, "name", item.name)
+                        add_attribute(item_element, "price", item.price)
+                        add_attribute(item_element, "get_notes", item.take_item_info)
+                        add_attribute(item_element, "inspect_notes", item.inspect_item_info)
+                        add_attribute(item_element, "read_notes", item.read_item_info)
+                        add_attribute(item_element, "exam_notes", item.exam_item_info)
+
+                        item_count += 1
+                    }
+                    container_count += 1
+                }
+                shop_room_count += 1
+            }
+            shop_count += 1
+        }
+    }
+    
+    # Display counts
+    error_message("Shops counted: #{shop_count}")
+    error_message("Interior rooms counted: #{shop_room_count}")
+    error_message("Containers counted: #{container_count}")
+    error_message("Items counted: #{item_count}")
+    return citizen_output
+end
+##
+# add_attribute: adds an attribute to an element using REXML. If nil, adds ""
+def add_attribute(element, attribute_name, attribute_value)
+    if(attribute_value.nil?)
+        element.attributes[attribute_name] = ""
+    else
+        element.attributes[attribute_name] = attribute_value.to_s
+    end
+end
+##
+# verify_document_size: verifies that town is fully logged by checking $exterior_room_count
+# run this before outputting results to xml
+def verify_document_size
+    town_size = Hash.new
+    town_size = {  "fwi" => 15, "imt" => 20, "kd" => 5, "rr" => 5,
+                         "ti" => 10, "tv" => 23, "vo" => 15, "wl" => 40,
+                         "zul" => 6 }
+    if(town_size[$closest_town_name] != $exterior_room_count)
+        error_message("Error: Expected town size of '#{$closest_town_name}' is #{town_size[$closest_town_name]}, but room count is #{$exterior_room_count}.")
+        error_message("Error: Results discarded.")
+        $Citizen_error.close if $Citizen_error
+        $Citizen_output.close if $Citizen_output
+        $Citizen_file.close if $Citizen_file
+        abort!
+    end
+end
+##
+# ftp_upload: uploads XML file to server
+# returns boolean representing success
+def ftp_upload(server, user, password)
+    uploaded = false
+    attempt = 1
+    until(uploaded || attempt > 4)
+        begin
+            error_message("Uploading XML: Attempt number #{attempt}")
+            ftp = Net::FTP.new(server, user, password);
+            ftp.putbinaryfile("#{$script_dir}citizendata/#{$closest_town_name}.xml");
+            ftp.close;
+            uploaded = true
+        rescue Exception=>e
+            error_message(e)
+            error_message("Sleeping 10 seconds and trying again.")
+            sleep 10
+            attempt += 1
+        end
+    end
+    return uploaded
+end
+#############################################################
+# PROCEDURAL
+##############################################################
+[ "psinet unlink", "set showspellname off", "set showdeaths off", "set logon off", "set logoff off", "set disconnect off", "set announcetps off" ].each { |cmd| fput "#{cmd}" }
+kill_script("lnet")
+kill_script("autosort")
+kill_script("sorter")
+message("This script should not be run with the amunet, lnet, or any psinet chat active.")
+message("All psinet ZOOM options should be disabled.")
+message("All psinet container features should be disabled - Located under the 'baggage' tab in psinet options")
+
+## setup_variables (deprecated: grab command-line arguments)
+setup_variables
+
+## populate $exterior_room_list
+$exterior_room_list = create_rooms
+failed_shops = Array.new
+
+## go to each room
+$exterior_room_list.each { |exterior_room|
+    ext_id = exterior_room.lichid
+    go2(ext_id)
+    
+    ## find shops for exterior_room
+    exterior_room.find_shops
+    failed_shops.clear
+    
+    ## iterate through shops
+    exterior_room.shops.each { |shop|
+        ## attempt move into shop
+        starting_room_id = Room.current.id
+        shop.go_shop
+        result = matchtimeout(5, "paths", "exits" )
+        if( result == false || Room.current.id == starting_room_id )
+            error_message = "Error: Attempt to enter shop - #{shop.noun} - failed, removing shop from list and moving on."
+            message( error_message )
+            $Citizen_error.puts( error_message )
+            failed_shops.add(shop)
+            next # skip shop if move fails
+        end
+        
+        ## move succesful: make interior_room_object for first room
+        shop_name = checkarea
+        shop.add_room( Interior_Room_Object.new( "C", shop_name ) )
+        ## make interior_room_object for other rooms
+        paths = checkpaths
+        paths.delete( "out" ) # find paths, remove 'out'
+        paths.each { |exit|
+            move "#{exit}"
+            waitfor( "exits" ) # move to room
+            shop.add_room( Interior_Room_Object.new( exit.upcase, shop_name) )
+            move "#{checkpaths[0]}"
+            waitfor( "exits" ) # move back
+        }
+        
+        ## exit shop
+        move( "out" );
+        waitfor("paths", "exits")
+	if checkname('Tillmen')
+		Spell[920].cast if Spell[920].timeleft < 10
+		Spell[916].cast if Spell[916].timeleft < 10
+	end
+        go2(ext_id) unless Room.current.id == ext_id # band-aid for simu bug where shop exits to an erroneous room
+    }
+    
+    ## Remove failed shops from list
+    failed_shops.each { |failed_shop| exterior_room.shops.delete( failed_shop ) }
+}
+
+
+#
+# upload to lichproject.org
+#
+output_document_2 = populate_output_document_2( Document.new("<?xml version='1.0' ?>") )
+start_time = Time.now.to_i
+error_message 'Starting upload to lichproject.org...'
+data = String.new
+output_document_2.write(data, 3)
+filename = "#{$temp}#{Time.now.to_i}.xml.gz"
+Zlib::GzipWriter.open(filename) { |outfile| outfile.write(data) }
+begin
+	ftp = Net::FTP.new('lichproject.org', 'anyone', 'th3d1ng0at3y0urbaby')
+	ftp.putbinaryfile(filename)
+	ftp.close
+	end_time = Time.now.to_i
+	error_message "Finished upload to lichproject.org (#{((end_time-start_time)/60.0).as_time})"
+	File.delete(filename)
+rescue
+	error_message "upload to lichproject.org failed"
+	respond $!
+	if (attempt ||= 0) && (attempt += 1) < 4
+		error_message 'retrying in 10 seconds...'
+		sleep 10
+		retry
+	else
+		error_message "giving up on lichproject.org"
+	end
+end
+
+#
+# virilneus.com
+#
+start_time = Time.now.to_i
+#### output XML
+message( "Saving XML file: Do not kill script!" )
+
+## populate_document
+output_document = populate_output_document( Document.new("<?xml version='1.0' ?>") )
+
+## verify document size deprecated
+# verify_document_size
+
+## create xml file
+$Citizen_output = File.new( $script_dir + "citizendata/#{$closest_town_name}.xml", "w" )
+
+## write to xml file
+
+output_string = output_document.to_s
+$Citizen_output.puts( output_string )
+
+## close xml files
+$Citizen_output.close
+$Citizen_file.close
+
+error_message("Starting upload to virilneus.com")
+uploaded = ftp_upload('virilneus.com', 'shops@virilneus.com', 'aloha64')
+end_time = Time.now.to_i
+error_message("Finished upload to virilneus.com (#{((end_time-start_time)/60.0).as_time})")
+
+
+####################### lichproject.com
+#start_time = Time.now.to_i
+#error_message("Starting upload to lichproject.com.")
+#module Net
+#    class HTTP
+#
+#        def initialize(address, port = nil)
+#            @address = address
+#            @port    = (port || HTTP.default_port)
+#            @curr_http_version = HTTPVersion
+#            @seems_1_0_server = false
+#            @close_on_empty_response = false
+#            @socket  = nil
+#            @started = false
+#            @open_timeout = nil
+#            @debug_output = nil
+#            @use_ssl = false
+#            @ssl_context = nil
+#            @read_timeout = 4*60     # 4 minutes
+#        end
+#    end
+#end
+#
+#output_document_2 = populate_output_document_2( Document.new("<?xml version='1.0' ?>") )
+#url = URI.parse("http://pshops.lichproject.com/home/upload/#{Time.now.to_i}.xml")
+#http = Net::HTTP.new(url.host)
+#
+#req = Net::HTTP::Post.new(url.path)
+#req.set_form_data({ 'file' => output_document_2 })
+#
+#res = http.request(req)
+#
+#case res
+#when Net::HTTPSuccess, Net::HTTPRedirection
+#    end_time = Time.now.to_i
+#    error_message("Finished upload to lichproject.com. (#{((end_time-start_time)/60.0).as_time})")
+#else
+#    error_message("Upload to lichproject.com failed.")
+#end
+#################################################
+
+
+
+## close log
+$Citizen_error.puts("Session Exit with Version #{$Citizen_version} - At #{Time.new.to_s}")
+$Citizen_error.close
+abort!

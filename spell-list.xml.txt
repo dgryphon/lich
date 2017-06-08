@@ -1,0 +1,3768 @@
+# This file is used by infomon.lic
+# As you begin to chant, you notice the scent of dry, dusty parchment and feel a cool mist cling to your skin somewhere near your feet.  You sense the ethereal tendrils of the mist as they coil about your body and notice that the world turns to a yellowish hue as the mist settles about your head.  Focusing on Gusher, you feel the transfer of energy pass between you as you return him to life.
+# fixme: 9005: guessed duration
+# fixme: 9009: got charl, kai, lumnis, huntress, marlu, oleani, imaera, unaligned, mularos, jastev, lorminstra, gosaena
+# You assume a stance suitable to unleash a flurry of blows.
+# You relax from a stance suitable to unleash a flurry of blows.
+
+<spell>
+	<number>101</number>
+	<name>Spirit Warding I</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>1</manaCost>
+	<stacks>true</stacks>
+	<boltDS>10</boltDS>
+	<elementalTD>5</elementalTD>
+	<spiritTD>10</spiritTD>
+	<sorcererTD>7</sorcererTD>
+	<msgup>A light blue glow surrounds you\.</msgup>
+	<msgdown>The light blue glow leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>102</number>
+	<name>Spirit Barrier</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>2 + (([Spells.minorspiritual,Stats.level].min - 2) / 6)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<physicalAS>0-(20+((Spells.minorspiritual-2)/2))</physicalAS>
+	<boltDS>[20+((Spells.minorspiritual-2)/2),20].max</boltDS>
+	<physicalDS>[20+((Spells.minorspiritual-2)/2),20].max</physicalDS>
+	<msgup>The air thickens and begins to swirl around you\.</msgup>
+	<msgdown>The air calms down around you\.</msgdown>
+</spell>
+<spell>
+	<number>103</number>
+	<name>Spirit Defense</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>3</manaCost>
+	<boltDS>10</boltDS>
+	<physicalDS>10</physicalDS>
+	<stacks>true</stacks>
+	<msgup>You suddenly feel more powerful\.</msgup>
+	<msgdown>The powerful look leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>104</number>
+	<name>Disease Resistance</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>4</manaCost>
+	<stacks>true</stacks>
+	<msgup>You feel a strengthening of your internal fortitude\.</msgup>
+	<msgdown>You lose your extra internal fortitude\.</msgdown>
+</spell>
+<spell>
+	<number>105</number>
+	<name>Poison Resistance</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>5</manaCost>
+	<stacks>true</stacks>
+	<msgup>You feel a strengthening of your blood flow\.</msgup>
+	<msgdown>You notice your blood flow go back to normal\.</msgdown>
+</spell>
+<spell>
+	<number>106</number>
+	<name>Spirit Fog</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>6</manaCost>
+</spell>
+<spell>
+	<number>107</number>
+	<name>Spirit Warding II</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>7</manaCost>
+	<stacks>true</stacks>
+	<boltDS>25</boltDS>
+	<elementalTD>7</elementalTD>
+	<spiritTD>15</spiritTD>
+	<sorcererTD>10</sorcererTD>
+	<msgup>A deep blue glow surrounds you\.</msgup>
+	<msgdown>The deep blue glow leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>108</number>
+	<name>Stun Relief</name>
+	<type>utility</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>109</number>
+	<name>Dispel Invisibility</name>
+	<type>utility</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>110</number>
+	<name>Unbalance</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>111</number>
+	<name>Fire Spirit</name>
+	<type>attack/utility</type>
+	<manaCost>11</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>112</number>
+	<name>Water Walking</name>
+	<type>utility</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>12</manaCost>
+	<stacks>true</stacks>
+	<msgup>A misty halo surrounds you\.</msgup>
+	<msgdown>The misty halo fades from you\.</msgdown>
+</spell>
+<spell>
+	<number>113</number>
+	<name>Undisease</name>
+	<type>utility</type>
+	<manaCost>13</manaCost>
+</spell>
+<spell>
+	<number>114</number>
+	<name>Unpoison</name>
+	<type>utility</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>115</number>
+	<name>Fasthr's Reward</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>15</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>A dull golden nimbus surrounds you\.</msgup>
+	<msgdown>The dull golden nimbus fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>116</number>
+	<name>Locate Person</name>
+	<type>utility</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>117</number>
+	<name>Spirit Strike</name>
+	<type>offense</type>
+	<duration>2</duration>
+	<manaCost>17</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltAS>75</boltAS>
+	<physicalAS>75</physicalAS>
+	<msgup>An invisible force guides you\.</msgup>
+	<msgdown>The guiding force leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>118</number>
+	<name>Web</name>
+	<type>attack</type>
+	<manaCost>18</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>119</number>
+	<name>Spirit Dispel</name>
+	<type>attack/utility</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>120</number>
+	<name>Lesser Shroud</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorspiritual</duration>
+	<manaCost>20 + (([[Spells.minorspiritual,Stats.level].min - 20,0].max) / 6.0).round</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>[15+((Spells.minorspiritual-20)/2),15].max</boltDS>
+	<physicalDS>[15+((Spells.minorspiritual-20)/2),15].max</physicalDS>
+	<elementalTD>10</elementalTD>
+	<spiritTD>20</spiritTD>
+	<sorcererTD>15</sorcererTD>
+	<msgup>You suddenly feel a lot more powerful\.</msgup>
+	<msgdown>The very powerful look leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>125</number>
+	<name>Call Lightning</name>
+	<type>attack/utility</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>130</number>
+	<name>Spirit Guide</name>
+	<type>utility</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>135</number>
+	<name>Searing Light</name>
+	<type>attack</type>
+	<manaCost>35</manaCost>
+</spell>
+<spell>
+	<number>140</number>
+	<name>Wall of Force</name>
+	<type>defense</type>
+	<duration>1.5</duration>
+	<manaCost>40</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>100</boltDS>
+	<physicalDS>100</physicalDS>
+	<msgup>A wall of force surrounds you\.</msgup>
+	<msgdown>The wall of force disappears from around you\.</msgdown>
+</spell>
+<spell>
+	<number>201</number>
+	<name>Calm</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>202</number>
+	<name>Spirit Shield</name>
+	<type>defense</type>
+	<duration>20+Spells.majorspiritual</duration>
+	<manaCost>[2+(([Spells.majorspiritual,Stats.level].min-2)/6),2].max</manaCost>
+	<physicalDS>[10+(([Spells.majorspiritual,Stats.level].min-2)/3),10].max</physicalDS>
+	<stacks>true</stacks>
+	<msgup>A dim aura surrounds you\.</msgup>
+	<msgdown>The dim aura fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>203</number>
+	<name>Manna</name>
+	<type>utility</type>
+	<manaCost>3</manaCost>
+	<duration>5</duration>
+	<stacks>true</stacks>
+	<msgup>The spiritual nourishment has a replenishing effect upon you\.</msgup>
+	<msgdown>The replenishing effect fades, but you are left with a feeling of wellbeing\.</msgdown>
+</spell>
+<spell>
+	<number>204</number>
+	<name>Unpresence</name>
+	<type>utility</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>4</manaCost>
+	<stacks>true</stacks>
+	<msgup>You feel more secure\.</msgup>
+	<msgdown>You feel less secure\.</msgdown>
+</spell>
+<spell>
+	<number>205</number>
+	<name>Light</name>
+	<type>utility</type>
+	<manaCost>5</manaCost>
+</spell>
+<spell>
+	<number>206</number>
+	<name>Darkness</name>
+	<type>utility</type>
+	<manaCost>6</manaCost>
+</spell>
+<spell>
+	<number>207</number>
+	<name>Purify Air</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>7</manaCost>
+	<stacks>true</stacks>
+	<msgup>You begin to breathe more deeply\.</msgup>
+	<msgdown>Your breathing becomes more shallow\.</msgdown>
+</spell>
+<spell>
+	<number>208</number>
+	<name>Living Spell</name>
+	<type>attack/utility</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>209</number>
+	<name>Untrammel</name>
+	<type>utility</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>9</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>A faint slick sheen makes the air about you visible for the briefest of moments, then sinks into you and disappears\.</msgup>
+	<msgdown>The air shivers about you, glistening faintly before stilling to normalcy\.</msgdown>
+</spell>
+<spell>
+	<number>210</number>
+	<name>Silence</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>211</number>
+	<name>Bravery</name>
+	<type>offense</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>11</manaCost>
+	<selfonly>true</selfonly>
+	<boltAS>15</boltAS>
+	<physicalAS>15</physicalAS>
+	<#stacks>true</stacks>
+	<msgup>You (?:and your group stand tall and )?feel more confident\.</msgup>
+	<msgdown>You feel less confident\.</msgdown>
+</spell>
+<spell>
+	<number>212</number>
+	<name>Interference</name>
+	<type>attack</type>
+	<manaCost>12</manaCost>
+</spell>
+<spell>
+	<number>213</number>
+	<name>Minor Sanctuary</name>
+	<type>utility</type>
+	<manaCost>13</manaCost>
+</spell>
+<spell>
+	<number>214</number>
+	<name>Bind</name>
+	<type>attack</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>215</number>
+	<name>Heroism</name>
+	<type>offense</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>15 + (Skills.slblessings / 30.0).round</manaCost>
+	<selfonly>true</selfonly>
+	<boltAS>25+(Skills.slblessings/10)</boltAS>
+	<physicalAS>25+(Skills.slblessings/10)</physicalAS>
+	<#stacks>true</stacks>
+	<msgup>A brilliant aura surrounds you and (?:sinks into your skin|your group)\.  You feel charged with extra vitality\.</msgup>
+	<msgdown>The brilliant aura fades away from you\.</msgdown>
+</spell>
+<spell>
+	<number>216</number>
+	<name>Frenzy</name>
+	<type>attack</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>217</number>
+	<name>Mass Interference</name>
+	<type>attack</type>
+	<manaCost>17</manaCost>
+</spell>
+<spell>
+	<number>218</number>
+	<name>Spirit Servant</name>
+	<type>utility</type>
+	<duration>10 + (Spells.majorspiritual / 6.0) + (Skills.slsummoning / 2.0)</duration>
+	<manaCost>if Spell[218].active?; 5; else; 18; end</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>A bright pulse of soft energy moves away from your hands and beckons a spirit to your aid\.\.\.$|^You infuse your .*?spirit with the mana necessary to maintain its corporeal form\.</msgup>
+	<msgdown>(?:An?|The).*? spirit fades into ethereal form and wafts away\.</msgdown>
+</spell>
+<spell>
+	<number>219</number>
+	<name>Spell Shield</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorspiritual</duration>
+	<manaCost>19</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>40</boltDS>
+	<elementalTD>15</elementalTD>
+	<spiritTD>30</spiritTD>
+	<sorcererTD>22</sorcererTD>
+	<stacks>true</stacks>
+	<msgup>An opalescent aura surrounds you(?: and your group)?\.</msgup>
+	<msgdown>T	he opalescent aura fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>220</number>
+	<name>Major Sanctuary</name>
+	<type>utility</type>
+	<duration>10 + (Spells.majorspiritual/2)</duration>
+	<manaCost>20</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>A brilliant light bathes you as your surroundings blur for a moment\.\.\.$|^Whipping winds carry the hot, metallic taste of lightning to you as your surroundings blur\.\.\.$|^A deep shadow descends upon you and your breath is briefly muffled as your vision blurs with darkness\.\.\.$|^A shiver of wind touches your breath and you feel your eyelashes grow thick with a coating of snow\.  You lift your eyes to the sky and white blurs your vision\.\.\.</msgup>
+	<msgdown>A bright light surrounds you and your visions of sanctuary slowly fade\.\.\.$|^The blinding flash of lightning shatters the chamber in a cloud of wind and light, causing it to dissolve around you\.\.\.$|^Suddenly the candles at the heart of the room go out and you are plunged into a deep darkness that obscures your vision of the world around you\.\.\.$|^Rising suddenly, the chill air sends a flurry of snow towards you and your vision swims with white flakes\.\.\.</msgdown>
+</spell>
+<spell>
+	<number>225</number>
+	<name>Transference</name>
+	<type>utility</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>230</number>
+	<name>Spiritual Abolition</name>
+	<type>attack</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>240</number>
+	<name>Spirit Slayer</name>
+	<type>offense</type>
+	<duration>0.5</duration>
+	<manaCost>40</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>A small mote of bright white light swirls into existence around you\.</msgup>
+	<msgdown>The mote of white light next to you disappears\.</msgdown></spell>
+<spell>
+	<number>301</number>
+	<name>Prayer of Holding</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>302</number>
+	<name>Smite</name>
+	<type>attack</type>
+	<manaCost>4</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>303</number>
+	<name>Prayer of Protection</name>
+	<type>defense</type>
+	<duration>20 + Spells.cleric</duration>
+	<manaCost>3 + (([Spells.cleric,Stats.level].min - 3) / 6)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>[10+(([Spells.cleric,Stats.level].min - 3)/2),10].max</boltDS>
+	<physicalDS>[10+(([Spells.cleric,Stats.level].min - 3)/2),10].max</physicalDS>
+	<msgup>A pure white aura sparkles around you\.</msgup>
+	<msgdown>A white glow rushes away from you\.</msgdown>
+</spell>
+<spell>
+	<number>304</number>
+	<name>Bless Item</name>
+	<type>utility</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>305</number>
+	<name>Preservation</name>
+	<type>utility</type>
+	<manaCost>5</manaCost>
+</spell>
+<spell>
+	<number>306</number>
+	<name>Holy Bolt</name>
+	<type>attack</type>
+	<manaCost>6</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>307</number>
+	<name>Benediction</name>
+	<type>offense/defense</type>
+	<duration>20 + Spells.cleric</duration>
+	<manaCost>7+[([Spells.cleric, 27].min-7)/2,0].max + [([Stats.level, Spells.cleric].min-27)/2, 0].max</manaCost>
+	<selfonly>true</selfonly>
+	<physicalAS>[[5+((Spells.cleric-7)/2),5].max,15].min</physicalAS>
+	<boltAS>5+[([Spells.cleric,Stats.level].min-7)/2,0].max</boltAS>
+	<physicalDS>[[5+((Spells.cleric-7)/2),5].max,15].min</physicalDS>
+	<stacks>true</stacks>
+	<msgup>Your spirit is bolstered by a great sense of faith and conviction\.</msgup>
+	<msgdown>Your sense of faith and conviction wanes\.(?:  You are less sure of yourself\.)?</msgdown>
+</spell>
+<spell>
+	<number>308</number>
+	<name>Well of Life</name>
+	<type>utility</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>309</number>
+	<name>Neutralize Curse</name>
+	<type>utility</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>310</number>
+	<name>Warding Sphere</name>
+	<type>defense</type>
+	<duration>20 + Spells.cleric</duration>
+	<manaCost>10 + [[(Spells.cleric - 10)/2, 10].min,0].max</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>(10+[([Spells.cleric-10,0].max/2),10].min)</boltDS>
+	<physicalDS>(10+[([Spells.cleric-10,0].max/2),10].min)</physicalDS>
+	<elementalTD>(10+[([Spells.cleric-10,0].max/2),10].min/2).to_i</elementalTD>
+	<spiritTD>(10+[([Spells.cleric-10,0].max/2),10].min).to_i</spiritTD>
+	<sorcererTD>((10+[([Spells.cleric-10,0].max/2),10].min)*0.75).to_i</sorcererTD>
+	<stacks>true</stacks>
+	<msgup>You feel more secure basking in the glow of divine protection\.</msgup>
+	<msgdown>You suddenly feel less protected\.</msgdown>
+</spell>
+<spell>
+	<number>311</number>
+	<name>Blind</name>
+	<type>attack</type>
+	<manaCost>311</manaCost>
+</spell>
+<spell>
+	<number>312</number>
+	<name>Fervent Reproach</name>
+	<type>attack</type>
+	<manaCost>12</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>313</number>
+	<name>Prayer</name>
+	<type>defense</type>
+	<duration>20 + Spells.cleric</duration>
+	<manaCost>13 + ((if [Spells.cleric,Stats.level].min > 35 then [Spells.cleric,Stats.level].min - 35 else 0 end) / 3)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>if Spells.cleric > 34 then ([Spells.cleric,Stats.level].min - 25) else 0 end</boltDS>
+	<physicalDS>if Spells.cleric > 34 then ([Spells.cleric,Stats.level].min - 25) else 0 end</physicalDS>
+	<elementalTD>5</elementalTD>
+	<spiritTD>10</spiritTD>
+	<sorcererTD>7</sorcererTD>
+	<msgup>Turning your thoughts inward\, you ask for the .* of your deity to protect you\.\s+.+, and you sense that your prayer has been granted\.</msgup>
+	<msgdown>You feel the protection of your deity's influence fade\.</msgdown>
+</spell>
+<spell>
+	<number>314</number>
+	<name>Relieve Burden</name>
+	<type>utility</type>
+	<duration>20 + Spells.cleric</duration>
+	<manaCost>bonus = rank = 0; step = 4; bonus += 1 until ( (rank += (step += 1)) > Skills.slblessings ); 14 + bonus/2</manaCost>
+	<stacks>true</stacks>
+	<msgup>A glittering golden collection bowl materializes above you\.  It slowly tips upside down, causing a shower of silver sparks to rain down upon your body, then vanishes\.</msgup>
+	<msgdown>An ethereal golden collection bowl drifts out of your body, then vanishes\.</msgdown>
+</spell>
+<spell>
+	<number>315</number>
+	<name>Remove Curse</name>
+	<type>utility</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>316</number>
+	<name>Censure</name>
+	<type>attack</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>317</number>
+	<name>Divine Fury</name>
+	<type>attack</type>
+	<manaCost>17</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>318</number>
+	<name>Raise Dead</name>
+	<type>utility</type>
+	<manaCost>if Spells.cleric >= 40 then 40 elsif Spells.cleric >= 25 then 25 else 18 end</manaCost>
+	<spiritCost>if Spells.cleric >= 40 then 3 elsif Spells.cleric >= 25 then 5 else 8 end</spiritCost>
+</spell>
+<spell>
+	<number>319</number>
+	<name>Divine Wrath</name>
+	<type>attack</type>
+	<manaCost>19</manaCost>
+	<duration>10</duration>
+	<msgup>You pour your soul into an appeal to .*</msgup>
+	<msgdown>You feel your weakness and enfeeblement abate\.</msgdown>
+</spell>
+<spell>
+	<number>325</number>
+	<name>Holy Receptacle</name>
+	<type>utility</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>330</number>
+	<name>Prayer of Communion</name>
+	<type>utility</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>350</number>
+	<name>Miracle</name>
+	<type>utility</type>
+	<manaCost>50</manaCost>
+</spell>
+<spell>
+	<number>401</number>
+	<name>Elemental Defense I</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorelemental</duration>
+	<manaCost>1</manaCost>
+	<stacks>true</stacks>
+	<boltDS>5</boltDS>
+	<physicalDS>5</physicalDS>
+	<elementalTD>5</elementalTD>
+	<spiritTD>2</spiritTD>
+	<sorcererTD>3</sorcererTD>
+	<msgup>A silvery luminescence surrounds you\.</msgup>
+	<msgdown>The silvery luminescence fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>402</number>
+	<name>Presence</name>
+	<type>utility</type>
+	<duration>Stats.level / 30.0</duration>
+	<manaCost>2</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You become aware of everyone near you\.\.\.</msgup>
+	<msgdown>Your senses are no longer as sharp\.</msgdown>
+</spell>
+<spell>
+	<number>403</number>
+	<name>Lock Pick Enhancement</name>
+	<type>utility</type>
+	<duration>0.5 + Stats.level / 60.0</duration>
+	<manaCost>3</manaCost>
+	<stacks>true</stacks>
+	<msgup>A scintillating light surrounds your hands\.</msgup>
+	<msgdown>The scintillating light fades from your hands\.</msgdown>
+</spell>
+<spell>
+	<number>404</number>
+	<name>Disarm Enhancement</name>
+	<type>utility</type>
+	<duration>0.5 + Stats.level / 60.0</duration>
+	<manaCost>4</manaCost>
+	<stacks>true</stacks>
+	<msgup>You become calm and focused\.</msgup>
+	<msgdown>The focused look leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>405</number>
+	<name>Elemental Detection</name>
+	<type>utility</type>
+	<manaCost>5</manaCost>
+</spell>
+<spell>
+	<number>406</number>
+	<name>Elemental Defense II</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorelemental</duration>
+	<manaCost>6</manaCost>
+	<stacks>true</stacks>
+	<boltDS>10</boltDS>
+	<physicalDS>10</physicalDS>
+	<elementalTD>10</elementalTD>
+	<spiritTD>5</spiritTD>
+	<sorcererTD>7</sorcererTD>
+	<msgup>A bright luminescence surrounds you\.</msgup>
+	<msgdown>The bright luminescence fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>407</number>
+	<name>Unlock</name>
+	<type>utility</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>408</number>
+	<name>Disarm</name>
+	<type>utility</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>409</number>
+	<name>Elemental Blast</name>
+	<type>attack</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>410</number>
+	<name>Elemental Wave</name>
+	<type>attack/area</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>411</number>
+	<name>Elemental Blade</name>
+	<type>utility</type>
+	<manaCost>11</manaCost>
+</spell>
+<spell>
+	<number>412</number>
+	<name>Weapon Deflection</name>
+	<type>attack</type>
+	<manaCost>12</manaCost>
+</spell>
+<spell>
+	<number>413</number>
+	<name>Elemental Saturation</name>
+	<type>attack</type>
+	<manaCost>13</manaCost>
+</spell>
+<spell>
+	<number>414</number>
+	<name>Elemental Defense III</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorelemental</duration>
+	<manaCost>14</manaCost>
+	<stacks>true</stacks>
+	<boltDS>20</boltDS>
+	<physicalDS>20</physicalDS>
+	<elementalTD>15</elementalTD>
+	<spiritTD>7</spiritTD>
+	<sorcererTD>10</sorcererTD>
+	<msgup>A brilliant luminescence surrounds you(?: and your group)?\.</msgup>
+	<msgdown>The brilliant luminescence fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>415</number>
+	<name>Elemental Strike</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>416</number>
+	<name>Piercing Gaze</name>
+	<type>utility</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>417</number>
+	<name>Elemental Dispel</name>
+	<type>attack/utility</type>
+	<manaCost>17</manaCost>
+</spell>
+<spell>
+	<number>418</number>
+	<name>Mana Focus</name>
+	<type>utility</type>
+	<manaCost>18</manaCost>
+</spell>
+<spell>
+	<number>419</number>
+	<name>Mass Elemental Defense</name>
+	<type>defense</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>420</number>
+	<name>Magic Item Creation</name>
+	<type>utility</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>425</number>
+	<name>Elemental Targeting</name>
+	<type>offense</type>
+	<duration>20 + Spells.minorelemental</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<boltAS>[25+((Spells.minorelemental-25)/2),50].min</boltAS>
+	<physicalAS>[25+((Spells.minorelemental-25)/2),50].min</physicalAS>
+	<elementalCS>[25+((Spells.minorelemental-25)/2),50].min</elementalCS>
+	<sorcererCS>[25+((Spells.minorelemental-25)/2),50].min/2</sorcererCS>
+	<stacks>true</stacks>
+	<msgup>You are filled with a sense of great confidence\.</msgup>
+	<msgdown>You feel less confident than before\.</msgdown>
+</spell>
+<spell>
+	<number>430</number>
+	<name>Elemental Barrier</name>
+	<type>defense</type>
+	<duration>20 + Spells.minorelemental</duration>
+	<manaCost>30</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>[(Spells.minorelemental/2),50].min</boltDS>
+	<physicalDS>[(Spells.minorelemental/2),50].min</physicalDS>
+	<elementalTD>[(Spells.minorelemental/2),50].min</elementalTD>
+	<spiritTD>([(Spells.minorelemental/2),50].min/2).to_i</spiritTD>
+	<sorcererTD>([(Spells.minorelemental/2),50].min*0.75).to_i</sorcererTD>
+	<stacks>true</stacks>
+	<msgup>Your skin tingles for a moment and you feel more secure\.</msgup>
+	<msgdown>The tingling sensation and sense of security leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>435</number>
+	<name>Major Elemental Wave</name>
+	<type>attack/area</type>
+	<manaCost>35</manaCost>
+</spell>
+<spell>
+	<number>501</number>
+	<name>Sleep</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>502</number>
+	<name>Spell Store</name>
+	<type>utility</type>
+	<duration>1</duration>
+	<stacks>true</stacks>
+	<manaCost>2</manaCost>
+	<msgup>\(If you prepare a spell in the next 30 seconds, it will be stored\.\)</msgup>
+	<msgdown>You feel the extended magical retention flee from you\.</msgdown>
+</spell>
+<spell>
+	<number>503</number>
+	<name>Thurfel's Ward</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>3 + (([Spells.majorelemental,Stats.level].min - 3) / 12.0).round</manaCost>
+	<stacks>true</stacks>
+	<boltDS>[20+((Spells.majorelemental-5)/4),20].max</boltDS>
+	<physicalDS>[20+((Spells.majorelemental-5)/4),20].max</physicalDS>
+	<msgup>Glowing specks of \w+ \w+ energy begin to spin around you\.</msgup>
+	<msgdown>The glowing specks of energy surrounding you suddenly shoot off in all directions, then quickly fade away\.</msgdown>
+</spell>
+<spell>
+	<number>504</number>
+	<name>Slow</name>
+	<type>attack</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>505</number>
+	<name>Hand of Tonis</name>
+	<type>attack</type>
+	<manaCost>5</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>506</number>
+	<name>Haste</name>
+	<type>utility</type>
+	<duration>1.13</duration>
+	<manaCost>6</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You begin to notice the world slow down around you\.  Strange\.</msgup>
+	<msgdown>You notice that things have returned to their normal speed\.</msgdown>
+</spell>
+<spell>
+	<number>507</number>
+	<name>Elemental Deflection</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>7+(([Spells.majorelemental,Stats.level].min-7)/6)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>[20+((Spells.majorelemental-7)/2),20].max</boltDS>
+	<physicalDS>[20+((Spells.majorelemental-7)/2),20].max</physicalDS>
+	<msgup>You are surrounded by a shimmering field of energy\.</msgup>
+	<msgdown>You feel a slight tingling as the shimmering field fades away\.</msgdown>
+</spell>
+<spell>
+	<number>508</number>
+	<name>Elemental Bias</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>8</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<elementalTD>20</elementalTD>
+	<spiritTD>10</spiritTD>
+	<sorcererTD>15</sorcererTD>
+	<msgup>You feel more magically aware\.</msgup>
+	<msgdown>You feel your extra magical awareness leave you\.</msgdown>
+</spell>
+<spell>
+	<number>509</number>
+	<name>Strength</name>
+	<type>offense/utility</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>9</manaCost>
+	<stacks>true</stacks>
+	<physicalAS>15 + (n=0; [4,9,15,22,30,39,49,60,72,85,99,114,130,147,165,184].each{ |limit| if Skills.elearth >= limit then n += 1 end }; n;)</physicalAS>
+	<strength>15</strength>
+	<msgup>You feel much stronger\.</msgup>
+	<msgdown>You feel your extra strength departing\.</msgdown>
+</spell>
+<spell>
+	<number>510</number>
+	<name>Hurl Boulder</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>511</number>
+	<name>Floating Disk</name>
+	<type>utility</type>
+	<manaCost>11</manaCost>
+</spell>
+<spell>
+	<number>512</number>
+	<name>Ice Patch</name>
+	<type>attack</type>
+	<manaCost>12</manaCost>
+</spell>
+<spell>
+	<number>513</number>
+	<name>Elemental Focus</name>
+	<type>offense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>13 + (([Spells.majorelemental,Stats.level].min - 13)/2)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltAS>[20+(([Spells.majorelemental,Stats.level].min-13)/2),20].max</boltAS>
+	<physicalAS>-40</physicalAS>
+	<msgup>You bristle with energy\.</msgup>
+	<msgdown>You no longer bristle with energy\.</msgdown>
+</spell>
+<spell>
+	<number>514</number>
+	<name>Stone Fist</name>
+	<type>attack</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>515</number>
+	<name>Rapid Fire</name>
+	<type>utility</type>
+	<duration>1</duration>
+	<manaCost>15</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>\(Your next spell will be re-prepared upon its casting\.\)</msgup>
+	<msgdown>You feel the surge of magic depart\.</msgdown>
+</spell>
+<spell>
+	<number>516</number>
+	<name>Mana Leech</name>
+	<type>attack/utility</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>517</number>
+	<name>Charge Item</name>
+	<type>utility</type>
+	<manaCost>17</manaCost>
+</spell>
+<spell>
+	<number>518</number>
+	<name>Cone of Lightning</name>
+	<type>attack/area</type>
+	<manaCost>18</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>519</number>
+	<name>Immolation</name>
+	<type>attack</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>520</number>
+	<name>Stone Skin</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>20</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>A layer of .*?, shifting stone forms around you\.</msgup>
+	<msgdown>The layer of stone surrounding you crumbles away\.</msgdown>
+</spell>
+<spell>
+	<number>525</number>
+	<name>Meteor Swarm</name>
+	<type>attack</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>530</number>
+	<name>Elemental Disjunction</name>
+	<type>attack</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>540</number>
+	<name>Temporal Reversion</name>
+	<type>defense</type>
+	<duration>20 + Spells.majorelemental</duration>
+	<manaCost>40</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>For a moment, everything you hear and see echoes weirdly around you, but then everything seems normal again\.  Your personal temporal reality has been slightly offset from the true flow of time\.</msgup>
+	<msgdown>Abruptly, everything you see and hear comes into better focus\.  Your personal temporal reality has rejoined the true flow of time\.</msgdown>
+</spell>
+<spell>
+	<number>601</number>
+	<name>Natural Colors</name>
+	<type>defense</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>1</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>bonus = 10; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</boltDS>
+	<physicalDS>bonus = 10; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</physicalDS>
+	<msgup>You(?: and your group)? seem to blend into the surroundings better\.</msgup>
+	<msgdown>You return to normal color\.</msgdown>
+</spell>
+<spell>
+	<number>602</number>
+	<name>Resist Elements</name>
+	<type>defense</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>2</manaCost>
+	<stacks>true</stacks>
+	<boltDS>bonus = 15; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</boltDS>
+	<msgup>The air about you shimmers slightly\.</msgup>
+	<msgdown>The air about you stops shimmering\.</msgdown>
+</spell>
+<spell>
+	<number>603</number>
+	<name>Foraging</name>
+	<type>utility</type>
+	<duration>Stats.level / 4</duration>
+	<manaCost>3</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You feel your vision sharpen\.$|^You feel more in tune with the natural surroundings\.</msgup>
+	<msgdown>You feel your vision return to normal\.$|^You feel less in tune with your natural surroundings\.</msgdown>
+</spell>
+<spell>
+	<number>604</number>
+	<name>Skinning</name>
+	<type>utility</type>
+	<duration>1</duration>
+	<manaCost>4</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You feel more nimble\.</msgup>
+	<msgdown>You feel less nimble\.</msgdown>
+</spell>
+<spell>
+	<number>605</number>
+	<name>Whispering Willow</name>
+	<type>utility</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>5</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You suddenly hear the voices of nature fill your mind\.</msgup>
+	<msgdown>You no longer hear voices in your mind\.</msgdown>
+</spell>
+<spell>
+	<number>606</number>
+	<name>Phoen's Strength</name>
+	<type>offense</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>6</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<physicalAS>10</physicalAS>
+	<strength>10</strength>
+	<msgup>Your body suddenly fills with a warm strength\.</msgup>
+	<msgdown>You feel the inner strength leave you\.</msgdown>
+</spell>
+<spell>
+	<number>607</number>
+	<name>Sounds</name>
+	<type>attack</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>608</number>
+	<name>Camouflage</name>
+	<type>offense</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>609</number>
+	<name>Sun Burst</name>
+	<type>attack/utility</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>610</number>
+	<name>Tangleweed</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>611</number>
+	<name>Mass Colors</name>
+	<type>defense</type>
+	<manaCost>11</manaCost>
+</spell>
+<spell>
+	<number>612</number>
+	<name>Breeze</name>
+	<type>utility</type>
+	<manaCost>12</manaCost>
+</spell>
+<spell>
+	<number>613</number>
+	<name>Self Control</name>
+	<type>defense/utility</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>13</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<physicalDS>[20+((Spells.ranger-13)/2),20].max</physicalDS>
+	<elementalTD>bonus = 20; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus/2</elementalTD>
+	<spiritTD>bonus = 20; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</spiritTD>
+	<sorcererTD>bonus = 20; [5, 11, 18, 26, 35, 45, 56, 68, 81, 95].each { |n| bonus += 1 if Skills.slblessings >= n }; (bonus*0.75).to_i</sorcererTD>
+	<msgup>You feel an aura of natural confidence surrounding you\.</msgup>
+	<msgdown>You feel the aura of confidence leave you\.</msgdown>
+</spell>
+<spell>
+	<number>614</number>
+	<name>Imbue</name>
+	<type>utility</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>615</number>
+	<name>Call Swarm</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>616</number>
+	<name>Spike Thorn</name>
+	<type>attack</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>617</number>
+	<name>Sneaking</name>
+	<type>utility</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>17</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You begin to move with cat-like grace\.</msgup>
+	<msgdown>You are no longer moving silently\.</msgdown>
+</spell>
+<spell>
+	<number>618</number>
+	<name>Mobility</name>
+	<type>defense/utility</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>18+((Spells.ranger-18)/5)</manaCost>
+	<stacks>true</stacks>
+	<dodging>[20+(Spells.ranger-18),20].max</dodging>
+	<msgup>You suddenly feel much more dextrous\.</msgup>
+	<msgdown>You no longer feel so dextrous\.</msgdown>
+</spell>
+<spell>
+	<number>619</number>
+	<name>Mass Calm</name>
+	<type>attack</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>620</number>
+	<name>Resist Nature</name>
+	<type>utility</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>625</number>
+	<name>Nature's Touch</name>
+	<type>defense/utility</type>
+	<duration>20 + Spells.ranger</duration>
+	<manaCost>25</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<elementalTD>([1+((Spells.ranger-25)/2),12].min/2).to_i</elementalTD>
+	<spiritTD>[1+((Spells.ranger-25)/2),12].min</spiritTD>
+	<sorcererTD>([1+((Spells.ranger-25)/2),12].min*0.75).to_i</sorcererTD>
+	<msgup>You suddenly feel the power of nature surround you\.</msgup>
+	<msgdown>You feel the gathering of nature's power leave you\.</msgdown>
+</spell>
+<spell>
+	<number>630</number>
+	<name>Animal Companion</name>
+	<type>attack/utility</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>635</number>
+	<name>Nature's Fury</name>
+	<type>attack</type>
+	<manaCost>35</manaCost>
+</spell>
+<spell>
+	<number>640</number>
+	<name>Wall of Thorns</name>
+	<type>defense</type>
+	<duration>20 + Spells.ranger</duration>
+	<selfonly>true</selfonly>
+	<manaCost>40</manaCost>
+	<physicalDS>20</physicalDS>
+	<boltDS>20</boltDS>
+	<msgup>You are surrounded by a (?:dense, )?writhing barrier of sharp thorns\.</msgup>
+	<msgdown>You seem to lose the thorny barrier that surrounds you\.</msgdown>
+</spell>
+<spell>
+	<number>650</number>
+	<name>Assume Aspect</name>
+	<type>utility</type>
+	<duration>10</duration>
+	<selfonly>true</selfonly>
+	<manaCost>50</manaCost>
+	<msgup>Gold-traced pale green ribbons of energy swirl about and coalesce upon you, reinforcing the intense natural prowess that races through every fiber of your being\.</msgup>
+	<msgdown>The green and gold energy fades from around you, bringing your awareness of nature to its original state\.</msgdown>
+</spell>
+<spell>
+	<number>701</number>
+	<name>Blood Burst</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>702</number>
+	<name>Mana Disruption</name>
+	<type>attack</type>
+	<manaCost>2</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>703</number>
+	<name>Corrupt Essence</name>
+	<duration>0.33</duration>
+	<type>attack</type>
+	<manaCost>3</manaCost>
+	<msgup>You feel weakened as a blood red haze forms around you\.</msgup>
+	<msgdown>The blood red haze dissipates from around you\.</msgdown>
+</spell>
+<spell>
+	<number>704</number>
+	<name>Phase</name>
+	<type>utility</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>705</number>
+	<name>Disintegrate</name>
+	<type>attack</type>
+	<manaCost>5</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>706</number>
+	<name>Mind Jolt</name>
+	<type>attack</type>
+	<manaCost>6</manaCost>
+</spell>
+<spell>
+	<number>707</number>
+	<name>Eye Spy</name>
+	<type>utility</type>
+	<duration>10 + (Spells.sorcerer/2.0)</duration>
+	<manaCost>7</manaCost>
+	<msgup>Casually you push your finger into your eye socket and cup it around the throbbing eyeball\.  With a little leverage you pop the eye from your skull and watch as it sprouts little batlike wings and begins to hover before you\.</msgup>
+	<msgdown>You hear a soft hiss as your wandering eye rushes towards you\.  You reach out and catch the squishy globe and quickly press it back into your eye socket\.  After a few blinks it seems to seat itself properly\.  You wipe off some gooey red residue with your sleeve, and feel yourself once again presentable\.</msgdown>
+</spell>
+<spell>
+	<number>708</number>
+	<name>Limb Disruption</name>
+	<type>attack</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>709</number>
+	<name>Quake</name>
+	<type>attack</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>710</number>
+	<name>Energy Maelstrom</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>711</number>
+	<name>Pain</name>
+	<type>attack</type>
+	<manaCost>11</manaCost>
+</spell>
+<spell>
+	<number>712</number>
+	<name>Cloak of Shadows</name>
+	<type>defense</type>
+	<duration>20 + Spells.sorcerer</duration>
+	<manaCost>12 + (([Spells.sorcerer,Stats.level].min - 12) / 3)</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltDS>[25+(Spells.sorcerer-12),25].max</boltDS>
+	<physicalDS>[25+(Spells.sorcerer-12),25].max</physicalDS>
+	<elementalTD>([20+((Spells.sorcerer-12)/10),20].max*0.75).to_i</elementalTD>
+	<spiritTD>([20+((Spells.sorcerer-12)/10),20].max*0.75).to_i</spiritTD>
+	<sorcererTD>[20+((Spells.sorcerer-12)/10),20].max</sorcererTD>
+	<msgup>A shadowy patch of ether rises up through the (?:floor|ground) to encompass you, swiftly sinking into your skin\.</msgup>
+	<msgdown>A dark shadow seems to detach itself from your body, swiftly dissipating into the air\.</msgdown>
+</spell>
+<spell>
+	<number>713</number>
+	<name>Nightmare</name>
+	<type>attack</type>
+	<manaCost>13</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>714</number>
+	<name>Scroll Infusion</name>
+	<type>utility</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>715</number>
+	<name>Curse</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>716</number>
+	<name>Disease</name>
+	<type>attack</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>717</number>
+	<name>Evil Eye</name>
+	<type>attack</type>
+	<manaCost>17</manaCost>
+</spell>
+<spell>
+	<number>718</number>
+	<name>Torment</name>
+	<type>attack</type>
+	<manaCost>18</manaCost>
+</spell>
+<spell>
+	<number>719</number>
+	<name>Dark Catalyst</name>
+	<type>attack</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>720</number>
+	<name>Implosion</name>
+	<type>attack</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>725</number>
+	<name>Minor Summoning</name>
+	<type>utility</type>
+	<duration>10 + (Spells.sorcerer/3.0) + (Skills.sldemonology/2.0)</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You trace an arcane sigil over your .+ while incanting\.  Your .+ glows momentarily and you succeed in opening an interplanar rift from which you manage to pull .+\.$|^You trace the runes on .+ to strengthen the binding between your .+ and this plane\.  You feel a bit of power leeched from your .+ as a spark follows your finger's path across the .+\.</msgup>
+	<msgdown>You sense that you will not be able to control .+ much longer so you incant arcanely while concentrating upon the .+\.  You gesture vividly causing a small interplanar rift to open.  The .+ is pulled through the rift\.</msgdown>
+</spell>
+<spell>
+	<number>9725</number>
+	<name>Illusion - Demon</name>
+	<type>timer</type>
+	<duration>30</duration>
+	<manaCost>5</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You shift your gaze to your .+ and focus your energy upon creating the illusion of disguise\.  You move quickly towards .+, feeling your energy focus upon your fist and causing it to radiate with a black essence\.  At the last moment, you plunge your fist into the .+ of your .+\.  .+ suddenly erupts in a shroud of black essence and tries to recoil away from you\.  You focus your will upon the essence and .+, and watch as the creature begins to ripple\.  Piece by piece, the creature's form changes until .+ stands in its place and you withdraw your hand\.$|^You glide your hand over .+, leaving rippling motes of color in the wake of your hand as you attempt to strengthen the flows of essence around .+\.  You sense a pulse as the motes disappear within .+, revitalizing the .+ into an impeccable illusion\.</msgup>
+	<msgdown>Droplets of inky black ichor begin to drip down from .+ and pool underneath as the veil of an illusion peels back\.  The visage of .+ begins to distort and reveals behind it .+\.  As the last droplet \*plops\* into the pool, it dissolves into mist that .+\.</msgdown>
+</spell>
+<spell>
+	<number>730</number>
+	<name>Animate Dead</name>
+	<type>attack</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>740</number>
+	<name>Planar Shift</name>
+	<type>utility</type>
+	<manaCost>40</manaCost>
+</spell>
+<spell>
+	<number>901</number>
+	<name>Minor Shock</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>902</number>
+	<name>Minor Elemental Edge</name>
+	<type>offense</type>
+	<manaCost>2</manaCost>
+</spell>
+<spell>
+	<number>903</number>
+	<name>Minor Water</name>
+	<type>attack</type>
+	<manaCost>3</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>904</number>
+	<name>Minor Acid</name>
+	<type>attack</type>
+	<manaCost>4</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>905</number>
+	<name>Prismatic Guard</name>
+	<type>defense</type>
+	<duration>20 + Spells.wizard</duration>
+	<manaCost>5 + (([Spells.wizard,Stats.level].min - 5) / 12.0).round</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>[20+((Spells.wizard-5)/4),20].max</boltDS>
+	<physicalDS>[5+((Spells.wizard-5)/4),5].max</physicalDS>
+	<msgup>Multicolored rays shoot out of your body and flow into (?:the|a) shimmering sphere around you\.</msgup>
+	<msgdown>The shimmering multicolored sphere fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>906</number>
+	<name>Minor Fire</name>
+	<type>attack</type>
+	<manaCost>6</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>907</number>
+	<name>Major Cold</name>
+	<type>attack</type>
+	<manaCost>7</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>908</number>
+	<name>Major Fire</name>
+	<type>attack</type>
+	<manaCost>8</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>909</number>
+	<name>Tremors</name>
+	<type>attack/area</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>910</number>
+	<name>Major Shock</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>911</number>
+	<name>Mass Blur</name>
+	<type>defense</type>
+	<duration>20 + Spells.wizard</duration>
+	<manaCost>11</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<dodging>20</dodging>
+	<msgup>Your form(?:, as well as your group,)? blurs\.$|^If you were visible, your form would have blurred\.</msgup>
+	<msgdown>You become solid again\.</msgdown>
+</spell>
+<spell>
+	<number>912</number>
+	<name>Call Wind</name>
+	<type>attack/area</type>
+	<manaCost>12</manaCost>
+</spell>
+<spell>
+	<number>913</number>
+	<name>Melgorehn's Aura</name>
+	<type>defense</type>
+	<duration>20 + Spells.wizard</duration>
+	<manaCost>13 + (([Spells.wizard,Stats.level].min - 13) / 3.0).round</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>[Spells.wizard-3,10].max</boltDS>
+	<physicalDS>[Spells.wizard-3,10].max</physicalDS>
+	<elementalTD>[20+((Spells.wizard-13)/3),20].max</elementalTD>
+	<spiritTD>([20+((Spells.wizard-13)/3),20].max/2).to_i</spiritTD>
+	<sorcererTD>([20+((Spells.wizard-13)/3),20].max*0.75).to_i</sorcererTD>
+	<msgup>A luminescent aura begins to swirl around you\.</msgup>
+	<msgdown>A luminescent aura fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>914</number>
+	<name>Sandstorm</name>
+	<type>attack</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>915</number>
+	<name>Weapon Fire</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>916</number>
+	<name>Invisibility</name>
+	<type>utility</type>
+	<duration>20 + (Spells.wizard / 2)</duration>
+	<manaCost>16</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You become invisible\.$|^Your invisibility is extended\.</msgup>
+	<msgdown>You (become|are) visible again\.$|^You fade into (?:view|sight|visibility)(\.| and strike!)$|^Your invisibili?ty (falls\.|fails\.|has been dispelled!)$|^Your startled movement makes you visible again!$|^You make so much noise that only the dead would not notice you thrashing about in your unsuccessful search\.|^The driving storm breaks your concentration, leaving you visible again\.|^An? [\w\s]+ discovers you and your invisibility fails!$|^[A-Z][a-z]+ dispels your invisibility!$|^But you are not hidden!$|^Dark, swirling mist billows before you from nothingness, tiny pinpoints of light glimmering from its inky depths\.  Slight crackling can be heard from within and the scent of ozone tickles at your nose\.  Suddenly, a blinding arc of lightning tears through the air and stikes you, causing your invisibility to fade\.$|^Trying to move through [\w\s]+ reveals you\.$|discovers your hiding place!$|your invisibility fails!</msgdown>
+</spell>
+<spell>
+	<number>917</number>
+	<name>Boil Earth</name>
+	<type>attack</type>
+	<manaCost>17 + (if Skills.elearth > 0 then 5 else 0 end) + (if Skills.elearth > 23 then 5 else 0 end) + (if Skills.elearth > 100 then 5 else 0 end)</manaCost>
+</spell>
+<spell>
+	<number>918</number>
+	<name>Duplicate</name>
+	<type>utility</type>
+	<manaCost>18</manaCost>
+</spell>
+<spell>
+	<number>919</number>
+	<name>Wizard's Shield</name>
+	<type>defense</type>
+	<duration>1</duration>
+	<manaCost>19</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>50</boltDS>
+	<physicalDS>50</physicalDS>
+	<msgup>A translucent sphere forms around you\.</msgup>
+	<msgdown>The translucent sphere fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>920</number>
+	<name>Call Familiar</name>
+	<type>utility</type>
+	<clearondeath>false</clearondeath>
+	<duration>20 + Spells.wizard</duration>
+	<manaCost>20</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You (concentrate on the [a-z]+ talisman as you )?cast your conciousness out into the ether in search of a (specific type of )?familiar\.$|^You feel the magical link between you and your (?:[\-\w+])[\-\s\w]* (?:grow stronger|strengthen)\.$|^As you gaze into the depths of the tiny pool, you notice a faint tickle\.  It is almost as if the ring is drawing energy from your very being\.\.\.</msgup>
+	<msgdown>You sense the link between you and your (?:[\-\w+])[\-\s\w]* weaken and vanish\.</msgdown>
+</spell>
+<spell>
+	<number>925</number>
+	<name>Enchant Item</name>
+	<type>utility</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>930</number>
+	<name>Familiar Gate</name>
+	<type>utility</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>1001</number>
+	<name>Holding Song</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>1002</number>
+	<name>Vibration Chant</name>
+	<type>attack</type>
+	<manaCost>2</manaCost>
+</spell>
+<spell>
+	<number>1003</number>
+	<name>Fortitude Song</name>
+	<type>defense</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>3</manaCost>
+	<renewCost>1</renewCost>
+	<selfonly>true</selfonly>
+	<boltDS>10</boltDS>
+	<physicalDS>10</physicalDS>
+	<msgup>You begin to sing of heroic deeds and bolster your confidence\.</msgup>
+	<msgdown>You no longer feel a sense of confidence\.</msgdown>
+</spell>
+<spell>
+	<number>1004</number>
+	<name>Purification Song</name>
+	<type>utility</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>1005</number>
+	<name>Lullabye</name>
+	<type>attack</type>
+	<manaCost>5</manaCost>
+</spell>
+<spell>
+	<number>1006</number>
+	<name>Song of Luck</name>
+	<type>utility</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>6+([Spells.bard-6,0].max/4)</manaCost>
+	<renewCost>3+([Spells.bard-6,0].max/8)</renewCost>
+	<selfonly>true</selfonly>
+	<msgup>As you sing, the air sparkles briefly with tiny flashing motes of light before returning to normal\.  You feel strangely lucky!</msgup>
+	<msgdown>The air stops shimmering around you\.</msgdown>
+</spell>
+<spell>
+	<number>1007</number>
+	<name>Kai's Triumph Song</name>
+	<type>offense/bonus</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>7+[[Spells.bard-7,0].max,13].min</manaCost>
+	<renewCost>2+[[Spells.bard-7,0].max,13].min</renewCost>
+	<selfonly>true</selfonly>
+	<boltAS>[[3+Spells.bard,10].max,20].min</boltAS>
+	<physicalAS>[[3+Spells.bard,10].max,20].min</physicalAS>
+	<msgup>Your (?:spirit is|spirits are) lifted by the verses praising Kai\.</msgup>
+	<msgdown>Your (?:spirit is|spirits are) no longer lifted by stories of Kai's Triumphs\.</msgdown>
+</spell>
+<spell>
+	<number>1008</number>
+	<name>Stunning Shout</name>
+	<type>attack</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>1009</number>
+	<name>Sonic Shield Song</name>
+	<type>defense</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>9</manaCost>
+	<renewCost>4</renewCost>
+	<selfonly>true</selfonly>
+	<boltDS>[10+(Spells.bard/2.0).round,35].min</boltDS>
+	<physicalDS>[10+(Spells.bard/2.0).round,35].min</physicalDS>
+	<msgup>You begin singing and focus your voice into a vortex of air centered on your left arm\.</msgup>
+	<msgdown>Your(?: sonic)? (?:buckler|kidney|small|targe|heater|knight's|lantern|medium|parma|target|aegis|kite|large|pageant|round|scutum|greatshield|mantlet|pavis|tower|wall|shield)?(?:\sshield)? dissipates\.</msgdown>
+</spell>
+<spell>
+	<number>1010</number>
+	<name>Song of Valor</name>
+	<type>defense</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>10+((Spells.bard-10)/4)</manaCost>
+	<renewCost>3+((Spells.bard-10)/10)</renewCost>
+	<selfonly>true</selfonly>
+	<boltDS>10+(([Spells.bard,Stats.level].min-10)/2)+([Spells.bard-Stats.level,0].max/5)</boltDS>
+	<physicalDS>10+(([Spells.bard,Stats.level].min-10)/2)+([Spells.bard-Stats.level,0].max/5)</physicalDS>
+	<msgup>As you begin to sing of valiant legends, you feel more protected\.</msgup>
+	<msgdown>You no longer feel a sense of protection\.</msgdown>
+</spell>
+<spell>
+	<number>1011</number>
+	<name>Song of Peace</name>
+	<type>utility</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>11</manaCost>
+	<renewCost>4</renewCost>
+	<selfonly>true</selfonly>
+	<msgup>The surroundings respond to the soothing melody of your song, becoming calm and still\.</msgup>
+	<msgdown>The sense of peace and security passes away from the area\.|You stop singing Song of Peace\.</msgdown>
+</spell>
+<spell>
+	<number>1012</number>
+	<name>Sonic Weapon Song</name>
+	<type>attack</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>12</manaCost>
+	<renewCost>4</renewCost>
+	<physicalAS>[10+(Spells.bard/2.0).round,35].min</physicalAS>
+	<selfonly>true</selfonly>
+	<msgup>You begin singing and focus your voice into a (?:vortex of air shaped like a )?sonic (?:[\w\-]+\s?){1,3}(?:,| shaped vortex of air) centered on your (?:right|left) hand\.</msgup>
+	<msgdown>Your (?:sonic|twohanded|main) (?!barrier|buckler|kidney|small|targe|heater|knight's|lantern|medium|parma|target|aegis|kite|large|pageant|round|scutum|greatshield|mantlet|pavis|tower|wall|shield|barrier)[\w\s]+ dissipates\.</msgdown>
+</spell>
+<spell>
+	<number>1013</number>
+	<name>Song of Unravelling</name>
+	<type>attack/utility</type>
+	<manaCost>13</manaCost>
+</spell>
+<spell>
+	<number>1014</number>
+	<name>Sonic Armor</name>
+	<type>defense</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>14</manaCost>
+	<renewCost>5</renewCost>
+	<selfonly>true</selfonly>
+	<boltDS>[15+(Spells.bard/2.0).round,35].min</boltDS>
+	<physicalDS>[15+(Spells.bard/2.0).round,35].min</physicalDS>
+	<msgup>You begin singing and focus your voice into a vortex of air centered around your body\.</msgup>
+	<msgdown>Your sonic barrier dissipates\.</msgdown>
+</spell>
+<spell>
+	<number>1015</number>
+	<name>Song of Depression</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+	<renewCost>6</renewCost>
+</spell>
+<spell>
+	<number>1016</number>
+	<name>Song of Rage</name>
+	<type>attack</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>1017</number>
+	<name>Song of Noise</name>
+	<type>utility</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>17</manaCost>
+	<renewCost>7</renewCost>
+	<selfonly>true</selfonly>
+	<msgup>The surroundings respond to your piercing voice, disrupting the normal flow of mana\.</msgup>
+	<msgdown>The cacophony of sound finally passes away from the area\.|You stop singing Song of Noise\.</msgdown>
+</spell>
+<spell>
+	<number>1018</number>
+	<name>Song of Power</name>
+	<type>bonus</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>18</manaCost>
+	<renewCost>15</renewCost>
+	<selfonly>true</selfonly>
+	<msgup>As you sing, you feel the mana around you begin to swirl and move with a subtle grace\.</msgup>
+	<msgdown>The mana around you slowly returns to its natural state\.</msgdown>
+</spell>
+<spell>
+	<number>1019</number>
+	<name>Song of Mirrors</name>
+	<type>defense</type>
+	<duration>Spellsong.timeleft</duration>
+	<manaCost>19+((Spells.bard-19)/5)</manaCost>
+	<renewCost>8+((Spells.bard-19)/10)</renewCost>
+	<selfonly>true</selfonly>
+	<dodging>[20+((Spells.bard-19)/2),20].max</dodging>
+	<msgup>As you begin to sing a sibilant melody, shimmering mirror images of you appear in the area\.$|^The mirror images surrounding you undulate and grow stronger\.</msgup>
+	<msgdown>The mirror images surrounding you undulate and fade away\.</msgdown>
+</spell>
+<spell>
+	<number>1020</number>
+	<name>Traveller's Song</name>
+	<type>utility</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>1025</number>
+	<name>Singing Sword Song</name>
+	<type>attack/utility</type>
+	<manaCost>25</manaCost>
+	<renewCost>15</renewCost>
+</spell>
+<spell>
+	<number>1030</number>
+	<name>Song of Sonic Disruption</name>
+	<type>attack</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>1035</number>
+	<name>Song of Tonis</name>
+	<type>defense/bonus</type>
+	<duration>dur = 60.0; 1.upto(Skills.mltelepathy) { |val| if 20 >= val then dur += 1.0 else dur += 0.5 end }; dur / 60.0</duration>
+	<manaCost>35</manaCost>
+	<selfonly>true</selfonly>
+	<dodging>bonus = 20; [1,2,3,5,8,10,14,17,21,26,31,36,42,49,55,63,70,78,87,96].each { |n| bonus += 1 if Skills.elair >= n }; bonus</dodging>
+	<msgup>As [A-z]+ sings?, a(?:n invigorating)? squall of wind (?:briefly )?swirls (?:around|about) you(?: and you hear a barely audibl[ey] burst of laughter)?\.(?:  You feel yourself moving (?:a bit )?more smoothly and quickly than before!)?</msgup>
+	<msgdown>You hear a laugh and a clink of coins, and (?:you and your group )?become a bit less nimble\.</msgdown>
+</spell>
+<spell>
+	<number>1040</number>
+	<name>Troubadour's Rally</name>
+	<type>defense/utility</type>
+	<manaCost>40</manaCost>
+</spell>
+<spell>
+	<number>1101</number>
+	<name>Heal</name>
+	<type>utility/attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>1102</number>
+	<name>Limb Repair</name>
+	<type>utility</type>
+	<manaCost>if (Wounds.limbs > 1) and (Spells.empath >= 7) then 7 else 2 end</manaCost>
+</spell>
+<spell>
+	<number>1103</number>
+	<name>System Repair</name>
+	<type>utility</type>
+	<manaCost>if (Wounds.nerves > 1) and (Spells.empath >= 8) then 8 else 3 end</manaCost>
+</spell>
+<spell>
+	<number>1104</number>
+	<name>Head Repair</name>
+	<type>utility</type>
+	<manaCost>if ([Wounds.head, Wounds.neck].max > 1) and (Spells.empath >= 9) then 9 else 4 end</manaCost>
+</spell>
+<spell>
+	<number>1105</number>
+	<name>Organ Repair</name>
+	<type>utility</type>
+	<manaCost>if (Wounds.torso > 1) and (Spells.empath >= 10) then 10 else 5 end</manaCost>
+</spell>
+<spell>
+	<number>1106</number>
+	<name>Bone Shatter</name>
+	<type>attack</type>
+	<manaCost>6</manaCost>
+	<channel>true</channel>
+</spell>
+<spell>
+	<number>1107</number>
+	<name>Adrenal Surge</name>
+	<type>utility</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>1108</number>
+	<name>Empathy</name>
+	<type>attack</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>1109</number>
+	<name>Empathic Focus</name>
+	<type>offense/defense</type>
+	<duration>20 + Spells.empath</duration>
+	<manaCost>9 + (([Spells.empath,Stats.level].min - 9) / 6.0).round</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<physicalAS>15</physicalAS>
+	<boltDS>[25+(([Stats.level,Spells.empath].min-9)/2),25].max</boltDS>
+	<physicalDS>[25+(([Stats.level,Spells.empath].min-9)/2),25].max</physicalDS>
+	<elementalTD>7</elementalTD>
+	<spiritTD>15</spiritTD>
+	<sorcererTD>10</sorcererTD>
+	<msgup>You center yourself and (?:focus|renew) your concentration\.</msgup>
+	<msgdown>Your mind's keen focus fades away\.</msgdown>
+</spell>
+<spell>
+	<number>1110</number>
+	<name>Empathic Assault</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+	<stance>true</stance>
+</spell>
+<spell>
+	<number>1111</number>
+	<name>Limb Scar Repair</name>
+	<type>utility</type>
+	<manaCost>if (Scars.limbs > 1) and (Spells.empath >= 15) then 15 else 11 end</manaCost>
+</spell>
+<spell>
+	<number>1112</number>
+	<name>System Scar Repair</name>
+	<type>utility</type>
+	<manaCost>if (Scars.nerves > 1) and (Spells.empath >= 16) then 16 else 12 end</manaCost>
+</spell>
+<spell>
+	<number>1113</number>
+	<name>Head Scar Repair</name>
+	<type>utility</type>
+	<manaCost>if ([Scars.head,Scars.neck].max > 1) and (Spells.empath >= 17) then 17 else 13 end</manaCost>
+</spell>
+<spell>
+	<number>1114</number>
+	<name>Organ Scar Repair</name>
+	<type>utility</type>
+	<manaCost>if (Scars.torso > 1) and (Spells.empath >= 18) then 18 else 14 end</manaCost>
+</spell>
+<spell>
+	<number>1115</number>
+	<name>Wither</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>1116</number>
+	<name>Cry For Help</name>
+	<type>utility</type>
+	<manaCost>16</manaCost>
+</spell>
+<spell>
+	<number>1117</number>
+	<name>Empathic Link</name>
+	<type>attack</type>
+	<manaCost>8 + (Stats.level/10)</manaCost>
+</spell>
+<spell>
+	<number>1118</number>
+	<name>Herb Production</name>
+	<type>utility</type>
+	<manaCost>18</manaCost>
+</spell>
+<spell>
+	<number>1119</number>
+	<name>Strength Of Will</name>
+	<type>defense</type>
+	<duration>20 + Spells.empath</duration>
+	<manaCost>19 + (([Spells.empath,Stats.level].min - 19) / 6.0).round</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltDS>[[12+((Spells.empath-19)/3),12].max,25].min</boltDS>
+	<physicalDS>[[12+((Spells.empath-19)/3),12].max,25].min</physicalDS>
+	<elementalTD>([[12+((Spells.empath-19)/3),12].max,25].min/2).to_i</elementalTD>
+	<spiritTD>[[12+((Spells.empath-19)/3),12].max,25].min</spiritTD>
+	<sorcererTD>([[12+((Spells.empath-19)/3),12].max,25].min*0.75).to_i</sorcererTD>
+	<msgup>You feel an aura of resolve surround you\.  The exhilarating sensation sends your heart racing and a warm flush tingling through your body\.</msgup>
+	<msgdown>Your aura of resolve dissipates\.</msgdown>
+</spell>
+<spell>
+	<number>1120</number>
+	<name>Sympathy</name>
+	<type>attack</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>1125</number>
+	<name>Troll's Blood</name>
+	<type>utility</type>
+	<duration>20 + Spells.empath</duration>
+	<manaCost>25</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>Dark red droplets coalesce upon your skin before sinking into your flesh\.  (?:Your heart stutters for an instant before settling into a steady, powerful rhythm|Your heart, already beating strongly with Troll's Blood, accelerates with new vigor as your body accepts the new infusion)\.</msgup>
+	<msgdown>Your heart staggers briefly before slowing to a more regular speed\.  Dark red droplets seep out of your skin and evaporate as the influence of Troll's Blood leaves you\.</msgdown>
+</spell>
+<spell>
+	<number>1130</number>
+	<name>Intensity</name>
+	<type>offense/defense</type>
+	<duration>20 + Spells.empath</duration>
+	<manaCost>30 + ([(([Spells.empath,Stats.level].min-30)/2),0].max/3)</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltAS>[20+(([Spells.empath,Stats.level].min-30)/2),20].max</boltAS>
+	<physicalAS>[20+(([Spells.empath,Stats.level].min-30)/2),20].max</physicalAS>
+	<boltDS>[20+(([Spells.empath,Stats.level].min-30)/2),20].max</boltDS>
+	<physicalDS>[20+(([Spells.empath,Stats.level].min-30)/2),20].max</physicalDS>
+	<msgup>You feel an intense resolve fill your mind, and concentrate on improving your efforts to guard yourself\.</msgup>
+	<msgdown>Your intensity subsides\.</msgdown>
+</spell>
+<spell>
+	<number>1150</number>
+	<name>Regeneration</name>
+	<type>utility</type>
+	<manaCost>50</manaCost>
+</spell>
+<spell>
+	<number>1201</number>
+	<name>Force Orb</name>
+	<type>attack</type>
+	<manaCost>1</manaCost>
+</spell>
+<spell>
+	<number>1202</number>
+	<name>Iron Skin</name>
+	<type>defense</type>
+	<manaCost>2</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You feel your skin grow tight all across your body and your complexion takes on a .*? quality\.</msgup>
+	<msgdown>You feel the tension in your skin ease and notice that your complexion returns to normal\.</msgdown>
+</spell>
+<spell>
+	<number>1203</number>
+	<name>Powersink</name>
+	<type>attack</type>
+	<manaCost>3</manaCost>
+</spell>
+<spell>
+	<number>1204</number>
+	<name>Foresight</name>
+	<type>defense</type>
+	<manaCost>4</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<stacks>true</stacks>
+	<physicalDS>10</physicalDS>
+	<msgup>Opening your mind's eye to the progression of time, a myriad of possible future events fills your consciousness\.</msgup>
+	<msgdown>Like sand through an hourglass, your visions of the future slip away and fade from your mind\.</msgdown>
+</spell>
+<spell>
+	<number>1205</number>
+	<name>Soothing Word</name>
+	<type>utility</type>
+	<manaCost>5</manaCost>
+</spell>
+<spell>
+	<number>1206</number>
+	<name>Telekinesis</name>
+</spell>
+<spell>
+	<number>1207</number>
+	<name>Force Projection</name>
+	<type>attack</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>1208</number>
+	<name>Mindward</name>
+	<type>defense</type>
+	<manaCost>8 + ([([([Spells.minormental,Stats.level].min - 8), 0].max/2), 20].min/2)</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<stacks>true</stacks>
+	<mentalTD>[20 + ([([Spells.minormental,Stats.level].min - 8), 0].max/2), 40].min</mentalTD>
+	<elementalTD>[20 + ([([Spells.minormental,Stats.level].min - 8), 0].max/2), 40].min/2</elementalTD>
+	<spiritTD>[20 + ([([Spells.minormental,Stats.level].min - 8), 0].max/2), 40].min/2</spiritTD>
+	<sorcererTD>[20 + ([([Spells.minormental,Stats.level].min - 8), 0].max/2), 40].min/2</sorcererTD>
+	<msgup>You feel your forehead pulse as your mind hardens to deter invading thoughts\.</msgup>
+	<msgdown>You feel your forehead pulse as your mind relaxes\.</msgdown>
+</spell>
+<spell>
+	<number>1209</number>
+	<name>Dragonclaw</name>
+	<type>offense</type>
+	<manaCost>9</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<stacks>true</stacks>
+	<msgup>Your hands grow hard and scaly\.</msgup>
+	<msgdown>The scales covering your hands turn brittle and flake away\.</msgdown>
+</spell>
+<spell>
+	<number>1210</number>
+	<name>Thought Lash</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>1211</number>
+	<name>Confusion</name>
+	<type>attack</type>
+	<manaCost>11</manaCost>
+</spell>
+<spell>
+	<number>1212</number>
+	<name>Shroud of Deception</name>
+</spell>
+<spell>
+	<number>1213</number>
+	<name>Mind over Body</name>
+	<type>utility</type>
+	<manaCost>13</manaCost>
+	<duration>250</duration>
+	<msgup>Your muscles ripple momentarily and you suddenly become aware of a multitude of your body's processes\.  You feel an unnatural control over your breathing, heart rate and muscle tension\.</msgup>
+	<msgdown>You feel your muscles begin to strain for an instant\.  The sense of body control has left you\.</msgdown>
+</spell>
+<spell>
+	<number>1214</number>
+	<name>Brace</name>
+	<type>defense</type>
+	<manaCost>14</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<stacks>true</stacks>
+	<msgup>Thick plates of bone grow from your forearms\.$|^The bones surrounding your forearms shift and fortify\.</msgup>
+	<msgdown>The thick plates of bone around your forearms begin to crack, then shatter into a fine white dust\.</msgdown>
+</spell>
+<spell>
+	<number>1215</number>
+	<name>Blink</name>
+	<type>defense</type>
+	<manaCost>15</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<msgup>A momentary eruption of starlit darkness engulfs you\.  As the shadow thins, double images of the world sway dizzyingly around you before regaining solidity\.</msgup>
+	<msgdown>Darkness punctuated by a constellation of starry pinpoints wells up to the surface of your skin and splinters away with a sound like shattering crystal\.</msgdown>
+</spell>
+<spell>
+	<number>1216</number>
+	<name>Focus Barrier</name>
+	<type>defense</type>
+	<manaCost>16</manaCost>
+	<duration>250</duration>
+	<physicalDS>30</physicalDS>
+	<msgup>A barrier of force forms around you(?: and your group)?\.</msgup>
+	<msgdown>The barrier of force around you dissipates\.</msgdown>
+</spell>
+<spell>
+	<number>1217</number>
+	<name>Vision</name>
+	<type>utility</type>
+	<manaCost>17</manaCost>
+</spell>
+<spell>
+	<number>1218</number>
+	<name>Mental Dispel</name>
+	<type>attack/utility</type>
+	<manaCost>18</manaCost>
+</spell>
+<spell>
+	<number>1219</number>
+	<name>Vertigo</name>
+	<type>attack</type>
+	<manaCost>19</manaCost>
+</spell>
+<spell>
+	<number>1220</number>
+	<name>Premonition</name>
+	<type>defense</type>
+	<manaCost>20 + ([([Spells.minormental,Stats.level].min - 20), 0].max/4)</manaCost>
+	<duration>20 + Spells.minormental</duration>
+	<boltDS>20 + ([([Spells.minormental,Stats.level].min - 20), 0].max/2)</boltDS>
+	<physicalDS>20 + ([([Spells.minormental,Stats.level].min - 20), 0].max/2)</physicalDS>
+	<msgup>A flood of visions fills your mind and you strain to pick out your place amongst the countless blurred images and muted sound\.</msgup>
+	<msgdown>The visions slowly trickle from your mind, and you are left with the world before you once again\.</msgdown>
+</spell>
+<spell>
+	<number>1225</number>
+	<name>Mindwipe</name>
+</spell>
+<spell>
+	<number>1235</number>
+	<name>Provoke</name>
+	<type>utility</type>
+	<manaCost>35</manaCost>
+</spell>
+<spell>
+	<number>1601</number>
+	<name>Mantle of Faith</name>
+	<type>defense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>cost = 1; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| cost += 1 if Skills.slblessings >= n }; cost</manaCost>
+	<stacks>true</stacks>
+	<boltDS>bonus = 5; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</boltDS>
+	<physicalDS>bonus = 5; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</physicalDS>
+	<elementalTD>((bonus = 5; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus)/2).to_i</elementalTD>
+	<spiritTD>bonus = 5; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus</spiritTD>
+	<sorcererTD>((bonus = 5; [2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus)*0.75).to_i</sorcererTD>
+	<msgup>A whirl of spiritual energy streaks down from above, creating a dully illuminated mantle around your form\.|^The dully illuminated mantle surrounding your form seems to gain some cohesion\.</msgup>
+	<msgdown>The dully illuminated mantle protecting you begins to falter, then completely fades away\.</msgdown>
+</spell>
+<spell>
+	<number>1602</number>
+	<name>Pious Trial</name>
+	<type>attack</type>
+	<manaCost>2</manaCost>
+</spell>
+<spell>
+	<number>1603</number>
+	<name>Faith's Clarity</name>
+	<type>utility</type>
+	<duration>0.5</duration>
+	<manaCost>3</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>The divine power grants you lucid understanding of the spiritual and you become much more clearly focused\.</msgup>
+	<msgdown>Your sense of clarity fades\.</msgdown>
+</spell>
+<spell>
+	<number>1604</number>
+	<name>Purify</name>
+	<type>utility</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>1605</number>
+	<name>Arm of the Arkati</name>
+	<type>offense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>cost = 5; [5,11,18,26,35,45,56,68,81,95,110,126,143,161,180,200].each { |n| cost += 1 if Skills.slsummoning >= n }; if group? then cost + 1 else cost end</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>You feel a subdued warmth through your arms and torso, accompanied by a preponderant sense of engagement\.</msgup>
+	<msgdown>The warmth surrounding you fades with the spiritual force that was surrounding your arms\.</msgdown>
+</spell>
+<spell>
+	<number>1606</number>
+	<name>Dauntless</name>
+	<type>offense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>6</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltAS>10</boltAS>
+	<physicalAS>10</physicalAS>
+	<msgup>You are filled with a deeply confident and fearless composure\.|Your confidence and fearlessness is bolstered\.</msgup>
+	<msgdown>Your boosted confidence and fearlessness fade\.</msgdown>
+</spell>
+<spell>
+	<number>1607</number>
+	<name>Rejuvination</name>
+	<type>utility</type>
+	<duration>5.13</duration>
+	<selfonly>true</selfonly>
+	<manaCost>[7, (0.5 - ((Skills.smc/3)*0.01)) * ([15 + (Skills.slblessings/0.3).to_i, [(maxhealth - health), (maxstamina - stamina)].max].min)].max</manaCost>
+	<msgup>Granules of cobalt light coalesce around you and as they begin to seep into your exposed skin, you feel invigorated\.</msgup>
+	<msgdown>Cobalt light separates itself from your skin and scatters into oblivion\.</msgdown>
+</spell>
+<spell>
+	<number>1608</number>
+	<name>Guiding Light</name>
+	<type>utility</type>
+	<manaCost>8</manaCost>
+</spell>
+<spell>
+	<number>1609</number>
+	<name>Divine Shield</name>
+	<type>defense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>9</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>The warmth works its way toward you, and your shield arm feels much more nimble\.</msgup>
+	<msgdown>Your skin grows slightly numb for a moment as the warm glow fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>1610</number>
+	<name>Higher Vision</name>
+	<type>defense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>cost = 10; cost += (([Spells.paladin,Stats.level].min - 10) / 2).round; if cost > 20 then cost = 20 end; cost</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltDS>[[10+((Spells.paladin-10)/2),10].max,20].min+(bonus = 0; [5,11,18,26,35,45,56,68,81,95,110,126,143,161,180,200].each { |n| bonus += 1 if Skills.slreligion >= n }; bonus)</boltDS>
+	<physicalDS>[[10+((Spells.paladin-10)/2),10].max,20].min+(bonus = 0; [5,11,18,26,35,45,56,68,81,95,110,126,143,161,180,200].each { |n| bonus += 1 if Skills.slreligion >= n }; bonus)</physicalDS>
+	<msgup>Visions of future battles fill your eyes, providing you with knowledge of conflicts yet unfought\.</msgup>
+	<msgdown>You lose a bit of focus as the knowledge of future battles drifts from your mind\.</msgdown>
+</spell>
+<spell>
+	<number>1611</number>
+	<name>Patron's Blessing</name>
+	<type>defense</type>
+	<duration>20 + Spells.paladin</duration>
+	# fixme: blessing lore raise mana cost?
+	<manaCost>11 + ((([Spells.paladin,Stats.level].min - 11) * 0.75).round / 3).round</manaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	# fixme: bonuses
+	<msgup>An unbridled power surges through you, infusing your body with might and improving your reactions\.</msgup>
+	<msgdown>You feel your abilities diminish as the energy provided by your patron fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>1612</number>
+	<name>Champion's Might</name>
+	<type>offense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>12</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<elementalCS>([[3+Spells.paladin,15].max,25].min/2).to_i</elementalCS>
+	<spiritCS>[[3+Spells.paladin,15].max,25].min</spiritCS>
+	<sorcererCS>([[3+Spells.paladin,15].max,25].min*0.75).to_i</sorcererCS>
+	<msgup>A dim celadon wisp flares briefly about each of your hands, trailing soft pulses of residual light as they move\.</msgup>
+	<msgdown>The dim celadon wisps about your hands flare up once more and fade completely away\.</msgdown>
+</spell>
+<spell>
+	<number>1613</number>
+	<name>Divine Vengeance</name>
+	<type>special</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>13</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>A wavering glow washes over your body and you sense a subtle connection to higher powers\.  You feel assured that your activity is under observation\.</msgup>
+	<msgdown>The wavering glow around you fades away\.</msgdown>
+</spell>
+<spell>
+	<number>1614</number>
+	<name>Aura of the Arkati</name>
+	<type>attack</type>
+	<manaCost>14</manaCost>
+</spell>
+<spell>
+	<number>1615</number>
+	<name>Divine Strike</name>
+	<type>attack</type>
+	<manaCost>15</manaCost>
+</spell>
+<spell>
+	<number>1616</number>
+	<name>Vigor</name>
+	<type>utility</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>16</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>The blood in your veins thickens and pulses with renewed life!</msgup>
+	<msgdown>You feel slightly weakened as the blood in your veins thins\.</msgdown>
+</spell>
+<spell>
+	<number>1617</number>
+	<name>Zealot</name>
+	<type>offense</type>
+	<duration>2 + ([Spells.paladin-17,0].max / 6)</duration>
+	<manaCost>17</manaCost>
+	<selfonly>true</selfonly>
+	<physicalAS>30+(bonus = 0; [1,3,6,10,15,21,28,36,45,55,66,78,91,105,120,136,153,171,190].each { |n| bonus += 1 if Skills.slreligion >= n }; bonus)</physicalAS>
+	<physicalDS>-30-(bonus = 0; [1,3,6,10,15,21,28,36,45,55,66,78,91,105,120,136,153,171,190].each { |n| bonus += 1 if Skills.slreligion >= n }; bonus)</physicalDS>
+	<msgup>A surge of radiant energy coalesces around you and (?:then fades into obscurity|those nearby)\.</msgup>
+	<msgdown>You feel less resolved as the divine urging subsides, fading into obscurity\.</msgdown>
+</spell>
+<spell>
+	<number>1618</number>
+	<name>Guard the Meek</name>
+	<type>defense</type>
+	<duration>20 + Spells.paladin</duration>
+	<manaCost>18</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<physicalDS>15+(bonus = 0; [6,13,21,30,40].each { |n| bonus += 1 if Skills.slblessings >= n }; bonus)</physicalDS>
+	<msgup>Memories of thousands of past battles momentarily occupy your thoughts, depicting the execution of perfect formations with a single Paladin leading the way\.</msgup>
+	<msgdown>Your bolstered defenses fade with the soft glow about you\.</msgdown>
+</spell>
+<spell>
+	<number>1619</number>
+	<name>Faith Shield</name>
+	<type>defense</type>
+	<duration>dur = 0.5 + (Spells.paladin - 19) / 60.0; if dur > (70.0 / 60.0) then dur = (70.0 / 60.0) else dur end</duration>
+	<manaCost>19</manaCost>
+	<selfonly>true</selfonly>
+	<elementalTD>((50+(bonus = 0; [5,11,18,26,35,45,56,68].each { |n| bonus += 3 if Skills.slreligion >= n }; bonus))/2).to_i</elementalTD>
+	<spiritTD>50+(bonus = 0; [5,11,18,26,35,45,56,68].each { |n| bonus += 3 if Skills.slreligion >= n }; bonus)</spiritTD>
+	<sorcererTD>((50+(bonus = 0; [5,11,18,26,35,45,56,68].each { |n| bonus += 3 if Skills.slreligion >= n }; bonus))*0.75).to_i</sorcererTD>
+	<msgup>A muted pale blue sphere surrounds you\.</msgup>
+	<msgdown>The muted pale blue sphere surrounding you flickers once and shudders before fading completely\.</msgdown>
+</spell>
+<spell>
+	<number>1620</number>
+	<name>Aid the Fallen</name>
+	<type>utility</type>
+	<manaCost>20</manaCost>
+</spell>
+<spell>
+	<number>1625</number>
+	<name>Sanctify</name>
+	<type>utility</type>
+	<manaCost>25</manaCost>
+</spell>
+<spell>
+	<number>1630</number>
+	<name>Judgment</name>
+	<type>attack</type>
+	<manaCost>30</manaCost>
+</spell>
+<spell>
+	<number>1635</number>
+	<name>Divine Intervention</name>
+	<type>utility/defense</type>
+	<manaCost>35</manaCost>
+</spell>
+<spell>
+	<number>1640</number>
+	<name>Divine Word</name>
+	<type>utility</type>
+	<manaCost>40</manaCost>
+</spell>
+<spell>
+	<number>1701</number>
+	<name>Arcane Decoy</name>
+	<type>defense</type>
+	<duration>15 + (Skills.magicitemuse/6.0)</duration>
+	<#duration>15 + (Skills.arcanesymbols/6.0)</duration>
+	<manaCost>1</manaCost>
+	<msgup>A brilliant, rapidly shifting aura swirls around you\.</msgup>
+	<msgdown>The brilliant, rapidly shifting aura around you shimmers and (?:flickers briefly before fading\.|bursts in a bright flash!)</msgdown>
+</spell>
+<spell>
+	<number>1704</number>
+	<name>Stun Cloud</name>
+	<type>attack</type>
+	<manaCost>4</manaCost>
+</spell>
+<spell>
+	<number>1706</number>
+	<name>Flaming Aura</name>
+	<type>attack</type>
+	<duration>4</duration>
+	<manaCost>6</manaCost>
+	<msgup>Thin wisps of blue flame suddenly surround your body!</msgup>
+	<msgdown>The licks of blue flame surrounding you flare up one last time before vanishing with a staticky crackle\.</msgdown>
+</spell>
+<spell>
+	<number>1707</number>
+	<name>Minor Steam</name>
+	<type>attack</type>
+	<manaCost>7</manaCost>
+</spell>
+<spell>
+	<number>1708</number>
+	<name>Mystic Impedance</name>
+	<type>attack</type>
+	<manaCost>8</manaCost>
+	<duration>3</duration>
+	<msgup>A dizzying array of golden runes surround and suffuse you before being absorbed into your body\.</msgup>
+	<msgdown>Golden runes enscribe themselves upon your body, quickly fading into nothingness\.</msgdown>
+</spell>
+<spell>
+	<number>1709</number>
+	<name>Minor Cold</name>
+	<type>attack</type>
+	<manaCost>9</manaCost>
+</spell>
+<spell>
+	<number>1710</number>
+	<name>Major Acid</name>
+	<type>attack</type>
+	<manaCost>10</manaCost>
+</spell>
+<spell>
+	<number>1711</number>
+	<name>Mystic Focus</name>
+	<type>offense</type>
+	<duration>5</duration>
+	<selfonly>true</selfonly>
+	<elementalCS>10 + [20 - Stats.level, 0].max</elementalCS>
+	<sorcererCS>10 + [20 - Stats.level, 0].max</sorcererCS>
+	<spiritCS>10 + [20 - Stats.level, 0].max</spiritCS>
+	<msgup>A sudden clarity of thought comes over you, and you realize that you now understand arcane mysteries that were previously incomprehensible\.</msgup>
+	<msgdown>Like a faint wisp of a barely-remembered dream, your brief, enhanced comprehension of arcane mysteries slips away\.</msgdown>
+</spell>
+<spell>
+	<number>1712</number>
+	<name>Spirit Guard</name>
+	<type>defense</type>
+	<duration>20 + (Skills.magicitemuse/2.0)</duration>
+	<#duration>20 + (Skills.arcanesymbols/2.0)</duration>
+	<selfonly>true</selfonly>
+	<boltDS>25</boltDS>
+	<physicalDS>25</physicalDS>
+	<msgup>A faint silvery glow surrounds your body\.</msgup>
+	<msgdown>A faint silvery glow fades from around you\.</msgdown>
+</spell>
+<spell>
+	<number>1713</number>
+	<name>Death Cloud</name>
+	<type>attack</type>
+</spell>
+<spell>
+	<number>1715</number>
+	<name>Firestorm</name>
+	<type>attack</type>
+</spell>
+<spell>
+	<number>1718</number>
+	<name>V'Tull's Fury</name>
+	<type>attack</type>
+</spell>
+<spell>
+	<number>1720</number>
+	<name>Arcane Barrier</name>
+	<type>defense</type>
+	<manaCost>20</manaCost>
+	<duration>30</duration>
+	<msgup>A .*? ellipsoid barrier slowly materializes around you and fades through a color spectrum into invisibility\.</msgup>
+	<msgdown>Your .*? barrier flashes rapidly and the sound of breaking crystal can be heard as it cascades down around you\.</msgdown>
+</spell>
+<spell>
+	<number>1750</number>
+	<name>Fash'lo'nae's Gift</name>
+	<type>utility</type>
+</spell>
+<spell>
+	<number>6666</number>
+	<name>Decaying</name>
+	<type>timer</type>
+	<clearondeath>false</clearondeath>
+	<duration>16</duration>
+	<selfonly>true</selfonly>
+	<msgup>The time left until you decay should never match any game line; it's specifically handled by infomonitor.lic in order to get the duration and effects right\.  So unless it\'s malfunctioning, don\'t change this\.</msgup>
+	<msgdown>The time left until you decay should never match any game line; it's specifically handled by infomonitor.lic in order to get the duration and effects right\.  So unless it\'s malfunctioning, don\'t change this\.</msgdown>
+</spell>
+<spell>
+	<number>9501</number>
+	<name>Slash Protection</name>
+	<type>defense</type>
+	<duration>240</duration>
+</spell>
+<spell>
+	<number>9502</number>
+	<name>Crush Protection</name>
+	<type>defense</type>
+	<duration>240</duration>
+</spell>
+<spell>
+	<number>9503</number>
+	<name>Puncture Protection</name>
+	<type>defense</type>
+	<duration>240</duration>
+</spell>
+<spell>
+	<number>9504</number>
+	<name>Armor Support</name>
+	<type>bonus</type>
+	<duration>240</duration>
+	<msgup>(?:You adjust|[A-Z][a-z]+ adjusts) your .*?, improving its ability to support the weight of your gear\.</msgup>
+</spell>
+<spell>
+	<number>9505</number>
+	<name>Armored Evasion</name>
+	<type>bonus</type>
+	<duration>240</duration>
+	<msgup>(?:You adjust|[A-Z][a-z]+ adjusts) your .*?, improving its comfort and maneuverability\.</msgup>
+	<msgdown>Your .*? shifts out of place and feels much less comfortable than before\.</msgdown>
+</spell>
+<spell>
+	<number>9506</number>
+	<name>Armored Casting</name>
+	<type>bonus</type>
+	<duration>240</duration>
+</spell>
+<spell>
+	<number>9507</number>
+	<name>Armored Fluidity</name>
+	<type>bonus</type>
+	<duration>240</duration>
+	<msgup>(?:You adjust|[A-Z][a-z]+ adjusts) your .*?, making it easier for you to cast spells\.</msgup>
+	<msgdown>Your .*? shifts out of place and feels somewhat more hindering\.$</msgdown>
+</spell>
+<spell>
+	<number>9508</number>
+	<name>Armored Stealth</name>
+	<type>bonus</type>
+	<duration>240</duration>
+	<msgup>(?:You adjust|[A-Z][a-z]+ adjusts) your .*? to cushion your movements\.</msgup>
+	<msgdown>Your .*? shifts out of place and no longer cushions your movements\.</msgdown>
+</spell>
+<spell>
+	<number>9509</number>
+	<name>Armor Reinforcement</name>
+	<type>defense</type>
+	<duration>240</duration>
+	<msgup>(?:You adjust|[A-Z][a-z]+ adjusts) your .*?, reinforcing weak spots\.</msgup>
+</spell>
+<spell>
+	<number>9601</number>
+	<name>Combat Movement</name>
+	<staminaCost>5</staminaCost>
+	<duration>3</duration>
+	<type>defense</type>
+	<selfonly>true</selfonly>
+	<command>cman cmovement</command>
+	<msgup>Your body becomes tense and ready for action\.</msgup>
+	<msgdown>Your close concentration on your movements fades away\.</msgdown>
+</spell>
+<spell>
+	<number>9602</number>
+	<name>Combat Focus</name>
+	<staminaCost>5</staminaCost>
+	<duration>3</duration>
+	<type>defense</type>
+	<selfonly>true</selfonly>
+	<command>cman focus</command>
+	<msgup>You sharpen your focus on combat and fortify yourself against distractions.</msgup>
+	<msgdown>Your singular focus on combat slowly drifts away.</msgdown>
+</spell>
+<spell>
+	<number>9603</number>
+	<name>Shadow Mastery</name>
+	<staminaCost>if Spell[9604].active? then 60 else 20 end</staminaCost>
+	<duration>3.13</duration>
+	<type>utility</type>
+	<command>cman smastery</command>
+	<selfonly>true</selfonly>
+	<msgup>You focus your mind on the shadows and gird your body for stealth\.(?:  You find maintaining this mindset to be exceptionally tiring\.)?</msgup>
+	<msgdown>Your body relaxes as your thoughts stray from the shadows\.</msgdown>
+	<castProc>dothistimeout 'cman smastery', 3, /^You focus your mind on the shadows and gird your body for stealth\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9604</number>
+	<name>Shadow Mastery Cooldown</name>
+	<duration>2</duration>
+	<selfonly>true</selfonly>
+	<msgup>Your body relaxes as your thoughts stray from the shadows\.</msgup>
+	<msgdown>The residual strain on your mind of such intense focus on the shadows fades away\.</msgdown>
+</spell>
+<spell>
+	<number>9605</number>
+	<name>Surge of Strength</name>
+	<staminaCost>if Spell[9606].active? then 60 else 30 end</staminaCost>
+	<duration>1.5</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>cman surge</command>
+	<msgup>You focus deep within yourself, searching for untapped sources of strength[\s\w\.]*</msgup>
+	<msgdown>You begin to lose touch with your internal sources of strength\.</msgdown>
+	<castProc>dothistimeout 'cman surge', 3, /^You feel (?:significantly|a great deal|a fair amount) stronger\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9606</number>
+	<name>Surge of Strength Cooldown</name>
+	<duration>dur = { nil => 5, 1 => 5, 2 => 4, 3 => 3, 4 => 2.5, 5 => 2 }; if defined?(CMan); dur[CMan.surge_of_strength]; else; 5; end</duration>
+	<selfonly>true</selfonly>
+	<msgup>You feel (?:significantly|a great deal|a fair amount) stronger\.</msgup>
+	<msgdown>Your internal strength fully recovers from your most recent attempt to tap into it\.</msgdown>
+</spell>
+<spell>
+	<number>9607</number>
+	<name>Berserk</name>
+	<type>attack</type>
+	<duration>5</duration>
+	<staminaCost>20</staminaCoast>
+	<msgup>Everything around you turns red as you work yourself into a berserker's rage!</msgup>
+	<msgdown>The redness fades from the world and you begin to breathe harder\.</msgdown>
+	<castProc>result = dothistimeout 'berserk', 5, /^Everything around you turns red as you work yourself into a berserker's rage!|^You rage across the battlefield, striking with unrelenting fury!/; if result; done = false; 450.times { sleep 0.1; if clear.any? { |line| line =~ /^The redness fades from the world/ }; done = true; break; end; break unless GameObj.npcs.any? { |npc| npc.status !~ /dead/ } }; unless done; fput 'stop berserk'; end; end</castProc>
+</spell>
+<spell>
+	<number>9620</number>
+	<name>Rolling Krynch Stance</name>
+	<staminaCost>20</staminaCost>
+	<type>timer</type>
+	<clearondeath>true</clearondeath>
+	<duration>240</duration>
+	<stacks>false</stacks>
+	<selfonly>true</selfonly>
+	<command>cman krynch</command>
+	<msgup>You (?:assume|re-settle into) the Rolling Krynch Stance\.</msgup>
+	<msgdown>You relax from the Rolling Krynch Stance\.</msgdown>
+</spell>
+<spell>
+	<number>9621</number>
+	<name>Stance of the Mongoose</name>
+	<staminaCost>20</staminaCost>
+	<type>timer</type>
+	<clearondeath>true</clearondeath>
+	<duration>240</duration>
+	<stacks>false</stacks>
+	<selfonly>true</selfonly>
+	<command>cman mongoose</command>
+	<msgup>You (?:assume|re-settle into) the Stance of the Mongoose, ready to retaliate instantly against your foes\.</msgup>
+	<msgdown>You relax from the Stance of the Mongoose, no longer ready to retaliate instantly against your foes\.</msgdown>
+</spell>
+<spell>
+	<number>9622</number>
+	<name>Slippery Mind</name>
+	<staminaCost>20</staminaCost>
+	<type>timer</type>
+	<clearondeath>true</clearondeath>
+	<duration>240</duration>
+	<stacks>false</stacks>
+	<selfonly>true</selfonly>
+	<command>cman slipp</command>
+	<msgup>You focus inward and prepare to blank your mind at a moment's notice\.</msgup>
+	<msgdown>You relax your mind and are no longer prepared to blank it at a moment's notice\.</msgdown>
+</spell>
+<spell>
+	<number>9623</number>
+	<name>Flurry of Blows</name>
+	<staminaCost>30</staminaCost>
+	<type>timer</type>
+	<clearondeath>true</clearondeath>
+	<duration>240</duration>
+	<stacks>false</stacks>
+	<selfonly>true</selfonly>
+	<command>cman flurry</command>
+	<msgup>You (?:assume|re-settle into) a stance suitable to unleash a flurry of blows\.</msgup>
+	<msgdown>You relax from a stance suitable to unleash a flurry of blows\.</msgdown>
+</spell>
+<spell>
+	<number>9624</number>
+	<name>Inner Harmony</name>
+	<staminaCost>40</staminaCost>
+	<type>timer</type>
+	<clearondeath>true</clearondeath>
+	<duration>240</duration>
+	<stacks>false</stacks>
+	<selfonly>true</selfonly>
+	<command>cman iharm</command>
+	<msgup>You (?:center your mind, body and soul and enter a|continue in your) state of inner harmony\.</msgup>
+	<msgdown>You feel your state of inner harmony slip away\.</msgdown>
+</spell>
+<spell>
+	<number>9625</number>
+	<name>Burst of Swiftness</name>
+	<staminaCost>if Spell[9051].active?; 60; else; 30; end</staminaCost>
+	<duration>1.5</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<stacks>false</stacks>
+	<command>cman burst</command>
+	<msgup>You prepare yourself to move swiftly at a moment's notice.*</msgup>
+	<msgdown>You feel less prepared to move as swiftly as before\.</msgdown>
+	<castProc>dothistimeout 'cman burst', 3, /^You feel (?:significantly|a great deal|a fair amount) more (?:agile|dextrous)\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9699</number>
+	<name>POPed muscles</name>
+	<duration>10.5</duration>
+	<selfonly>true</selfonly>
+	<msgup>You hear a loud \*POP\* come from your muscles!</msgup>
+	<msgdown>Your muscles (?:feel much less strained than|no longer feel as weak as) they did a moment ago\.</msgdown>
+</spell>
+<spell>
+	<number>9701</number>
+	<name>Sigil of Recognition</name>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of recognition</command>
+</spell>
+<spell>
+	<number>9702</number>
+	<name>Sigil of Location</name>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of location</command>
+</spell>
+<spell>
+	<number>9703</number>
+	<name>Sigil of Contact</name>
+	<duration>17</duration>
+	<type>utility</type>
+	<manaCost>1</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<command>sigil of contact</command>
+	<msgup>You concentrate on your sigil\.</msgup>
+	<msgdown>You sense that your attunement to the minds of others has ceased\.</msgdown>
+	<castProc>dothistimeout 'sigil of contact', 3, /^You feel your mind open up to the world around you\.$|^The distant thoughts in your mind feel stronger\.$/</castProc>
+</spell>
+<spell>
+	<number>9704</number>
+	<name>Sigil of Resolve</name>
+	<staminaCost>5</staminaCost>
+	<duration>1.5</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of resolve</command>
+	<msgup>You experience a momentary flash of insight on how to best overcome nature's obstacles\.</msgup>
+	<msgdown>The dull golden nimbus fades from around you\.</msgdown>
+	<castProc>dothistimeout 'sigil of resolve', 3, /^You experience a momentary flash of insight on how to best overcome nature's obstacles\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9705</number>
+	<name>Sigil of Minor Bane</name>
+	<duration>1</duration>
+	<type>offense</type>
+	<manaCost>3</manaCost>
+	<staminaCost>3</staminaCost>
+	<selfonly>true</selfonly>
+	<command>sigil of minor bane</command>
+	<msgup>As you concentrate on your sigil, you become slightly more aware of your foes and the weakest spots in their defenses\.</msgup>
+	<msgdown>Your heightened awareness of your foes fades away\.</msgdown>
+	<castProc>dothistimeout 'sigil of minor bane', 3, /^As you concentrate on your sigil, you become slightly more aware of your foes and the weakest spots in their defenses\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9706</number>
+	<name>Sigil of Bandages</name>
+	<staminaCost>10</staminaCost>
+	<duration>3</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of bandages</command>
+	<msgup>Your awareness of your own movements heightens as you begin to act with an unusual fluidity\.</msgup>
+	<msgdown>Your actions become less fluid as your close concentration on your movements begins to falter\.</msgdown>
+	<castProc>dothistimeout 'sigil of bandages', 3, /^Your awareness of your own movements heightens as you begin to act with an unusual fluidity\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9707</number>
+	<name>Sigil of Defense</name>
+	<duration>5</duration>
+	<type>defense</type>
+	<manaCost>5</manaCost>
+	<staminaCost>5</staminaCost>
+	<selfonly>true</selfonly>
+	<boltDS>Society.rank</boltDS>
+	<physicalDS>Society.rank</physicalDS>
+	<command>sigil of defense</command>
+	<msgup>A shimmering aura surrounds you\.</msgup>
+	<msgdown>The shimmering aura fades from around you\.</msgdown>
+	<castProc>dothistimeout 'sigil of defense', 3, /^A shimmering aura surrounds you\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9708</number>
+	<name>Sigil of Offense</name>
+	<duration>5</duration>
+	<type>offense</type>
+	<manaCost>5</manaCost>
+	<staminaCost>5</staminaCost>
+	<selfonly>true</selfonly>
+	<boltAS>Society.rank</boltAS>
+	<physicalAS>Society.rank</physicalAS>
+	<command>sigil of offense</command>
+	<msgup>A faint blue glow surrounds your hands, subtly guiding your movements\.</msgup>
+	<msgdown>The faint blue glow fades from around your hands\.</msgdown>
+	<castProc>dothistimeout 'sigil of offense', 3, /^A faint blue glow surrounds your hands, subtly guiding your movements\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9709</number>
+	<name>Sigil of Distraction</name>
+	<duration>5</duration>
+	<type>attack</type>
+	<manaCost>5</manaCost>
+	<staminaCost>10</staminaCost>
+	<command>sigil of distraction</command>
+	<castProc>dothistimeout 'sigil of distraction', 3, /^You carefully school your thoughts, focusing on the thresholds of disorder inherent in your environs, and etch the Sigil of Distraction in the air before you\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9710</number>
+	<name>Sigil of Minor Protection</name>
+	<duration>1</duration>
+	<maxduration>3</maxduration>
+	<type>defense</type>
+	<manaCost>5</manaCost>
+	<staminaCost>10</staminaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltDS>5</boltDS>
+	<physicalDS>5</physicalDS>
+	<command>sigil of minor protection</command>
+	<msgup>As you concentrate on your sigil, you become slightly more aware of weak spots in your defenses\.</msgup>
+	<msgdown>Your heightened awareness of your own defensive weaknesses fades away\.</msgdown>
+	<castProc>dothistimeout 'sigil of minor protection', 3, /^As you concentrate on your sigil, you become slightly more aware of weak spots in your defenses\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9711</number>
+	<name>Sigil of Focus</name>
+	<duration>1</duration>
+	<maxduration>3</maxduration>
+	<type>defense</type>
+	<manaCost>5</manaCost>
+	<staminaCost>5</staminaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<elementalTD>Society.rank</elementalTD>
+	<spiritTD>Society.rank</spiritTD>
+	<sorcererTD>Society.rank</sorcererTD>
+	<command>sigil of focus</command>
+	<msgup>You feel your mind and body gird themselves against magical interference\.</msgup>
+	<msgdown>Your mind and body begin to relax after that period of intense focus\.</msgdown>
+	<castProc>dothistimeout 'sigil of focus', 3, /^You feel your mind and body gird themselves against magical interference\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9712</number>
+	<name>Sigil of Intimidation</name>
+	<type>attack</type>
+	<manaCost>if checkpcs.length > 1 then 10 else 5 end</manaCost>
+	<staminaCost>if checkpcs.length > 1 then 15 else 10 end</staminaCost>
+	<command>sigil of intimidation</command>
+	<castProc>dothistimeout 'sigil of intimidation', 3, /^You carefully school your thoughts, focusing on the enhancement of your aspect and bearing, and etch the Sigil of Intimidation in the air before you\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9713</number>
+	<name>Sigil of Mending</name>
+	<duration>10</duration>
+	<type>utility</type>
+	<manaCost>10</manaCost>
+	<staminaCost>15</staminaCost>
+	<selfonly>true</selfonly>
+	<command>sigil of mending</command>
+	<msgup>Your heart begins to beat faster as your entire body becomes awash with a pleasantly warm sensation\.</msgup>
+	<msgdown>The pleasantly warm sensation fades as your heart beat begins to return to normal\.</msgdown>
+	<castProc>dothistimeout 'sigil of mending', 3, /^Your heart begins to beat faster as your entire body becomes awash with a pleasantly warm sensation\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9714</number>
+	<name>Sigil of Concentration</name>
+	<staminaCost>30</staminaCost>
+	<duration>10</duration>
+	<type>bonus</type>
+	<selfonly>true</selfonly>
+	<command>sigil of concentration</command>
+	<msgup>As you concentrate on your sigil, you feel more attuned to the flows of mana\.</msgup>
+	<msgdown>Your heightened attunement to the flows of mana begins to fade\.</msgdown>
+	<castProc>dothistimeout 'sigil of concentration', 3, /^As you concentrate on your sigil, you feel more attuned to the flows of mana\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9715</number>
+	<name>Sigil of Major Bane</name>
+	<duration>1</duration>
+	<type>offense</type>
+	<manaCost>10</manaCost>
+	<staminaCost>10</staminaCost>
+	<selfonly>true</selfonly>
+	<physicalAS>10</physicalAS>
+	<boltAS>10</boltAS>
+	<command>sigil of major bane</command>
+	<msgup>As you concentrate on your sigil, you become much more aware of your foes and the most vulnerable portions of their bodies\.</msgup>
+	<msgdown>Your heightened awareness of your foes fades away\.</msgdown>
+	<castProc>dothistimeout 'sigil of major bane', 3, /^As you concentrate on your sigil, you become much more aware of your foes and the most vulnerable portions of their bodies\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9716</number>
+	<name>Sigil of Determination</name>
+	<staminaCost>30</staminaCost>
+	<duration>3</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of determination</command>
+	<msgup>You begin to focus sharply upon the task at hand, pushing all thoughts and sensations of pain far from your mind\.</msgup>
+	<msgdown>Your sharp concentration upon your current task falters as the pain of your injuries rushes back into your mind\.</msgdown>
+	<castProc>dothistimeout 'sigil of determination', 3, /^You begin to focus sharply upon the task at hand, pushing all thoughts and sensations of pain far from your mind\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9717</number>
+	<name>Sigil of Health</name>
+	<manaCost>10</manaCost>
+	<staminaCost>20</staminaCost>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of health</command>
+	<castProc>dothistimeout 'sigil of health', 3, /^As you concentrate on your sigil, you feel a brief surge of vitality course throughout your body\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9718</number>
+	<name>Sigil of Power</name>
+	<staminaCost>50</staminaCost>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>sigil of power</command>
+	<castProc>dothistimeout 'sigil of power', 3, /^As you concentrate on the signal, you feel exceptionally tired as your physical energy rapidly transforms into magical energy\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9719</number>
+	<name>Sigil of Major Protection</name>
+	<duration>1</duration>
+	<maxduration>3</maxduration>
+	<type>defense</type>
+	<manaCost>10</manaCost>
+	<staminaCost>15</staminaCost>
+	<selfonly>true</selfonly>
+	<stacks>true</stacks>
+	<boltDS>10</boltDS>
+	<physicalDS>10</physicalDS>
+	<command>sigil of major protection</command>
+	<msgup>As you concentrate on your sigil, you become much more aware of vulnerable spots in your defenses\.</msgup>
+	<msgdown>Your heightened awareness of your own vulnerabilities fades away\.</msgdown>
+	<castProc>dothistimeout 'sigil of major protection', 3, /^As you concentrate on your sigil, you become much more aware of vulnerable spots in your defenses\.$|^Your muscles ache much too badly to even think about attempting this maneuver\.$/</castProc>
+</spell>
+<spell>
+	<number>9720</number>
+	<name>Sigil of Escape</name>
+	<type>utility</type>
+	<manaCost>15</manaCost>
+	<staminaCost>75</staminaCost>
+	<selfonly>true</selfonly>
+	<command>sigil of escape</command>
+</spell>
+<spell>
+	<number>9801</number>
+	<name>Symbol of Recognition</name>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<castProc>dothistimeout "symbol of recognition", 5, /^There are no undead creatures present\.|^You recognize no fellow members|is and undead creature\.|is a member of the Order of Voln\./</castProc>
+</spell>
+<spell>
+	<number>9802</number>
+	<name>Symbol of Blessing</name>
+	<favorCost>0.048</favorCost>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of blessing#{target}", 5, /^You must specify something\.|^A wave of power flows outward from you/</castProc>
+</spell>
+<spell>
+	<number>9803</number>
+	<name>Symbol of Thought</name>
+	<favorCost>0.048</favorCost>
+	<selfonly>true</selfonly>
+	<type>utility</type>
+	<command></command>
+</spell>
+<spell>
+	<number>9804</number>
+	<name>Symbol of Diminishment</name>
+	<type>attack</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of diminishment#{target}", 5, /^What were you referring to\?|^You draw a glowing pattern in the air/</castProc>
+</spell>
+<spell>
+	<number>9805</number>
+	<name>Symbol of Courage</name>
+	<duration>Society.rank / 6.0</duration>
+	<type>offense</type>
+	<favorCost>0.096</favorCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltAS>Society.rank</boltAS>
+	<physicalAS>Society.rank</physicalAS>
+	<castProc>dothistimeout "symbol of courage", 5, /^You feel more courageous\./</castProc>
+	<msgup>You feel more courageous\.</msgup>
+	<msgdown>You feel the extra courage wane\.</msgdown>
+</spell>
+<spell>
+	<number>9806</number>
+	<name>Symbol of Protection</name>
+	<duration>Society.rank / 3.0</duration>
+	<favorCost>0.096</favorCost>
+	<type>defense</type>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<boltDS>Society.rank</boltDS>
+	<physicalDS>Society.rank</physicalDS>
+	<elementalTD>Society.rank/2</elementalTD>
+	<spiritTD>Society.rank/2</spiritTD>
+	<sorcererTD>Society.rank/2</sorcererTD>
+	<mentalTD>Society.rank/2</mentalTD>
+	<castProc>dothistimeout "symbol of protection", 5, /^You feel a layer of protection surround you\./</castProc>
+	<msgup>You feel a layer of protection surround you\.</msgup>
+	<msgdown>The layer of protection fades away\.</msgdown>
+</spell>
+<spell>
+	<number>9807</number>
+	<name>Symbol of Submission</name>
+	<type>attack</type>
+	<command>symbol of submission</command>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of submission#{target}", 5, /^What were you referring to\?|^You feel the power of the symbol project/</castProc>
+</spell>
+<spell>
+	<number>9808</number>
+	<name>Kai's Strike</name>
+	<command></command>
+</spell>
+<spell>
+	<number>9809</number>
+	<name>Symbol of Holiness</name>
+	<type>attack</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of holiness#{target}", 5, /^What were you referring to\?|^A wave of power flows out of you/</castProc>
+</spell>
+<spell>
+	<number>9810</number>
+	<name>Symbol of Recall</name>
+	<type>utility</type>
+	<command>symbol of recall</command>
+</spell>
+<spell>
+	<number>9811</number>
+	<name>Symbol of Sleep</name>
+	<type>attack</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of sleep#{target}", 5, /^You draw a glowing pattern in the air/</castProc>
+</spell>
+<spell>
+	<number>9812</number>
+	<name>Symbol of Transcendence</name>
+	<type>defense</type>
+	<duration>0.5</duration>
+	<castProc>dothistimeout "symbol of transcendence#{target}", 5, /^You step into the space between the corporeal and ethereal realms\.|^You have already stepped into the space between the corporeal and ethereal realms\.|^The bonds of the corporeal realm hold fast and you remain fully within its grasp\./</castProc>
+	<msgup>(?:With difficulty, you manage to will yourself|You step) into the space between the corporeal and ethereal realms\.</msgup>
+</spell>
+<spell>
+	<number>9813</number>
+	<name>Symbol of Mana</name>
+	<type>utility</type>
+	<command>symbol of mana</command>
+	<castProc>dothistimeout 'symbol of mana', 5, /^You call upon a special blessing from Koar.|^You are already at your maximum mana level\.|^You must CONFIRM that you wish to use this symbol during its recovery period\./</castProc>
+</spell>
+<spell>
+	<number>9814</number>
+	<name>Symbol of Sight</name>
+	<favorCost></favorCost>
+	<type>utility</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of sight#{target}", 5, /^You concentrate/</castProc>
+</spell>
+<spell>
+	<number>9815</number>
+	<name>Symbol of Retribution</name>
+	<type>attack/utility</type>
+	<duration>Society.rank / 6.0</duration>
+	<stacks>true</stacks>
+	<msgup>You feel an aura of righteous wrath surround you\.</msgup>
+	<msgdown>The aura of righteous wrath leaves you\.</msgdown>
+	<command>symbol of retribution</command>
+	<#fixme castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of retribution#{target}", 5, /^You feel an aura of righteous wrath surround you\.|^You can only make a retribution attack against an undead creature\.|^You cannot make a retribution attack while still living\./</castProc>
+</spell>
+<spell>
+	<number>9816</number>
+	<name>Symbol of Supremacy</name>
+	<type>offensive</type>
+	<duration>Society.rank / 6.0</duration>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<castProc>dothistimeout 'symbol of supremacy', 5, /^You feel infused with a collective knowledge on the undead and their weaknesses\./</castProc>
+	<msgup>You feel infused with a collective knowledge on the undead and their weaknesses\.</msgup>
+	<msgdown>The rush of collective knowledge of the undead fades from your mind\.</msgdown>
+</spell>
+<spell>
+	<number>9817</number>
+	<name>Symbol of Restoration</name>
+	<type>utility</type>
+	<castProc>dothistimeout 'symbol of restoration', 5, /^The power of the symbol begins to rise in you, but then fades\.|^You feel the power of the symbol course through your body\./</castProc>
+</spell>
+<spell>
+	<number>9818</number>
+	<name>Symbol of Need</name>
+	<type>utility</type>
+	<command>symbol of need</command>
+</spell>
+<spell>
+	<number>9819</number>
+	<name>Symbol of Renewal</name>
+	<type>utility</type>
+	<castProc>dothistimeout 'symbol of renewal', 5, /^You are already at your maximum spirit level\.|^You call upon the vitality of nature to renew your soul\./</castProc>
+</spell>
+<spell>
+	<number>9820</number>
+	<name>Symbol of Disruption</name>
+	<castProc>dothistimeout 'symbol of disruption', 5, /^A churning spectral aura surrounds you/</castProc>
+</spell>
+<spell>
+	<number>9821</number>
+	<name>Kai's Smite</name>
+	<type>attack</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "smite#{target}", 5, /^You currently have no valid target\.  You will need to specify one\.|doesn't appear to be suffering from the curse of undeath\.|^You .*?smite/</castProc>
+</spell>
+<spell>
+	<number>9822</number>
+	<name>Symbol of Turning</name>
+	<type>attack</type>
+	<castProc>if defined?(target); if target.class == GameObj; target = " ##{target.id}"; elsif target.class == Fixnum; target = " ##{target}"; else; target = " #{target}"; end; else; target = ""; end; dothistimeout "symbol of turning#{target}", 5, /^You draw a glowing pattern in the air/</castProc>
+</spell>
+<spell>
+	<number>9823</number>
+	<name>Symbol of Preservation</name>
+	<type>utility</type>
+	<command>symbol of preservation</command>
+</spell>
+<spell>
+	<number>9824</number>
+	<name>Symbol of Dreams</name>
+	<duration>240</duration>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<command>symbol of dreams</command>
+	<msgup>You feel suddenly tired and lie down for a nap\.</msgup>
+	<msgdown>Your sleep is interrupted\.|You wake up from your sleep\.</msgdown>
+</spell>
+<spell>
+	<number>9825</number>
+	<name>Symbol of Return</name>
+	<type>utility</type>
+	<command>symbol of return</command>
+</spell>
+<spell>
+	<number>9826</number>
+	<name>Symbol of Seeking</name>
+	<type>utility</type>
+	<command>symbol of seeking</command>
+</spell>
+<spell>
+	<number>9901</number>
+	<name>Sign of Recognition</name>
+	<type>utility</type>
+	<selfonly>true</selfonly>
+	<castProc>dothistimeout 'sign of recognition', 3, /^You (?:touch|scratch|rub|tap|point to) your (?:right|left) (?:eyebrow|nostril|earlobe|shoulder|cheek) with your (?:right|left) (?:pinky|forefinger|thumb|index finger)\.$/</castProc>
+</spell>
+<spell>
+	<number>9903</number>
+	<name>Sign of Warding</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>defense</type>
+	<manaCost>1</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>5</boltDS>
+	<physicalDS>5</physicalDS>
+	<msgup>Your dancing fingers weave a web of protection around you!</msgup>
+	<msgdown>Your SIGN OF WARDING is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of warding', 3, /^Your dancing fingers weave a web of protection around you!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9904</number>
+	<name>Sign of Striking</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>offense</type>
+	<manaCost>1</manaCost>
+	<selfonly>true</selfonly>
+	<boltAS>5</boltAS>
+	<physicalAS>5</physicalAS>
+	<msgup>You (?:grip|flex) your [\w\s]+ with renewed vigor!</msgup>
+	<msgdown>Your SIGN OF STRIKING is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of striking', 3, /^You (?:flex your muscles|grip your .*?) with renewed vigor!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9905</number>
+	<name>Sign of Clotting</name>
+	<duration>1+(Stats.level/6.0)</duration>
+	<type>utility</type>
+	<manaCost>1</manaCost>
+	<selfonly>true</selfonly>
+	<#msgup>Your veins throb and your blood sings\.</msgup>
+	<#msgdown>Your SIGN OF (?:STAUNCHING|CLOTTING) is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of clotting', 3, /^Your veins throb and your blood sings\.$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9906</number>
+	<name>Sign of Thought</name>
+	<duration>10 + Stats.level / 10.0</duration>
+	<type>utility</type>
+	<manaCost>1</manaCost>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<msgup>Your hypnotic gesture makes your mind receptive to the thoughts of others\.  You feel their distant, comforting presence\.</msgup>
+	<msgdown>You sense that your attunement to the minds of others has ceased\.</msgdown>
+	<castProc>dothistimeout 'sign of thought', 3, /^Your hypnotic gesture makes your mind receptive to the thoughts of others\.  You feel their distant, comforting presence\.$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9907</number>
+	<name>Sign of Defending</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>defense</type>
+	<manaCost>2</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>10</boltDS>
+	<physicalDS>10</physicalDS>
+	<msgup>Your dancing fingers weave a web of protection around you!</msgup>
+	<msgdown>Your SIGN OF DEFENDING is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of defending', 3, /^Your dancing fingers weave a web of protection around you!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9908</number>
+	<name>Sign of Smiting</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>offense</type>
+	<manaCost>2</manaCost>
+	<selfonly>true</selfonly>
+	<boltAS>10</boltAS>
+	<physicalAS>10</physicalAS>
+	<msgup>You (?:grip|flex) your [\w\s]+ with renewed vigor!</msgup>
+	<msgdown>Your SIGN OF SMITING is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of smiting', 3, /^You (?:flex your muscles|grip your .*?) with renewed vigor!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9909</number>
+	<name>Sign of Staunching</name>
+	<duration>2 + Stats.level / 3.0</duration>
+	<type>utility</type>
+	<manaCost>1</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>Your veins throb and your blood sings\.</msgup>
+	<msgdown>Your SIGN OF (?:STAUNCHING|CLOTTING) is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of staunching', 3, /^Your veins throb and your blood sings\.$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9910</number>
+	<name>Sign of Deflection</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>defense</type>
+	<manaCost>3</manaCost>
+	<selfonly>true</selfonly>
+	<boltDS>20</boltDS>
+	<msgup>You feel magical energies distort and flow around you\.</msgup>
+	<msgdown>Your SIGN OF DEFLECTION is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of deflection', 3, /^You feel magical energies distort and flow around you\.$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9911</number>
+	<name>Sign of Hypnosis</name>
+	<type>attack</type>
+	<spiritCost>1</spiritCost>
+	<castProc>dothistimeout 'sign of hypnosis' 3, /^You project your will upon your opponents!|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9912</number>
+	<name>Sign of Swords</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>offense</type>
+	<spiritCost>1</spiritCost>
+	<selfonly>true</selfonly>
+	<boltAS>20</boltAS>
+	<physicalAS>20</physicalAS>
+	<msgup>You (?:grip|flex) your [\w\s]+ with renewed vigor!</msgup>
+	<msgdown>Your SIGN OF SWORDS is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of swords', 3, /^You (?:flex your muscles|grip your .*?) with renewed vigor!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9913</number>
+	<name>Sign of Shields</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>defense</type>
+	<spiritCost>1</spiritCost>
+	<selfonly>true</selfonly>
+	<boltDS>20</boltDS>
+	<physicalDS>20</physicalDS>
+	<msgup>Your dancing fingers weave a web of protection around you!</msgup>
+	<msgdown>Your SIGN OF SHIELDS is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of shields', 3, /^Your dancing fingers weave a web of protection around you!$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9914</number>
+	<name>Sign of Dissipation</name>
+	<duration>1 + Stats.level / 6.0</duration>
+	<type>defense</type>
+	<spiritCost>1</spiritCost>
+	<selfonly>true</selfonly>
+	<elementalTD>15</elementalTD>
+	<spiritTD>15</spiritTD>
+	<sorcererTD>15</sorcererTD>
+	<mentalTD>15</mentalTD>
+	<msgup>Magic flows towards you, but does not reach you\.</msgup>
+	<msgdown>Your SIGN OF DISSIPATION is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of dissipation', 3, /^Magic flows towards you, but does not reach you\.$|^Repeating the sign has no effect!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9915</number>
+	<name>Sign of Healing</name>
+	<type>utility</type>
+	<spiritCost>2</spiritCost>
+	<selfonly>true</selfonly>
+	<castProc>dothistimeout 'sign of healing', 3, /^You shudder as your life force is torn and reshaped!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9916</number>
+	<name>Sign of Madness</name>
+	<duration>0.25</duration>
+	<type>offense</type>
+	<spiritCost>3</spiritCost>
+	<selfonly>true</selfonly>
+	<boltAS>50</boltAS>
+	<physicalAS>50</physicalAS>
+	<msgup>You are filled with berserk rage!  Attack!  Attack!  Attack!</msgup>
+	<msgdown>Your SIGN OF MADNESS is no longer effective\.</msgdown>
+	<castProc>dothistimeout 'sign of madness', 3, /^You are filled with berserk rage!  Attack!  Attack!  Attack!$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9917</number>
+	<name>Sign of Possession</name>
+	<type>attack</type>
+	<spiritCost>4</spiritCost>
+	<selfonly>true</selfonly>
+	<boltAS>50</boltAS>
+	<physicalAS>50</physicalAS>
+	<castProc>dothistimeout 'sign of possession' 3, /^You project your will upon your opponents!|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9918</number>
+	<name>Sign of Wracking</name>
+	<type>utility</type>
+	<spiritCost>5</spiritCost>
+	<selfonly>true</selfonly>
+	<castProc>result = nil; loop { waitrt?; waitcastrt?; if percentmana == 100; result = true; break; end; unless Spell[9918].affordable?; result = false; break; end; put 'sign of wracking'; 20.times { sleep 0.1; while line = get?; if line == 'You shudder as your life force is torn and reshaped!'; result = true; break; elsif line =~ /^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^I don't think so\.$/; result = false; break; end; end; break unless result.nil? }; break unless result.nil?; dothis 'help no-double-wrack', /^No help files matching that entry were found\.$/ }; result</castProc>
+</castProc>
+</spell>
+<spell>
+	<number>9919</number>
+	<name>Sign of Darkness</name>
+	<type>utility</type>
+	<spiritCost>6</spiritCost>
+	<selfonly>true</selfonly>
+	<command>sign of darkness</command>
+	<castProc>dothistimeout 'sign of darkness' 3, /^Darkness enfolds and surrounds you\.\.\.$|^Your punishment does not end for another [0-9]+ minutes?\.$|^The power from your sign dissipates into the air\.$|^You realize your powers would be useless here, and cease your action\.$|^I don't think so\.$/</castProc>
+</spell>
+<spell>
+	<number>9920</number>
+	<name>Sign of Hopelessness</name>
+	<type>utility</type>
+	<spiritCost>11</spiritCost>
+	<selfonly>true</selfonly>
+	<castProc>echo '.cast called for spell 9920 (Sign of Hopelessness)... what the hell is wrong with you?'</castProc>
+</spell>
+<spell>
+	<number>9002</number>
+	<name>Arcane Mobility</name>
+	<duration>5</duration>
+	<type>offense</type>
+	<selfonly>true</selfonly>
+	<msgup>You feel a wave of strength enter your muscles, and with it a newfound sense of confidence\.</msgup>
+	<msgdown>You are suddenly overcome by anxiety, but it quickly passes, leaving you feeling only slightly weaker and less assured than you were a moment ago\.</msgdown>
+</spell>
+<spell>
+	<number>9003</number>
+	<name>Next Bounty</name>
+	<type>timer</type>
+	<realtime>true</realtime>
+	<clearondeath>false</clearondeath>
+	<duration>15</duration>
+	<selfonly>true</selfonly>
+	<msgup>[A-Z][a-z]+ says, "Hmm, I've got a task here|^[A-Z][a-z]+ says, "I've got a special mission for you.*</msgup>
+</spell>
+<spell>
+	<number>9004</number>
+	<name>Next GoS Task</name>
+	<type>timer</type>
+	<duration>15</duration>
+	<selfonly>true</selfonly>
+	<msgup>[A-Z][a-z]+ nods to you.*?Grimswarm.*</msgup>
+</spell>
+<spell>
+	<number>9005</number>
+	<name>MStrike Cooldown</name>
+	<type>timer</type>
+	<duration>1</duration>
+	<msgup>Your (?:flurry|series) of strikes(?: and ripostes)? leaves you (?:off-balance|winded) and out of position\.</msgup>
+	<msgdown>You feel recovered from your whirlwind flurry of strikes\.</msgdown>
+</spell>
+<spell>
+	<number>9006</number>
+	<name>Lichbane</name>
+	<type>defense</type>
+	<duration>10</duration>
+	<msgup>You feel more courageous as a \w+ aura appears about you\.</msgup>
+	<msgdown>The sense of courage departs as the \w+ aura fades from about you\.</msgdown>
+</spell>
+<spell>
+	<number>9007</number>
+	<name>Well of Life Cooldown</name>
+	<type>timer</type>
+	<duration>if defined?(XMLData.last_spirit); ([XMLData.last_spirit-XMLData.spirit,1].max*2) - (Skills.slblessings/60.0); else; 6; end</duration>
+	<msgup>You are left feeling weakened and feeble\.</msgup>
+	<msgdown>The feeling of weakness fades from you\. You feel ripe to transfer spirit once again\.</msgdown>
+</spell>
+<spell>
+	<number>9008</number>
+	<name>Sacrifice Cooldown</name>
+	<type>timer</type>
+	<duration>20</duration>
+	<msgup>Your senses tingle, then become awash in a flood of power as the life leaves your hapless foe!</msgup>
+	<msgdown>You feel refreshed enough to sacrifice another animus\.</msgdown>
+</spell>
+<spell>
+	<number>9009</number>
+	<name>Raise Dead Cooldown</name>
+	<type>timer</type>
+	<clearondeath>false</clearondeath>
+	<duration>if reget.any? { |line| line =~ /^You have a foreboding sense of darkness enveloping your soul as you realize [A-Z][a-z]+ has died while both of you are still soul linked!  You can sense the tugging of [A-Z][a-z]+'s? soul clinging on to life, pulling you headlong into the long dark\.  It takes every ounce of spiritual energy you have to sever the link and claw yourself back to the world of the living!  You feel empty and torpid, unable to focus your spiritual self\./ }; 60.0; else; 5-(Skills.slblessings/60.0)+0.05; end</duration>
+	<msgup>You have a foreboding sense of darkness enveloping your soul as you realize [A-Z][a-z]+ has died while both of you are still soul linked!  You can sense the tugging of [A-Z][a-z]+'s? soul clinging on to life, pulling you headlong into the long dark\.  It takes every ounce of spiritual energy you have to sever the link and claw yourself back to the world of the living!  You feel empty and torpid, unable to focus your spiritual self\.$|^You are unable to gather enough strength to focus your spirit\.  Perhaps you should rest some\.$|^Deep and resonating, you feel the chant that falls from your lips instill within you with the strength of your faith\.  You crouch beside [A-Z][a-z]+ and gently lift (?:he|she|him|her) into your arms, your muscles swelling with the power of your deity, and cradle (?:him|her) close to your chest\.  Strength and life momentarily seep from your limbs, causing them to feel laden and heavy, and you are overcome with a sudden weakness\.  With a sigh, you are able to lay [A-Z][a-z]+ back down\.$|^Moisture beads upon your skin and you feel your eyes cloud over with the darkness of a rising storm\.  Power builds upon the air and when you utter the last syllable of your spell thunder rumbles from your lips\.  The sound ripples upon the air, and colling with [A-Z][a-z']+ prone form and a brilliant flash transfers the spiritual energy between you\.$|^Lifting your finger, you begin to chant and draw a series of conjoined circles in the air\.  Each circle turns to mist and takes on a different hue - white, blue, black, red, and green\.  As the last ring is completed, you spread your fingers and gently allow your tips to touch each color before pushing the misty creation towards [A-Z][a-z]+\.  A shock of energy courses through your body as the mist seeps into [A-Z][a-z']+ chest and life is slowly returned to (?:his|her) body\.$|^Crouching beside the prone form of [A-Z][a-z]+, you softly issue the last syllable of your chant\.  Breathing deeply, you take in the scents around you and let the feel of your surroundings infuse you\.  With only your gaze, you track the area and recreate the circumstances of [A-Z][a-z']+ within your mind\.  Touching [A-Z][a-z]+, you follow the lines of the web that holds (?:his|her) soul in place and force it back into (?:his|her) body\.  Raw energy courses through you and you feel your sense of justice and vengeance filling [A-Z][a-z]+ with life\.$|^Murmuring softly, you call upon your connection with the Destroyer,? and feel your words twist into an alien, spidery chant\.  Dark shadows laced with crimson swirl before your eyes and at your forceful command sink into the chest of [A-Z][a-z]+\.  The transference of energy is swift and immediate as you bind [A-Z][a-z]+ back into (?:his|her) body\.$|^Rich and lively, the scent of wild flowers suddenly fills the air as you finish your chant, and you feel alive with the energy of spring\.  With renewal at your fingertips, you gently touch [A-Z][a-z]+ on the brow and revel in the sweet rush of energy that passes through you into (?:him|her|his)\.$|^Breathing slowly, you extend your senses towards the world around you and draw into you the very essence of nature\.  You shift your gaze towards [A-z][a-z]+ and carefully release the energy you've drawn into yourself towards (?:him|her)\.  A rush of energy briefly flows between the two of you as you feel life slowly return to (?:him|her)\.$|^Your surroundings grow dim\.\.\.you lapse into a state of awareness only, unable to do anything\.\.\.$|^Murmuring softly, a mournful chant slips from your lips and you feel welts appear upon your wrists\.  Dipping them briefly, you smear the crimson liquid the leaks from these sudden wounds in a thin line down [A-Z][a-z']+ face\.  Tingling with each second that your skin touches (?:his|hers), you feel the transference of your raw energy pass into [A-Z][a-z]+ and momentarily reel with the pain of its release\.  Slowly, the wounds on your wrists heal, though a lingering throb remains\.$|^Emptying all breathe from your body, you slowly still yourself and close your eyes\.  You reach out with all of your senses and feel a film shift across your vision\.  Opening your eyes, you gaze through a white haze and find images of [A-Z][a-z]+ floating above his prone form\.  Acts of [A-Z][a-z]'s? past, present, and future play out before your clouded vision\.  With conviction and faith, you pluck a future image of [A-Z][a-z]+ from the air and coax (?:he|she|his|her) back into (?:he|she|his|her) body\.  Slowly, the film slips from your eyes and images fade away\.$|^Thin at first, a fine layer of rime tickles your hands and fingertips\.  The hoarfrost smoothly glides between you and [A-Z][a-z]+, turning to a light powder as it traverses the space\.  The white substance clings to [A-Z][a-z]+'s? eyelashes and cheeks for a moment before it becomes charged with spiritual power, then it slowly melts away\.$|^As you begin to chant,? you notice the scent of dry, dusty parchment and feel a cool mist cling to your skin somewhere near your feet\.  You sense the ethereal tendrils of the mist as they coil about your body and notice that the world turns to a yellowish hue as the mist settles about your head\.  Focusing on [A-Z][a-z]+, you feel the transfer of energy pass between you as you return (?:him|her) to life\.$|^Wrapped in an aura of chill, you close your eyes and softly begin to chant\.  As the cold air that surrounds you condenses you feel it slowly ripple outward in waves that turn the breath of those nearby into a fine mist\.  This mist swiftly moves to encompass you and you feel a pair of wings arc over your back\.  With the last words of your chant, you open your eyes and watch as foggy wings rise above you and gently brush against [A-Z][a-z]+\.  As they dissipate in a cold rush against [A-Z][a-z]+, you feel a surge of power spill forth from you and into (?:him|her)\.</msgup>
+	<msgdown>The feeling of weakness leaves you\.  Your spirits are somewhat rejuvenated\.</msgdown>
+</spell>
+<spell>
+	<number>9010</number>
+	<name>Adrenal Surge Cooldown</name>
+	<type>timer</type>
+	<duration>if Spell[9010].active?; Spell[9010].timeleft; else; 5; end</duration>
+	<msgup>You feel a surge of energy that carries you to your feet in a heartbeat, with no sense of effort whatsoever!$|^You feel a momentary surge of energy rush through you giving you strength\.$|^You feel a surge of energy shoot through you!</msgup>
+</spell>
+<spell>
+	<number>9011</number>
+	<name>Council Task</name>
+	<type>timer</type>
+	<clearondeath>false</clearondeath>
+	<duration>30</duration>
+	<selfonly>true</selfonly>
+	<msgup>The High Taskmaster looks at you, consults her notes, and then announces in a loud voice: "[A-Z][a-z]+, I'm rather busy right now\.  I know you have completed the requirements for advancement in rank, but I cannot take the time to instruct you\.  Let me check my schedule\.\.\. Ah, yes, I can squeeze you in in [0-9]+ minutes or so\.  Come back then and I'll take care of you\."</msgup>
+</spell>
+<spell>
+	<number>9012</number>
+	<name>Council Punishment</name>
+	<type>timer</type>
+	<duration>20</duration>
+	<selfonly>true</selfonly>
+	<clearondeath>false</clearondeath>
+	<msgup>powers for [0-9]+ minutes, so that you might have$|^Your punishment does not end for another [0-9]+ minutes?\.</msgup>
+	<msgdown>the fold\.  DO NOT FAIL ME AGAIN!"</msgdown>
+</spell>
+<spell>
+	<number>9013</number>
+	<name>Fog Concealment</name>
+	<type>timer</type>
+	<duration>0.5</duration>
+	<selfonly>true</selfonly>
+	<msgup>Fog swirls and eddies about the area\.  Wispy grey tendrils writhe as they climb around your form until you are completely enshrouded in the mist\.  You feel confident that no one can see you behind your mask of fog\.</msgup>
+	<msgdown>The fog enshrouding you drifts off your form and gathers with the rest in the area\.</msgdown>
+</spell>
+<spell>
+	<number>9014</number>
+	<name>AA: Wolf</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Wolf\.  .*Your vision takes on a slightly yellow hue, and you feel a stronger center of coordination and balance\.</msgup>
+	<msgdown>The golden distortion fades from your sight, and your balance returns to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9015</number>
+	<name>AA: Wolf Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9016</number>
+	<name>AA: Jackal</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Jackal\.  .*A twinge of red passes through your eyes, as your thoughts turn toward waylaying your next quarry\.</msgup>
+	<msgdown>The redness fades from your eyes as your focus of the hunt returns to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9017</number>
+	<name>AA: Jackal Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9018</number>
+	<name>AA: Lion</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Lion\.  .*You feel yourself infused with a regal air, as a wave of power ripples through your muscles\.</msgup>
+	<msgdown>Your regal influence and extra strength swiftly drift away\.</msgdown>
+</spell>
+<spell>
+	<number>9019</number>
+	<name>AA: Lion Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9020</number>
+	<name>AA: Panther</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Panther\.  .*A distinct awareness of the shadows surfaces to your thoughts, springing forth with the lucidity of a once-forgotten memory\.</msgup>
+	<msgdown>Your extra awareness of the shadows steals away back into the recesses of your subconscious\.</msgdown>
+</spell>
+<spell>
+	<number>9021</number>
+	<name>AA: Panther Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9022</number>
+	<name>AA: Owl</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Owl\.  .*A dawn of enlightenment rises over your consciousness, honing your comprehension of the flows of magic around and within you\.</msgup>
+	<msgdown>The moment of enlightenment and magical comprehension fades from your mind\.</msgdown>
+</spell>
+<spell>
+	<number>9023</number>
+	<name>AA: Owl Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9024</number>
+	<name>AA: Hawk</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Hawk\.  .*You become more aware of the environs as every nuance of your surroundings comes into focus with sharp clarity\.</msgup>
+	<msgdown>The degree of resolution in your vision diminishes as your perception returns to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9025</number>
+	<name>AA: Hawk Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9026</number>
+	<name>AA: Rat</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Rat\.  .*Your thoughts drift inward, girding your mind with a strong determination and your body with great agility\.</msgup>
+	<msgdown>The strong sense of determination and agility fades from within you\.</msgdown>
+</spell>
+<spell>
+	<number>9027</number>
+	<name>AA: Rat Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9028</number>
+	<name>AA: Porcupine</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Porcupine\.  .*A simple cognition bubbles to the front of your mind, broadening your understanding of events that previously went unnoticed\.</msgup>
+	<msgdown>Your increased cognition fades away, returning your comprehension to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9029</number>
+	<name>AA: Porcupine Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9030</number>
+	<name>AA: Bear</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Bear\.  .*You hear a deep bellowing reverberate through your mind, inspiring an invigorating fortitude that spreads to your very core\.</msgup>
+	<msgdown>Your ursine fortitude parts, returning your endurance to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9031</number>
+	<name>AA: Bear Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9032</number>
+	<name>AA: Serpent</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Serpent\.  .*Your skin suddenly feels a bit more scaled, and you notice a distinctly natural fluidity in your movements\.</msgup>
+	<msgdown>The scaliness of your complexion fades away, taking with it your natural-feeling fluid movements\.</msgdown>
+</spell>
+<spell>
+	<number>9033</number>
+	<name>AA: Serpent Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9034</number>
+	<name>AA: Burgee</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Burgee\.  .*Grey-green diamond scales form across your skin, and you note that your shield arm feels somehow lighter\.</msgup>
+	<msgdown>The grey-green scales fade away from your skin, with your shield arm's reflexes returning to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9035</number>
+	<name>AA: Burgee Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9036</number>
+	<name>AA: Mantis</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Mantis\.  .*A slightly uncomfortable pressure builds behind your eyes as you note an improved eyesight and renewed vigor in your weapon arm\.</msgup>
+	<msgdown>You feel the pressure behind your eyes relent, as the movement in your weapon arm returns to normal\.</msgdown>
+</spell>
+<spell>
+	<number>9037</number>
+	<name>AA: Mantis Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9038</number>
+	<name>AA: Yierka</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Yierka\.  .*A gruff, yet contenting inspiration courses through your senses, putting you at one with the offerings and spirits of nature\.</msgup>
+	<msgdown>Your extra illumination of the natural fades with a final wisp of inspiration\.</msgdown>
+</spell>
+<spell>
+	<number>9039</number>
+	<name>AA: Yierka Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9040</number>
+	<name>AA: Spider</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<manaCost>25</manaCost>
+	<selfonly>true</selfonly>
+	<msgup>You concentrate your focus upon the Aspect of the Spider\.  .*You feel a tingling sensation shiver through your limbs as your field of vision darkens and expands\.</msgup>
+	<msgdown>Your field of vision returns to normal as the tingling sensation in your limbs scatters away\.</msgdown>
+</spell>
+<spell>
+	<number>9041</number>
+	<name>AA: Spider Cooldown</name>
+	<type>timer</type>
+	<duration>4</duration>
+</spell>
+<spell>
+	<number>9042</number>
+	<name>Pre-Meditate</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<msgup>You (?:kneel down and |kneel and )?begin to meditate on your lot in life\.</msgup>
+	<msgdown>Your action interrupts your meditation\.$|^Your meditation is interrupted by .*\.</msgdown>
+</spell>
+<spell>
+	<number>9043</number>
+	<name>Meditate</name>
+	<type>timer</type>
+	<duration>10</duration>
+	<msgup>You wake from your meditation, yet a deep feeling of relaxation remains present\.</msgup>
+	<msgdown>The lingering effects of your meditation fade away\.</msgdown>
+</spell>
+<spell>
+	<number>9044</number>
+	<name>Miracle Cooldown</name>
+	<type>timer</type>
+	<realtime>true</realtime>
+	<clearondeath>false</clearondeath>
+	<duration>dur = 1440; [ 4, 9, 15, 22, 30, 39, 49, 60, 72, 85, 99, 114, 130, 147, 165, 184 ].each { |num| dur -= 60 if Skills.slreligion >= num }; dur</duration>
+	<maxduration>1440</maxduration>
+	<clearondeath>false</clearondeath>
+	<msgup>Spidery and incomprehensible words reach you, and are given life by an aged, bodiless voice that carries with it the scent of dusty tomes and candle tallow\.  A point of dark light appears high over your body and expands to form a yellowed eye with a slit pupil\.  With each uttered syllable the eye's iris contracts and the meaning of the words that wrap you become clear\.  "You still have much more to learn," they say, and before you the eye explodes in a blinding, fiery light\.$|^You feel a tingling at the edges of your perception and the air comes alive with a feeling of raw power\. You sense something greater than yourself tugging on your spirit\. As the power grows in intensity, you feel it draw you closer to your lifeless body and you marvel as it ushers your spirit forward\. An extremely bright nimbus floods you as your spirit sinks into your body, which begins to fill with life\.$|^Silence descends upon the room and a double\-headed serpent slithers to you\. Each of its heads moves of its own accord, and slit\-pupiled eyes take in everything as they wind a sinuous path up your prone form\. As it reaches your chest, it lifts its heads up high and begins to sway from side to side in a hypnotic pattern\. "You have learned the ssssacrifice issss everything, now we ssssacrifice oursssselves sssso that you may teach otherssss," the one head says before striking the other head at the neck\. In one swift, painless bite, the head is severed and the open neck falls upon you, its lifeblood draining into your mouth\. Moments pass as the ferric taste of the serpent's sacrifice fills you, and then suddenly it disappears\.$|^As the air stirs, you feel your spirit drawn to the heavy scent of the ocean and feel a deep sense of peace\. Clouds move into the area, their murky depths heavy with rain unshed and you can see lightning dancing within them\. The pressure builds all around you until suddenly, the heavens release dozens of slender blue bands of lightning\. The lightning fills your body with its energy and the very air around you seems to tingle with it\. Moments later, the lightning is gone and the clouds soon follow\.$|^Odd whirls and metallic clangs herald the arrival of a dwarf crafted entirely of bronze\. The strange, mechanical man moves with jerky movements to a position beside the prone form of Cleric and begins to tinker with his appearance and clothing\. At first, nothing seems to come of the strange bronze creature's meddling, but slowly color returns to Cleric's face\. Steam billowing from its ears, the metallic dwarf straightens and teeters from the area, dissipating as it moves\.$|^Stealing all sound as it travels to you, a soft zephyr gently caresses your skin and you sense the frigid brush of final death near at hand\. A tug on your spirit heralds the arrival of impossibly long feathers in shades of white, grey, and black, as they appear before you and coalesce into a beautiful insubstantial being\. It lifts you up into its arms and you feel as if you have found home in its embrace\.$|^Filling your spirit with a deep anger, a long discordant horn blast drowns your senses and sets your lifeless flesh to vibrating with its wild call\. An enormous hunting hound bearing an angry look of focus bounds towards you\. You feel its front paws forcibly slam into your chest and watch the beast disappear deep within you with the cry of a wild hunt falling from its parted lips\. Slowly, the sound of the horn echoes into silence\.$|^Time stills around you, and you feel your spirit drawn forward by a pale ethereal light which quickly transforms into a translucent woman\. She moves to your side and withdraws two crimson oak leaves and an acorn from her basket\. You hear her soft prayer as she places the leaves upon your eyes and presses the acorn past your lips\. She turns her eyes to the sky, her arms rising in supplication, and then lays her hands briefly on your chest\. Instantly, warmth floods your limbs and the woman returns to the pale light\.$|^Large and ethereal, rectangular talismans rise from the ground to form a ring around your lifeless form\. Each talisman is carved with a different word and glows with a brilliant light\. One by one, the talismans tumble into you\. As the first falls upon you, you are filled with a deep sense of Honor, the second reminds you of Valor in battle, and the third causes your spirit to surge with Hope, while the fourth binds you with the strength of your Faith\. The remaining two tumble into you simultaneously and, in a flash of white light, you absorb them all\.$|^Creating a myriad of colorful whorls in the air, a flock of small rainbow-winged lizards swirls towards you and you are filled with a deep connection to them\. Diving and darting, they cavort above your corpse in an intricate dance that is breathtaking to behold\. As they dance, their wings shimmer and shed multi-colored sparks that rain down upon your body\. With each spark that alights upon your flesh, you are filled with a tingling sensation that draws your spirit deep into your body\. The aerial display ends in one final loop and the rainbow\-winged lizards dart off into the distance, only to wink out of sight a moment later\.$|^Your spirit feels a sudden stirring in the air above your lifeless body and moments later a brilliantly white owl appears out of nowhere\. It spreads its wings and you hear the audible crack of the air as they expand, lifting the owl in a lazy spiral above you\. The bird's unblinking gaze falls upon you and you feel a deep connection with it before it gives three mighty beats of its wings and surges high into the sky and disappears\.$|^Distant and echoing, the sound of keys jingling strikes a familiar chord within you as it precedes the sound of a heavy metal gate slamming shut\. Pale snowflakes drift through the air and settle upon your lifeless body\. As the snow accumulates into a thin, chilling layer, you distinctly hear the somber voice of a female speaking softly in your ear\. "The gates are closed to you for now, my child," she says, and several moments later the snow seeps into your skin, leaving you chilled and damp\.$|^Punctuating the sudden calm of the area, the sound of slithering is quickly followed by a long, sibilant hiss\. Winding a sinuous pattern to your head, an impossibly large copper-head snake with emerald green eyes begins to hiss at you\. "There are more liessss to sssspread, and deathssss to ssssteal," it says, and then swiftly raises high into the air to gaze down at you\. Faster than the blink of an eye, the serpent dives into your chest and disperses into a shimmering green mist that seeps into your skin\.$|^Dark clouds swirl across your prone form and the area is plunged into darkness\. The hair on your body stands on end and a deep pressure builds around your spirit, threatening to consume it\. Blue lightning lances through the air, heralding an ear-shattering ripple of thunder, and at the edge of your senses you feel the demonic horde surging forward to take you\. Each sizzling bolt strikes your chest repeatedly for several moments and the horde closes in on you until every last one of them is absorbed by your spirit\.$|^Wraithlike mourners suddenly slip free of the shadows and form a tight ring around you\. Silvery tears slip from their faces to splash ineffectively against your lifeless body, and the blood that stains their white garments trickles in a splash across your face\. They kneel in a tight ring about you, obscuring your view of the world beyond, and you feel a deep connection to them\. "There is yet more pain to release," they seem to tell you before their lips part in a deafening keen of anguish that shatters their ethereal forms\.$|^A playful feeling sweeps over you as a fuzzy pair of otters fills your vision\. Clutched in their teeth are midnight blue mussels, which they hold tightly in place as they comically bounce and leap around you\. They playfully paw at your lifeless chest, begging with their furry faces, and you sense they want you to come and play\. As if sensing you cannot, they curl their sleek, wet forms briefly around your head and nuzzle against your neck for several moments\. Then, they carefully drop the mussels upon your chest\. A brief, child-like joy fills you as the mussels sink into your lifeless body, and the otters turn as one to slide out of sight on their slippery bellies\.$|^Shadows slant across the ground as they slither toward you and a deep chill touches your spirit\. As the shadows writhe in a thick mass of darkness over your body, you distinctly hear a quiet whisper in your ear, "This was not the death I had in mind for you\." A flash of light tears across your vision as it is consumed by the image of a cracked white skull\.$|^Regal and proud, a broad-shouldered ethereal lion strides towards your lifeless form and you are filled with a sense of power and glory\. As it moves towards you, its mane begins to shimmer with licking flames that resemble the rays of the sun\. It lowers its gaze to you and you feel yourself drawn into their amber depths\. The golden beast lifts a paw to your chest and a wave of warmth floods your limbs\. As the light grows, the lion begins to dissipate into a golden nimbus that sinks into your body\.$|^The sounds of night drift to your ears and you feel a deep lassitude flood your spirit\. At the edge of your vision the pale white beautiful image of a unicorn begins to take shape\. It paws at the air, its silver hooves creating sparks of light that twinkle like a thousand stars\. As it lowers the horn to touch your forehead you feel a deep sense of peace that intensifies as a silver nimbus blankets you\. The unicorn and the nimbus disappear at once, and you feel yourself waking slowly from a dream\.$|^Shadows lengthen and grow around you until their edges are sharp and twisted\. Macabre and ungraceful, they slink with jerky movements toward you as their depths are briefly illuminated by countless yellowed eyes set into the faces of a thousand horrors\. They snarl as they writhe across your prone form, their maws snapping ineffectively at your flesh\. One by one, they twist and squirm into your slack jaw and fill you with bitter madness\.$|^Silver motes of light cavort upon the air, their movements turning into a twisted dance that is punctuated by the sound of dozens of laughing voices\. Deep in your spirit, you feel a binding connection to their mirth\. Converging above you, the light transforms in a slender crescent moon that begins to whirl\. At one moment, full, and then the next, a sliver, the faster the moon spins, the louder the laughter gets\. Suddenly, the light ceases all movement and explodes into a brilliant shower of silver sparks accompanied by laughter for several moments\.</msgup>
+</spell>
+<spell>
+	<number>9045</number>
+	<name>Sigil of Escape Cooldown</name>
+	<type>timer</type>
+	<realtime>true</realtime>
+	<duration>1440</duration>
+	<maxduration>1440</maxduration>
+	<clearondeath>false</clearondeath>
+	<msgup>Your incapacitation makes it all the more difficult, but as you concentrate \(as best you can\) on your sigil, you feel yourself being whisked away\.\.\.</msgup>
+</spell>
+<spell>
+	<number>9046</number>
+	<name>Regeneration Cooldown</name>
+	<type>timer</type>
+	<realtime>true</realtime>
+	<duration>1440</duration>
+	<maxduration>1440</maxduration>
+	<clearondeath>false</clearondeath>
+	<msgup>Points of silvery light begin to flicker around you\. They grow in number, swirling into a bright flash as your injuries heal to scars, then gradually fade completely\. Dimming slowly, the light settles into a shimmering silver cocoon that surrounds you\.</msgup>
+</spell>
+<spell>
+	<number>9047</number>
+	<name>Lantern Charm Cooldown</name>
+	<type>timer</type>
+	<realtime>true</realtime>
+	<duration>1440</duration>
+	<maxduration>1440</maxduration>
+	<clearondeath>false</clearondeath>
+	<msgup>The flame within the lantern builds and brightens, escalating rapidly from bright to blinding\.  A heady rush overcomes you as the charm's radiance suffuses your flesh and falls, like a glowing veil, over your vision\.  Heat blossoms within your core, and a soft voice promises, "While hearth and home are firm in your heart, they cannot be more than a breath away from your lungs\."</msgup>
+</spell>
+<spell>
+	<number>9048</number>
+	<name>Symbol of Mana Cooldown</name>
+	<type>timer</type>
+	<duration>5</duration>
+	<maxduration>5</maxduration>
+	<clearondeath>false</clearondeath>
+	<msgup>You call upon a special blessing from Koar\.</msgup>
+	<msgdown>You feel Koar's blessing return to you\.</msgdown>
+</spell>
+<spell>
+	<number>9049</number>
+	<name>Symbol of Transcendence Cooldown</name>
+	<type>timer</type>
+	<duration>if $infomon_transcendance_emergency; 10; else; 3; end</duration>
+	<clearondeath>false</clearondeath>
+	<msgup>You feel yourself being pulled back fully into the corporeal realm\.</msgup>
+</spell>
+<spell>
+	<number>9050</number>
+	<name>Symbol of Renewal Cooldown</name>
+	<type>timer</type>
+	<duration>2</duration>
+	<msgup>You call upon the vitality of nature to renew your soul\.</msgup>
+	<msgdown>You feel your connection to vitality of nature renew itself once more\.</msgdown>
+</spell>
+<spell>
+	<number>9051</number>
+	<name>Burst of Swiftness Cooldown</name>
+	<duration>dur = { nil => 5, 1 => 5, 2 => 4, 3 => 3, 4 => 2.5, 5 => 2 }; if defined?(CMan); dur[CMan.burst_of_swiftness]; else; 5; end</duration>
+	<type>timer</type>
+	<selfonly>true</selfonly>
+	<stacks>false</stacks>
+	<msgup>You feel (?:significantly|a great deal|a fair amount) more agile\.</msgup>
+	<msgdown>You feel entirely capable of preparing yourself to once again move swiftly at a moment's notice\.</msgdown>
+</spell>
+<spell>
+	<number>9516</number>
+	<name>Mana Leech Cooldown</name>
+	<type>timer</type>
+	<clearondeath>false</clearondeath>
+	<duration>1</duration>
+	<stacks>true</stacks>
+	<selfonly>true</selfonly>
+	<clearondeath>false</clearondeath>
+	<msgup>You feel a sudden rush of power as you absorb [0-9]+ mana!</msgup>
+	<msgdown>You no longer feel the effect of casting mana leech\.</msgdown>
+</spell>

@@ -1,0 +1,38 @@
+currently at 126
+
+95 x 2 = 190
+20
+
+366 tops
+75 - enhancives
+
+
+Assumptions: 10x weapon + maxed enhancives + 85/15 AS from spells
+
+enhancives
+brawling
++50 brawl
++50 CM
+weapon enchant could be... 35 + 25 = 
+max uaf: 300 + 37 + 13 + 15 + 50 = 515
+
+at 316 right now
+immediately available
++20 from gloves
++10 from brawling weapon
++20 from badge enhancive
+
+so 366
+
+weapon
++50 weapon
++50 CM
++20 strength bonus
++120 total
+max AS: 202 + 51 + 50 + 100 + 120 = 523
+
+ranged
++50 ranged
++20 dex bonus
+max AS: 482
+

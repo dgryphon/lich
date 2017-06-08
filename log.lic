@@ -1,0 +1,23 @@
+#quiet
+=begin
+
+	writes the server buffer and client buffer to lich.log in your lich directory
+
+	tillmen@lichproject.org
+
+=end
+
+filename = $lich_dir + 'lich.log'
+if File.exists?(filename)
+	respond "--- Lich: log file exists; unpause the script to overwrite or kill the script to cancel"
+	pause_script
+end
+File.open(filename, 'w') { |file|
+	file.write $_SERVERBUFFER_.history.join
+	file.write $_SERVERBUFFER_.join
+	file.write "\n\n--------------------------------\n\n\n"
+	file.write $_CLIENTBUFFER_.history.join
+	file.write $_CLIENTBUFFER_.join
+	file.close
+}
+respond "--- Lich: log was saved to #{$lich_dir}lich.log"

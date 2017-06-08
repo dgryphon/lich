@@ -1,0 +1,1259 @@
+=begin
+
+  Library of useful shortcuts/methods/wrappers for Lich
+
+  many of my scripts depends on 0lib
+
+  Required: Lich 4.3.12
+
+  m444w on the PC
+
+=end
+require 'timeout'
+
+class Gemstone_Regex
+  class << self
+    attr_accessor :dictionary
+  end
+  def Gemstone_Regex.item
+    re = {}
+    re[:heirloom] = /are the initials ([A-Z]{2})./
+    re[:give]     = /Excellent.  I'm sure the person who lost this will be quite happy/
+    re
+  end
+  def Gemstone_Regex.targetable
+    re = {}
+    re[:yes] = /^You are now targeting/
+    re[:no]  = /^You can't target/
+    re
+  end
+  def Gemstone_Regex.bounty
+    re = {}
+    re[:herb]             = /requires (?:a|an|some) ([a-zA-Z '-]+) found (?:in|on|around) ([a-zA-Z '-]+).  These samples must be in pristine condition.  You have been tasked to retrieve ([0-9]+)/
+    re[:escort]           = /You must guarantee (?:his|her|their) safety to ([a-zA-Z '-]+) as soon as/
+    re[:gem]              = /has received orders from multiple customers requesting (?:a|an|some) ([a-zA-Z '-]+).  You have been tasked to retrieve ([0-9]+)/
+    re[:heirloom]         = /You have been tasked to recover ([a-zA-Z '-]+) that an unfortunate citizen lost after being attacked by (a|an|some) ([a-zA-Z '-]+) (in|on|around|near|by) ([a-zA-Z '-]+)./
+    re[:heirloom_found]   = /^You have located the heirloom and should bring it back to/
+    re[:turn_in]          = /You have succeeded in your task and can return to the Adventurer's Guild to receive your reward/
+    re[:guard_turn_in]    = /^You succeeded in your task and should report back to/
+    re[:bandits]          = /^You have been tasked to suppress bandit activity (?:in |on )(?:the )(.*?)(?: near| between| under) ([a-zA-Z' ]+).  You need to kill ([0-9]+)/
+    re[:cull]             = /^You have been tasked to suppress (.*) activity (?:in|on) (?:the )?(.*?)(?: near| between| under|\.) ([a-zA-Z' ]+).  You need to kill ([0-9]+)/
+    re[:dangerous]        = /You have been tasked to hunt down and kill a particularly dangerous (.*) that has established a territory (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)/
+    re[:get_skin_bounty]  = /The local furrier/
+    re[:get_herb_bounty]  = /local herbalist|local healer|local alchemist/
+    re[:get_gem_bounty]   = /The local gem dealer, ([a-zA-Z ]+), has an order to fill and wants our help/
+    re[:creature_problem] = /It appears they have a creature problem they\'d like you to solve/
+    re[:rescue]           = /A local divinist has had visions of the child fleeing from (?:a|an) (.*) (?:in|on) (?:the )?(.*?)(?: near| between| under|\.)/
+
+    re[:failed_bounty]    = /You have failed in your task/
+    re[:get_bounty]       = /You are not currently assigned a task/
+    re.each do |type, exp|
+      if checkbounty =~ exp
+        bounty = {}
+        bounty[:type] = type
+        bounty[:args] = checkbounty.scan(exp).flatten
+        return bounty
+      end
+    end
+  end
+  def Gemstone_Regex.escortees
+    /^(?:traveller|magistrate|merchant|scribe|dignitary|official)$/
+  end
+  def Gemstone_Regex.bandits
+    /thief|rogue|bandit|mugger|outlaw|highwayman|marauder|brigand|thug|robber/
+  end
+  def Gemstone_Regex.undead
+    /zombie rolton|lesser ghoul|skeleton|lesser frost shade|lesser shade|phantom|moaning phantom|ghost|ice skeleton|greater ghoul|
+    revenant|mist wraith|dark apparition|lesser mummy|firephantom|spectral fisherman|bone golem|snow spectre|death dirge|werebear|
+    darkwoode|spectre|shadowy spectre|wraith|tomb wight|wolfshade|ghoul master|ghost wolf|ghostly warrior|dark assassin|rotting krolvin pirate|
+    elder ghoul master|nedum vereri|arch wight|wood wight|ancient ghoul master|nonomino|zombie|crazed zombie|rotting woodsman|roa'ter wormling|
+    carceris|spectral monk|tree spirit|monastic lich|moaning spirit|elder tree spirit|krynch|skeletal ice troll|rotting corpse|rotting farmhand|
+    ghostly mara|ghostly pooka|skeletal giant|rock troll zombie|skeletal soldier|spectral warrior|troll wraith|spectral shade|barghest|spectral woodsman|
+    spectral lord|skeletal warhorse|lesser moor wight|shadow mare|shadow steed|vourkha|greater moor wight|forest bendith|spectral miner|bog wraith|
+    skeletal lord|phantasma|frozen corpse|baesrukha|night mare|gaunt spectral servant|bog wight|ice wraith|lesser vruul|rotting chimera|dybbuk|
+    necrotic snake|waern|banshee|flesh golem|seeker|ethereal mage apprentice|nightmare steed|eidolon|decaying Citadel guardsman|rotting Citadel arbalester|
+    putrefied Citadel herald|phantasmal bestial swordsman|wind wraith|soul golem|greater vruul|naisirc|shrickhen|seraceris|lich qyn'arj|n'ecare|
+    lost soul|vaespilon|spectral triton defender|ethereal triton sentry/
+  end
+  def Gemstone_Regex.living
+    /carrion worm|black rolton|black-winged daggerbeak|fanged rodent|kobold|mountain rolton|giant rat|slimy little grub|young grass snake|fire ant|rolton|spotted gnarp|giant ant|cave gnome|rabid squirrel|big ugly kobold|goblin|pale crab|fanged goblin|brown gak|thyril|spotted gak|sea nymph|Mistydeep siren|dark vysan|greater ice spider|fire salamander|cave nipper|kobold shepherd|relnak|striped relnak|cave gnoll|hobgoblin|Bresnahanini rolton|velnalin|spotted velnalin|striped gak|white vysan|mountain snowcat|troglodyte|black urgh|water moccasin|cobra|urgh|ridge orc|whiptail|spotted leaper|fanged viper|mongrel kobold|night golem|mongrel hobgoblin|bobcat|coyote|water witch|nasty little gremlin|monkey|spotted lynx|cockatrice|leaper|lesser orc|snowy cockatrice|blood eagle|lesser red orc|hobgoblin shaman|shelfae soldier|lesser burrow orc|greater kappa|greater spider|thrak|crystal crab|greater orc|greater burrow orc|albino tomb spider|mottled thrak|brown spinner|crocodile|manticore|rabid guard dog|great boar|raider orc|cave worm|gnoll worker|giant marmot|shelfae chieftain|Neartofar orc|wall guardian|crystal golem|dark orc|great stag|plumed cockatrice|tawny brindlecat|gnoll thief|deranged sentry|Agresh troll scout|forest troll|grey orc|silverback orc|great brown bear|brown boar|giant weasel|black boar|swamp troll|panther|ridgeback boar|luminescent arachnid|gnoll ranger|large ogre|puma|arctic puma|Neartofar troll|black leopard|humpbacked puma|black bear|Agresh troll warrior|mongrel wolfhound|plains orc warrior|cave troll|phosphorescent worm|hill troll|wind witch|fire guardian|mountain ogre|Agresh bear|mongrel troll|red bear|fire rat|banded rattlesnake|mountain troll|spiked cavern urchin|gnoll guard|giant veaba|plains ogre|forest ogre|mountain goat|black panther|dark shambler|plains orc scout|krolvin mercenary|cave lizard|war troll|fire cat|mountain lion|bighorn sheep|shelfae warlord|plains orc shaman|greenwing hornet|plains lion|thunder troll|krolvin warrior|steel golem|gnoll priest|ogre warrior|massive grahnk|major spider|Agresh troll chieftain|striped warcat|Arachne servant|cave bear|plains orc chieftain|cougar|warthog|crested basilisk|dark panther|centaur|fenghai|Arachne acolyte|tree viper|burly reiver|reiver|ice hound|wolverine|veteran reiver|arctic wolverine|giant albino scorpion|krolvin warfarer|gnoll jarl|jungle troll|Arachne priest|Arachne priestess|troll chieftain|cyclops|Grutik savage|lesser stone gargoyle|snow leopard|giant hawk-owl|fire ogre|dobrem|ki-lin|darken|pra'eda|Grutik shaman|ice troll|arctic manticore|scaly burgee|hooded figure|hisskra warrior|giant albino tomb spider|hunter troll|jungle troll chieftain|mammoth arachnid|ash hag|wild hound|caribou|wild dog|giant fog beetle|mezic|three-toed tegu|hisskra shaman|maw spore|moor hound|sand beetle|tundra giant|colossus vulture|hisskra chieftain|moor witch|cold guardian|lava troll|moor eagle|bog troll|shimmering fungus|water wyrd|snow crone|undertaker bat|dust beetle|krolvin slaver|fire giant|arctic titan|Sheruvian initiate|tusked ursian|huge mein golem|magru|mud wasp|grizzly bear|frost giant|wood sprite|krolvin corsair|vesperti|greater bog troll|stone gargoyle|storm giant|myklian|kiramon worker|lesser ice giant|Sheruvian monk|roa'ter|siren lizard|shan wizard|shan warrior|minor glacei|dark vortece|shan cleric|swamp hag|shan ranger|wasp nest|dreadnought raptor|forest trali shaman|firethorn shoot|polar bear|mastodonic leopard|lesser faeroth|kiramon defender|forest trali|cinder wasp|greater ice giant|major glacei|bog spectre|sand devil|warrior shade|horned vor'taz|red-scaled thrak|greater faeroth|snow madrinol|tomb troll|wooly mammoth|ice golem|lesser ice elemental|sabre-tooth tiger|stone sentinel|animated slush|skayl|tomb troll necromancer|stone troll|glacial morph|lava golem|stone giant|massive pyrothag|black forest viper|massive black boar|fire elemental|black forest ogre|stone mastiff|Illoke mystic|massive troll king|ice elemental|Sheruvian harbinger|grifflet|fire sprite|emaciated hierophant|red tsark|Illoke shaman|muscular supplicant|yeti|lesser griffin|hunch-backed dogmatist|krag yeti|fire mage|krag dweller|storm griffin|lesser minotaur|moulis|csetairi|minotaur warrior|farlook|raving lunatic|minotaur magus|dhu goleras|Vvrael witch|earth elemental|gnarled being|caedera|lesser construct|Vvrael warlock|greater krynch|gremlock|Illoke elder|festering taint|aivren|greater earth elemental|Ithzir scout|Illoke jarl|Ithzir initiate|water elemental|Ithzir janissary|Ithzir herald|triton dissembler|greater construct|Ithzir adept|triton executioner|siren|Ithzir seer|triton combatant|triton radical|war griffin|triton magus|greater water elemental/
+  end
+  def Gemstone_Regex.shop
+    db = {}
+    db[:success]         = /^You hand over|You place your/
+    db[:failure]            = {}
+    db[:failure][:missing]  = /^There is nobody here to buy anything from/
+    db[:failure][:silvers]  = /^The merchant frowns and says/
+    db[:failure][:full]     = /^There's no more room for anything else/
+    db[:failure][:own]      = /^Buy your own merchandise?/
+    db
+  end
+  def Gemstone_Regex.gems
+    re = {}
+    # Expressions to match interaction with gems
+    re[:appraise] = {}
+    re[:appraise][:gemshop] = /inspects it carefully before saying, "I'll give you ([0-9]+) for it if you want to sell/
+    re[:appraise][:player]  = /You estimate that the ([a-zA-Z '-]+) is of ([a-zA-Z '-]+) quality and worth approximately ([0-9]+) silvers/
+    re[:appraise][:failure]    = /As best you can tell, the ([a-zA-Z '-]+) is of average quality/
+    re[:singularize] = proc{ |str| str.gsub(/ies$/, 'y').gsub(/zes$/,'z').gsub(/s$/,'').gsub(/large |medium |containing |small |tiny |some /, '').strip }
+    re
+  end
+  def Gemstone_Regex.get
+    re = {}
+    re[:failure] = {}
+    # Expressions to match `get` verb results
+    re[:failure][:weight]       = /You are unable to handle the additional load/
+    re[:failure][:hands_full]   = /^You need a free hand to pick that up/
+    re[:failure][:ne]           = /^Get what/
+    re[:failure][:buy]          = /^A sales clerk rushes/
+    re[:failure][:pshop]        = /^Looking closely/
+    re[:success]                = /^You pick up|^You remove|^You rummage|^You draw|^You grab|^You reach|^You already/
+    re
+  end
+  def Gemstone_Regex.put
+    re = {}
+    re[:failure]        = {}    
+    re[:failure][:full] = /^won't fit in the/
+    re[:failure][:ne]   = /^I could not find what you were referring to/
+    re[:success]        = /^You put a|^You tuck|^You sheathe|^You slip|^You roll up|^You tuck/
+    re
+  end
+  def Gemstone_Regex.jar(name=nil)
+    if name
+      return name.gsub(/large |medium |containing |small |tiny |some /, '').sub 'rubies', 'ruby'
+    else
+      return false
+    end
+  end
+end
+
+class VBulletin
+  attr_accessor :post
+  def initialize
+    @post = String.new
+    self
+  end
+  def open_bold
+    @post.concat "[B]"
+    self
+  end
+  def open_underline
+    @post.concat '[U]'
+    self
+  end
+  def close_underline
+    @post.concat '[/U]'
+    self
+  end
+  def close_bold
+    @post.concat '[/B]'
+    self
+  end
+  def open_color(hexcode)
+    @post.concat "[COLOR=\"#{hexcode}\"]"
+    self
+  end
+  def open_table(width=500)
+    @post.contat "[TABLE=\"width: #{width}\""
+    self
+  end
+  def close_table
+    @post.concat "[/TABLE]"
+    self
+  end
+  def open_tr
+    @post.contact "[TR]"
+    self
+  end
+  def close_tr
+    @post.contact "[/TR]"
+    self
+  end
+  def open_cell
+    @post.concat "[TD]"
+    self
+  end
+  def close_cell
+    @post.concat '[/TD]'
+    self
+  end
+  def close_color
+    @post.concat '[/COLOR]'
+    self
+  end
+  def add(str)
+    @post.concat str
+    self
+  end
+  def add_line(str)
+    @post.concat "#{str}\n"
+    self
+  end
+  def open_size(sz)
+    @post.concat "[SIZE=#{sz}]"
+    self
+  end
+  def close_size
+    @post.concat "[/SIZE]"
+    self
+  end
+  def open_italics
+    @post.concat"[I]"
+    self
+  end
+  def close_italics
+    @post.concat "[/I]"
+    self
+  end
+  def open_indent
+    @post.concat "[INDENT]"
+    self
+  end
+  def close_indent
+    @post.concat "[/INDENT]"
+    self
+  end
+  def tab
+    @post.concat "\t"
+    self
+  end
+  def enter
+    @post.concat "\n"
+    self
+  end
+  def VBulletin.commafy(n)
+    n.to_s.chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  end
+  def to_s
+    @post
+  end
+end
+
+class Transport_O
+  @@locker = 7987   # WL 
+  #@@locker =13276  # TI
+
+  #@@locker_cmds = 'go open;open locker'         # Landing
+  #@@locker_cmds = 'go granite arch;pull sconce;go open;open locker'
+  #@@pre_cmds = 'go granite arch;pull sconce'
+  @@pre_cmds = ''
+  @@silvers  = 0
+  attr_accessor :origin, :shop_cmds, :was_on_fwi, :pre_cmds, :silvers, :teleporter
+
+  def initialize
+    rebase
+    @teleporter        = {}
+    self._constructor
+    return self
+  end
+
+  def fwi_teleport
+    unless @teleporter[:item]
+      setting           = 'teleporter'
+      if UserVars.send(setting).nil? or UserVars.send(setting).empty?
+        Client.notify "error: #{setting.to_s} is not set. (;set change #{setting.to_s} <container name>)" 
+      else
+        Client.notify "locating teleporter..."
+        GameObj.containers.map do |container, contents| 
+          contents.each do |item|
+            if item.full_name =~ /#{UserVars.send(setting)}/
+              respond @item
+              @teleporter[:container] = container
+              @teleporter[:item]      = item
+            end
+          end
+        end
+      end
+    end
+    multifput "get ##{@teleporter[:item].id}", "turn ##{@teleporter[:item].id}", "_drag ##{@teleporter[:item].id} ##{@teleporter[:container]}"
+    self
+  end
+
+  def wealth
+    result = Library.do "wealth", /^You have ([0-9]+) coins with you|^You have no silver coins with you|^You have but one coin with you/
+    case result
+      when /^You have ([0-9]+) coins with you/  then @silvers = $1.to_i
+      when /^You have but one coin with you/    then @silvers = 1
+      else                                           @silvers = 0
+    end
+    @silvers
+  end
+
+  def deplete(silvers)
+    @silvers = @silvers - silvers
+  end
+
+  def smart_wealth
+    return @silvers if @silvers 
+    @wealth
+  end
+  def unhide
+    fput 'unhide' if invisible? or hidden?
+    self
+  end
+  def withdraw(amount)
+    go2_bank
+    result = dothistimeout "withdraw #{amount} silvers", Library.timeout, /I'm sorry|then hands you/
+    if result =~ /I'm sorry/ 
+      go2_origin
+      Client.end "Unable to withdraw the amount requested for this script to run from your bank account"
+    end
+    return self
+  end
+
+  def deposit
+    self.go2_bank
+    fput "unhide" if invisible?
+    fput "deposit all"
+    return self
+  end
+
+  def go2(roomid)
+    unhide if hidden
+    start_script 'go2', [roomid, '_disable_confirm_']
+    wait_while { running? "go2" };
+    return self
+  end
+
+  def hide
+    while not hiding?
+      waitrt?
+      fput 'hide'
+    end
+  end
+
+  def unhide
+    fput 'unhide'
+  end
+
+  def _constructor
+    singleton = (class << self; self end)
+    [
+      'bank', 'gemshop', 'pawnshop', 'advguild', 'forge', 'inn', 'npchealer',
+      'chronomage', 'town', 'furrier', 'herbalist', 'locksmith', 'alchemist',
+      'fletcher', 'sunfist', 'movers', 'consignment', 'advguard','advguard2',
+      'clericshop', 'warriorguild'
+    ].each do |target|
+      singleton.send :define_method, "go2_#{target}".to_sym do
+        unhide if hidden
+        start_script 'go2', [target, '_disable_confirm_']
+        wait_while { running? "go2" };
+        return self
+      end
+    end
+  end
+
+  def go2_locker
+    start_script 'go2', [@@locker]
+    wait_while { running? "go2" };
+    if @@pre_cmds then @@pre_cmds.split(';').each do |cmd| fput cmd end; end
+    result = dothistimeout "go open", 1, /^You step through the curtained|You'll have to wait/
+    if result =~ /You'll have to wait/
+      matchwait 'just came'
+      fput 'go open'
+    end
+    fput 'open locker'
+    return self
+  end
+
+  def return_to_origin
+    if Room.current.id != @origin[:roomid]
+      start_script 'go2', [@origin[:roomid]]
+      wait_while { running? "go2" };
+    end
+    hide if @origin[:hidden]
+    return self
+  end
+  def rebase
+    @origin = {}
+    @origin[:roomid] = Room.current.id
+    @origin[:hidden] = hiding?
+    @origin[:location] = Room.current.location
+    self
+  end
+  alias_method :go2_origin, :return_to_origin
+end
+
+class Extender
+  attr_accessor :type
+  def initialize(item)
+    @type = item.type
+    self._extend(item)
+  end
+
+  # This copies GameObj data to attributes so we can employ it for scripting
+  def _extend(item)
+    item.instance_variables.each do |var|
+      s = var.sub('@', '')
+      (class << self; self end).class_eval do; attr_accessor "#{s}"; end
+      instance_variable_set "#{var}", item.send(s)
+    end
+  end
+end
+
+class Item_Wrapper
+  attr_accessor :type, :buyable, :cost
+  def initialize(item)
+    @type = item.type
+    self._extend(item)
+  end
+
+  # This copies GameObj data to attributes so we can employ it for scripting
+  def _extend(item)
+    item.instance_variables.each do |var|
+      s = var.sub('@', '')
+      (class << self; self end).class_eval do; attr_accessor "#{s}"; end
+      instance_variable_set "#{var}", item.send(s)
+    end
+  end
+  def take
+    result = Library.do "get ##{@id}", /#{[Gemstone_Regex.get[:success], Gemstone_Regex.get[:failure].values].flatten.join('|')}/
+    if result =~ Gemstone_Regex.get[:failure][:buy]
+      while(line=get)
+        if line =~ /However, it'll be ([0-9]+) silvers for someone like you/
+          @cost = $1.to_i
+          @buyable = true
+          break;
+        elsif line =~ /The selling price is ([0-9]+) silvers/
+          @cost = $1.to_i
+          @buyable = true
+          break; 
+        end 
+        break;
+      end
+    end
+    result
+  end
+  def wear
+    result = Library.do "wear ##{@id}", /You can only wear|^You put|^You slide|^You attach|^You hang/
+    if result =~ /You can only wear/
+      return false
+    else
+      return true
+    end
+  end
+  def remove
+    fput "remove ##{@id}"
+  end
+  def buy
+    fput "buy ##{@id}"
+    self
+  end
+  def give(target)
+    fput "give ##{@id} to #{target}"
+  end
+  def _drag(target)
+    Library.do "_drag ##{@id} ##{target.id}", /#{[Gemstone_Regex.put[:success], Gemstone_Regex.put[:failure].values].flatten.join("|")}/
+  end
+end
+
+class Container_Wrapper
+  attr_accessor :ref, :types, :full, :_origin, :_worn, :unfindable_is_fatal
+  def initialize
+    @full = false
+    @_origin = {}
+    track_hands
+    setting = self.class.name.downcase.split('_')[0]
+    if UserVars.send(setting).nil? or UserVars.send(setting).empty?
+      Client.end "error: #{setting.to_s} is not set. (;set change #{setting.to_s} <container name>)"
+    end
+    unless @ref = (GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.send(setting).strip)}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.send(setting)).sub(' ', ' .*')}$/i } || GameObj.inv.find { |obj| obj.name =~ /\b#{Regexp.escape(UserVars.send(setting)).sub(' ', ' .*')}/i })
+      echo "error: failed to find your #{setting.to_s}"
+      exit if @unfindable_is_fatal
+    end
+    if @ref
+      @_worn = GameObj.inv.collect { |item| item.id }.include? @ref.id
+      fput "l in ##{@ref.id}" unless GameObj[@ref.id].contents
+      self._extend(@ref)._constructor
+    end
+  end
+
+  def worn?
+    @_worn
+  end
+
+  # sets
+  def track_hands
+    @_origin[:left] = GameObj.left_hand if GameObj.left_hand.id
+    @_origin[:right] = GameObj.right_hand if GameObj.right_hand.id
+    self
+  end
+
+  def _extend(item)
+    # This copies GameObj data to attributes
+    item.instance_variables.each do |var|
+      s = var.sub('@', '')
+      (class << self; self end).class_eval do; attr_accessor "#{s}"; end
+      instance_variable_set "#{var}", item.send(s)
+    end
+    return self
+  end
+
+  def [](query, strict=false)
+    return contents.select do |item| 
+      item if (item.type =~ query || item.noun =~ query || item.name =~ query) #|| item.full_name =~ query 
+    end
+  end
+
+  def contents
+    contents = []
+    @types.each do |method, exp| contents.push self.send method.to_sym end
+    return contents.flatten
+  end
+
+  def _constructor
+    singleton = (class << self; self end)
+    @types    = { #method   => #regex
+                  "gems"        => /gem/, 
+                  "boxes"       => /box/, 
+                  "scrolls"     => /scroll/,
+                  "herbs"       => /herb/,
+                  "jewelry"     => /jewelry/,
+                  "magic"       => /magic/,
+                  "unknowns"    => nil
+                  #"lockpicks",  => "lockpick"
+                }
+    @types.each do |method, exp|
+      singleton.send :define_method, method.to_sym do
+        if exp.nil?
+          matches = GameObj[@id].contents.select do |item| item.type.nil? end
+        else
+          matches = GameObj[@id].contents.select do |item| item.type =~ exp end
+        end
+        matches.map! do |item| eval("#{method.gsub(/es$/,'').gsub(/s$/, '').capitalize!}_O").new(item) end
+        matches
+      end
+    end
+  end
+  def __verbs__
+    @verbs = 'open close analyze inspect weight'.split(' ').map(&:to_sym)
+    singleton = (class << self; self end)
+    @verbs.each do |verb|
+      singleton.send :define_method, verb do
+        fput "#{verb.to_s} ##{@id}"
+      end
+    end
+  end
+  def full?
+    return @full
+  end
+  def add(item)
+    result = Library.do "_drag ##{item.id} ##{@id}", /#{[Gemstone_Regex.put[:success], Gemstone_Regex.put[:failure].values].flatten.join('|')}/
+    @full = true if result =~ /won't fit in the/
+    self
+  end
+end
+
+class Movers
+  attr_accessor :transport, :db, :cost
+  def initialize
+    @transport = Transport_O.new
+    @cost      = 5000
+    # These regex keys are needed because of oddities in Room.location data
+    # Ex: some WL rooms are "the town of Wehnimer's Landing" and others are "Wehnimer's Landing"
+    # FWI rooms are spotty on having consistent location data tagged, it's advisable to use a go2_town when on FWI to insure the best results
+    @db = {
+      /Wehnimer/   => 8896,
+      /Solhaven/   => nil,
+      /Icemule/    => 3373,
+      /Four Winds/ => 16146
+    }
+    return self
+  end
+  def lookup
+    @db.each do |regex, protocol| return protocol if @transport.origin[:location] =~ regex end
+  end
+  def [](from, to)
+    
+    if lookup
+      @transport.withdraw(@cost) if @transport.wealth < @cost 
+      @transport.go2 lookup
+      [ "ask clerk for move", "say yes", "say #{from}", "say #{to}", "say immediate"].each do |cmd| fput cmd end
+      @transport.go2_origin
+    else
+      Client.end "Undefined mover's protocol for this town"
+    end
+    return self
+  end
+  def go2_nearest_mover
+    @transport.go2 @db[@transport.origin[:location]]
+  end
+end
+
+class Lootsack_O < Container_Wrapper  
+  def initialize
+    super
+    return self
+  end
+
+  def stash
+    self.boxes.each do |box|
+      multifput "get ##{box.id}", "put ##{box.id} in locker"
+    end
+  end
+
+  def drop
+    self.boxes.each do |box|
+      multifput "get ##{box.id}", "drop ##{box.id}"
+    end
+  end
+end
+
+class Scrollsack_O < Container_Wrapper
+  
+  attr_accessor :read, :worthy, :unworthy, :lootsack
+  def initialize
+    super
+    @unworthy = Array.new 
+    @worthy   = Array.new
+    @read     = false
+  end
+
+
+  # Sorts the scrolls in the lootsack to see if they're worth keeping, or should be sold
+  def sort
+    scrolls.each do |scroll|
+      if scroll.read.worthy?
+        @worthy.push scroll
+      else
+        respond "Not worthy ##{scroll.id}"
+        @unworthy.push scroll
+      end
+    end
+    return self
+  end
+end
+
+class Shop_O
+  attr_accessor :map, :items, :desc, :lich_id, :wing
+  def non_indexables 
+    "wall ceiling permit floor helmet snowshoes candelabrum flowerpot Hearthstone bear 
+    candelabra sculpture anvil tapestry portrait Wehnimer spiderweb rug fountain longsword skull
+    ship panel painting armor flowers head plate vase pillows mask skeleton fan flag statue
+    mat plaque mandolin plant carpet pattern oar pelican ceiling wall-hanging".gsub(/^( |\t)+/, "").split(' ')
+  end
+  def initialize
+    @items = {}
+    fput "go #{checkpaths[0]}" if checkpaths.length == 1
+    build_map
+    self
+  end
+  def build_map
+    dirs = checkpaths.select {|d| d != 'out'}
+    reverse = dirs.map {|d| reverse_direction(d) }
+    @map = Hash.[](dirs.zip(reverse))  # odd hack to fix Odd length Hash bug :http://osdir.com/ml/ruby-core/2012-07/msg00357.html
+    @wing = 'center'
+    self
+  end
+  def rooms(&protocol)
+    index #unless Script.self.want_downstream_xml
+    instance_exec @items[@wing], &protocol
+    @map.keys.each do |wing|
+      go(wing)
+      index #unless Script.self.want_downstream_xml
+      instance_exec @items[@wing], &protocol
+      go2_center 
+    end 
+  end
+  def exit
+    go @map[@wing] if @wing != 'center'
+    move 'out'
+  end
+  def wings
+    @map.reject do |room, reverse| room == 'center' end
+  end
+  def [](query, strict=false)
+    index unless @items[@wing]
+    return @items[@wing].select{|item| item.type =~ query || item.noun =~ query || item.name =~ query || (item.respond_to?(:full_name) and item.full_name =~ query)}
+  end
+  def buy(item)
+    result = Library.do "buy ##{item.id}", /#{[Gemstone_Regex.shop[:failure].values, Gemstone_Regex.shop[:success]].flatten.join('|')}/
+    return true if result =~ Gemstone_Regex.shop[:success]
+    false
+  end
+  def go(d)
+    return go2_center if d == 'center'
+    fput "go #{d}"
+    @wing = d
+    self
+  end
+  def go2_center
+    if @wing != 'center'
+      fput "go #{reverse_direction(@wing)}"
+      @wing = 'center'
+    end
+  end
+  def index
+    @items[@wing] = []
+    for indexable in containers
+      # look at/in so that Lich tracks the contents
+      [ "look on", "look in" ].each do |cmd| fput "#{cmd} ##{indexable.id}" end unless indexable.contents
+      @items[@wing].push indexable.contents
+    end
+    @items[@wing].flatten!.map! do |item| 
+      item = Jar_O.new(item) if item.type =~ /jar/ 
+      item 
+    end
+    self
+  end
+  def containers
+    GameObj.room_desc.select do |item| !self.non_indexables.include?(item.noun) end
+  end
+end
+
+class Locker_O 
+  attr_accessor :index, :active, :premie, :potential_containers, :containers
+
+  @potential_containers= 'chest stand rack bin wardrobe chest locker'.split(' ')
+  
+  
+  def initialize
+    @premie = false
+    @containers = Hash.new
+    GameObj.loot.select{ |obj| obj.noun =~ /#{@potential_containers.join('|')}/ }.each do |container| @containers[container.noun]=container end
+    @premie = true if @available_containers.length == @potential_containers.length
+    self._constructor
+    return self
+  end
+  def _constructor
+    singleton = (class << self; self end)
+    @containers.each do |noun, obj|
+      singleton.send :define_method, noun.to_sym do
+        fput "look in ##{obj.id}" unless obj.contents
+        return @containers[noun]
+      end
+    end
+  end
+  
+  def contents(noun)
+    return self[noun.to_sym].contents
+  end
+
+  def filter(container, type)
+    res = Array.new
+    @available_containers[container].contents.each do |item|
+      if item.type =~ /#{type}/ then res.push item end
+    end 
+    return res
+  end
+end
+
+class Client
+  @@queue = Array.new
+  @@script = Script.self.name
+  def Client.notify(msg)
+    puts Client.pop msg 
+  end
+  def Client.end(msg)
+    puts Client.pop msg
+    exit
+  end
+  def Client.queue(msg)
+    @@queue.push msg
+  end
+  def Client.pop(msg)
+    "<pushBold/>#{msg}<popBold/>"
+  end
+  def Client.help_menu(cmd, desc)
+    @@queue.push ";#{@@script} #{cmd} ... #{desc}"
+  end
+  def Client.report(title=@@script)
+    Client.notify "______ #{title} ____"
+    respond @@queue.join("\n")
+    Client.notify "__________________________"
+  end
+end
+
+class Scroll_O < Item_Wrapper
+  attr_accessor :spells, :worthy, :whitelist
+  class << self
+    attr_accessor :custom
+  end
+
+  def initialize(item)
+    super item
+    @whitelist = [ 
+                    101, 102, 103, 107, 116, 120, 
+                    202, 211, 208, 215, 219, 
+                    303, 307, 310, 313, 315,
+                    401, 406, 414, 425, 430, 
+                    503, 507, 508, 509, 511, 513, 520, 
+                    601, 602, 606, 613, 617, 618, 625, 640, 
+                    712, 
+                    905, 911, 913, 920, 
+                    1109, 1119, 1125, 1130,
+                    1201, 1204,
+                    1601, 1603, 1606, 1610, 1611, 1612, 1616,
+                    1712, 1718
+                  ]
+    @spells = []
+    return self
+  end
+
+  def worthy?
+    @worthy = false
+    read unless @spells.length > 0
+    list = Scroll_O.custom ? Scroll_O.custom : @whitelist
+    @spells.each do |spell| @worthy = true if list.include? spell[:n].to_i end
+    @worthy
+  end
+
+  def sell
+    unless self.worthy?
+      result = dothistimeout "get ##{@id}", 1, /^You remove/
+      fput "sell ##{@id}" if result
+    end
+  end
+
+  def read
+    Library.do "read ##{@id}", /It takes you a moment to focus/
+    result = matchtimeout(Library.timeout, 'On the')
+    if result
+      begin
+        Timeout::timeout(0.1) do
+          while(get =~ /\(([0-9]+)\) ([a-zA-Z'\s]+)/)
+            spell        = {} 
+            spell[:n]    = $1.to_i
+            spell[:name] = $2.to_s
+            @spells.push spell
+          end 
+        end
+      rescue Timeout::Error
+        # Silent
+      end
+    end
+    self
+  end
+end
+
+class Box_O < Item_Wrapper
+  attr_accessor :contents, :target, :container
+  def open
+    # TODO: map results to Gemstone_Regex class & employ a dothistimeout
+    fput "open ##{@id}"
+  end
+  def stash
+
+  end
+end
+
+class Gem_O < Item_Wrapper
+  attr_accessor :quality, :value
+  def appraise
+    result = dothistimeout "appraise ##{@id}", 3, /#{Gemstone_Regex.gems[:appraise].values.join('|')}/
+    case result
+      when Gemstone_Regex.gems[:appraise][:gemshop]
+        # handle gemshop appraisal
+        @value = $1
+      when Gemstone_Regex.gems[:appraise][:player]
+        @value = $3
+        @quality = $2
+      when Gemstone_Regex.gems[:appraise][:failure]
+        waitrt?
+        self.appraise
+      else
+        respond result
+        Client.notify "Error during gem appraisal"
+    end
+  end
+  def normalized_name
+    Gemstone_Regex.gems[:singularize].call(@name)
+  end
+  def sell
+    result = take
+    fput "sell ##{@id}" if result =~ Gemstone_Regex.get[:success]
+  end
+end
+
+class Herb_O < Item_Wrapper
+end
+
+class Magic_O < Item_Wrapper
+  def use(target=nil)
+    fput "drink ##{@id}"          if @noun =~ /potion/
+    fput "pour ##{@id} #{taget}"  if @noun =~ /flask/
+    fput "rub ##{@id}"            if @noun =~ /crystal|statue/
+  end
+end
+
+class Wand_O < Item_Wrapper
+  def wave(target)
+  end
+end
+
+class Jewelry_O < Item_Wrapper
+  attr_accessor :heirloom
+  def heirloom?
+    result = Library.do "look ##{@id}", /^You see nothing unusual|#{Gemstone_Regex.item[:heirloom]}/
+    @heirloom = result =~ Gemstone_Regex.item[:heirloom] ? true : false
+    @heirloom
+  end
+end
+
+class Jar_O < Item_Wrapper
+  attr_accessor :gem, :count, :full, :empty, :pullable, :initial_count, :stacked
+
+  def initialize(item)
+    super(item)
+    @count = 0 # for empty jars
+    @full  = false
+    @empty = false
+    _extract
+    self
+  end
+
+  def _extract
+    jem = @after_name.gsub('containing', '').strip
+    if jem != ''
+      @gem = Gemstone_Regex.gems[:singularize].call(jem)
+      look_result      = self.look
+      if look_result   =~ /^Inside .*? you see ([0-9]+) portion/
+        @count         = $1.to_i
+        @initial_count = @count
+        @full          = look_result.include?('It is full') ? true : false
+      else
+        respond "[0lib] Oddity detected in extracting Jar data"
+      end
+    else
+      @empty = true
+    end
+    self
+  end
+
+  def shake
+    result = Library.do "shake ##{@id}", /^You give your #{@noun} a hard shake|before you realize that it is empty/
+    @empty = true if result =~ /realize that it is empty/
+    return Gem_O.new(GameObj.left_hand)  if GameObj.right_hand.id == @id
+    return Gem_O.new(GameObj.right_hand) if GameObj.left_hand.id == @id
+  end
+
+  def full?
+    @full
+  end
+
+  def stash
+    Library.do "shop sell 1", /^You place your/
+  end
+
+  def acquire
+    if pullable?
+      result    = Library.do "pull ##{@id}", /^You pull/
+      @stacked  = true if result =~ /([0-9]+) left/
+    else
+      result = Library.do "buy ##{@id}", /You hand over/
+      unless result = /^You hand over/
+        Client.end "[FATAL] Logic flaw, not enough coins to acquire #{@name}"
+      end
+    end
+    self
+  end
+
+  def look
+    Library.do "look in ##{@id}", /^Inside .*? you see [0-9]+ portion|The .*? is empty./
+  end
+
+  def pullable?
+    unless @pullable
+      Library.do "get ##{@id}", /^Looking closely/
+      result = Library.timeoutfor "You can PULL", "You'll have to buy it if you want it"
+      if result =~ /^You can PULL/ then @pullable = true else @pullable = false end
+    end
+    @pullable
+  end
+
+  def inc
+    @count = @count+1
+    return self
+  end
+
+  def fill
+    @full = true
+    return self
+  end
+
+  def add(g)
+    result = Library.do "_drag ##{g.id} ##{@id}", /^You add|^You put|is full|does not appear to be a suitable container for|^You can't do that/
+    result = Library.do "put ##{g.id} in my #{@noun}", /^You add|^You put|is full|does not appear to be a suitable container for/ if result =~ /^You can't do that/
+    case result
+      when /^You add .* filling it/                         then inc.fill
+      when /^You add|^You put/                              then inc
+      when /does not appear to be a suitable container for/ then return false
+      when /is full/                                        then fill; return false
+      else                                                       return false
+    end
+    return true
+  end
+end
+
+class Component_O < Item_Wrapper
+end
+
+class Unknown_O < Item_Wrapper
+end
+
+class Creatures
+  attr_accessor :untargetables, :ignore, :collection
+  def initialize(ignore=true)
+    @ignore = ignore
+    CharSettings[:__target_cache__]                ||= Hash.new
+    CharSettings[:__target_cache__][:untargetable] ||= Array.new
+    CharSettings[:__target_cache__][:ttl]          ||= Time.now + (10*60) # 10 minute TTL
+    maintain_cache
+    self
+  end
+  def maintain_cache
+    if CharSettings[:__target_cache__][:ttl] < Time.now
+      puts "<pushBold/>Clearing targetting cache...<popBold/>"
+      CharSettings[:__target_cache__][:ttl] = Time.now + (10*60)
+      CharSettings[:__target_cache__][:untargetable] = Array.new
+    end
+    self
+  end
+  def all
+    GameObj.npcs.map {|creature| Creature_O.new(creature) }.select {|creature| creature.targetable  && !creature.is?("ignoreable") }
+  end
+  def [](exp)
+    all.select { |creature| creature.name =~ exp }
+  end
+  def bandits
+    all.select { |creature| creature.is?('bandit') }
+  end
+  def flying
+    all.select { |creature| creature.is?('flying') }
+  end
+  def living
+    all.select { |creature| creature.is?('living') }
+  end
+  def undead
+    all.select { |creature| creature.is?('undead') }
+  end
+  def grimswarm
+    all.select { |creature| creature.is?('grimswarm') }
+  end
+  def invasion
+    all.select { |creature| creature.is?('invasion')  }
+  end
+  def stunned
+    all.select(&:stunned?)
+  end
+  def active
+    all.select(&:active?)
+  end
+  def dead
+    all.select(&:dead?)
+  end
+  def escortees
+    GameObj.npcs.map {|creature| Creature_O.new(creature) }.select {|creature| creature.is?('escortee') }
+  end 
+end
+
+class Creature_O < Extender
+  attr_accessor :wounds, :targetable, :incapacitated, :self_healing, :can_cast, :type, :data, :legged, :limbed
+
+  def initialize(creature)
+    @wounds        = {}
+    @data          = {}
+    @incapacitated = false
+    @self_healing  = creature.name =~ /troll|csetari/ ? true : false
+    @data[:type]   = 'unknown'
+    if creature.name =~ Gemstone_Regex.undead         then @data[:type] = 'living';     @targetable = true;    end
+    if creature.name =~ Gemstone_Regex.living         then @data[:type] = 'undead';     @targetable = true;    end
+    if creature.noun =~ Gemstone_Regex.bandits        then @data[:type] = 'bandit';     @targetable = true;    end
+    if creature.noun =~ Gemstone_Regex.escortees      then @data[:type] = 'escortee';   @targetable = false;   end
+    if creature.name =~ /taladorian/i                 then @data[:type] = 'invasion';   @targetable = true;    end
+    if creature.name =~ /grimswarm/i                  then @data[:type] = 'grimswarm';  @targetable = true;    end
+    if creature.noun =~ /kobold|rolton|velnalin|urgh/ then @data[:type] = 'ignoreable'; @targetable = true;    end
+    heal
+    super(creature)
+  end
+
+  def type
+    @data[:type]
+  end
+
+  def is?(t)
+    type == t
+  end
+
+  def heal
+    [:right_leg, :left_leg, :right_arm, :left_arm, :head, :left_eye, :right_eye].each do |location| @wounds[location] = 0 end
+    @wounds
+  end
+  def injuries
+    fput "look ##{@id}"
+    woundinfo = matchtimeout(0.1, /(he|she|it) (?:has|appears) .*/i)
+    if woundinfo =~ /appears to be in good shape/                   then heal; return @wounds;     end
+    if woundinfo =~ /severed right leg/                             then @wounds[:right_leg] = 3;  end
+    if woundinfo =~ /severed left leg/                              then @wounds[:left_leg]  = 3;  end
+    if woundinfo =~ /severed right arm/                             then @wounds[:right_arm] = 3;  end
+    if woundinfo =~ /severed left arm/                              then @wounds[:left_arm]  = 3;  end
+    if woundinfo =~ /severe head trauma and bleeding from .* ears/  then @wounds[:head]      = 3;  end
+    if woundinfo =~ /blinded left eye/                              then @wounds[:left_eye]  = 3;  end
+    if woundinfo =~ /blinded right eye/                             then @wounds[:right_eye] = 3;  end
+    self
+  end
+  
+  def status
+    GameObj[@id].status
+  end
+
+  def trollish?
+    @self_healing
+  end
+
+  def legged?
+    unless @legged == true && trollish?
+      @legged = false
+      injuries
+      @legged = true if @wounds[:right_leg] == 3 || @wounds[:left_leg] == 3 || dead? || gone? 
+    end
+    @legged
+  end
+
+  def can_cast?
+    unless @can_cast == false && trollish?
+      @can_cast = true
+      injuries
+      @can_cast = false if @wounds[:right_arm] == 3 || @wounds[:head] == 3
+    end
+    @can_cast
+  end
+
+  def limbed?
+    unless @limbed == true && trollish?
+      @limbed = false
+      injuries
+      [:right_leg, :left_leg, :right_arm].each do |limb| @limbed = true if @wounds[limb] == 3 end
+    end
+    @limbed
+  end
+
+  def dead?
+    status =~ /dead/
+  end
+
+  def active?
+    return false if limbed? or gone? or (stunned? && !is?('grimswarm'))
+    return true
+  end
+
+  def gone?
+    GameObj[@id].nil?
+  end
+
+  def prone?
+    status =~ /lying|prone/
+  end
+
+  def stunned?
+    status =~ /stunned/
+  end
+
+  def kill_shot
+    wounds    = injuries
+    location = "head"
+    location = "neck"      if @wounds[:head]      == 3
+    location = "right eye" if @wounds[:neck]      == 3
+    location = "left eye"  if @wounds[:right_eye] == 3 
+    location = "back"      if @wounds[:left_eye]  == 3 
+    location
+  end
+
+  def target
+    result = Library.do "target ##{@id}", /#{Gemstone_Regex.targetable.values.join('|')}/
+    @targetable = result =~ Gemstone_Regex.targetable[:yes] ? true : false
+    unless @targetable
+      Client.notify "add #{@name} to cache"
+    end
+    self
+  end
+
+  def targetable?
+    target if @targetable.nil?
+    @targetable
+  end
+  def search
+    waitrt?
+    fput "search ##{id}"
+  end
+end
+
+# Libray
+# Classes are namespaced to help prevent poluting the global namespace & collisions
+# The Library class is for syntactic sugar to invoke new instances of classes availabe in 0lib
+class Library
+  # Library default timeout variable
+  @timeout   = 3
+  @namespace = :__Olib__
+  @settings  = [:house, :guildmaster]
+  class << self
+    attr_accessor :timeout, :namespace, :settings
+  end
+  def Library.bootstraped?
+    CharSettings[@namespace].nil?
+  end
+  def Library.bootstrap
+    Client.notify "\nThis looks like the first time this character has used 0lib..."
+    Client.notify "Bootstraping...... \n"
+    CharSettings[@namespace] = {}
+    @settings.each do |setting| CharSettings[@namespace][setting] = nil end
+    fput "profile full"
+    while line=get
+      case line
+        when /^Guild Master/                     then CharSettings[@namespace][:guildmaster] = true
+        when /^Member of House of ([a-zA-Z ']+)/ then CharSettings[@namespace][:house] = $1.to_s.downcase
+        when /^ACHIEVEMENTS/                     then break;
+      end
+    end
+    CharSettings[@namespace][:guildmaster] = false if CharSettings[@namespace][:guildmaster].nil?
+    Client.notify "\n\n... success!"
+  end
+  def Library.do(cmd, regex)
+    dothistimeout cmd, Library.timeout, regex
+  end
+  def Library.timeoutfor(*args)
+    matchtimeout Library.timeout, *args
+  end
+  def Library.run_script(script, *args)
+    start_script script, *args
+    wait_while { running? script };
+  end
+  def Library.start_unless_running(script)
+    start_script script unless running?(script)
+  end
+  def initialize
+    return self
+  end
+  def Transport
+    return Transport_O.new
+  end
+  def Lootsack
+    return Lootsack_O.new
+  end
+  def Scrollsack
+    return Scrollsack_O.new
+  end
+  def Locker
+    return Locker_O.new
+  end
+  def Shop
+    return Shop_O.new
+  end
+end
+
+Library.bootstrap unless not Library.bootstraped?
+
+#
+# keepalive
+#
+
+loop {
+  begin
+    sleep 100000
+  rescue
+    echo $!
+    Client.notify "Error in 0lib..."
+    puts $!.backtrace[0..1]
+    sleep 1
+  end
+}

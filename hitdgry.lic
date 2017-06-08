@@ -1,0 +1,6 @@
+loop {
+  fput "prep 410"
+  fput "cast dgry"
+  pause 25
+
+}

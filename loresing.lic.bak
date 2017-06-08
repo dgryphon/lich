@@ -1,0 +1,17 @@
+=begin
+A script to test for loresinging
+Usage: ;loresing (adjective) (item)
+by: Dgry
+=end
+
+
+
+put "loresing #{script.vars[1]} #{script.vars[2]} on a critter found;For your song I am bound"
+waitrt
+put "loresing #{script.vars[1]} #{script.vars[2]} on a critter found;For your song I am bound;Ahh I see now what you say"
+waitrt
+put "loresing #{script.vars[1]} #{script.vars[2]} on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?"
+waitrt
+put "loresing #{script.vars[1]} #{script.vars[2]} on a critter found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least"
+waitrt
+put "loresing #{script.vars[1]} #{script.vars[2]} that I have found;For your song I am bound;Ahh I see now what you say;Anything else to share this day?;That is interesting to say the least;Any final tidbits on which to feast?"

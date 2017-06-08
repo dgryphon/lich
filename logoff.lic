@@ -1,0 +1,3 @@
+echo "doing this"
+sleep 5
+fput "exit"

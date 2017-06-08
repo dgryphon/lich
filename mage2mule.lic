@@ -1,0 +1,17 @@
+=begin
+
+=end
+
+fput 'tell fam to leave'
+start_script 'go2' , ['2811']
+wait_while { running?('go2') }
+fput 'incant 920'
+start_script 'famgo2' , ['2883']
+wait_while { running?('famgo2') }
+fput 'tell fam go out'
+start_script 'famgo2' , [ '3041' ]
+wait_while { running?('famgo2') }
+fput 'incant 930'
+fput 'go mist'
+start_script 'go2' , [ '2300' ]
+wait_while { running?('go2') }

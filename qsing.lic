@@ -1,0 +1,50 @@
+# Script to loresing to an item in your right hand. Tries to get the minimum
+# roundtime on each verse. Posted by Vulvamancer on the PC
+
+if !checkright
+	exit
+end
+
+propertydb = [ "value  ", "purpose", "magic  ", "ability" ]
+filler = " " * (11 - checkright.length)
+
+fput "speak bard"
+
+if script.vars[1] =~ /1/ or !script.vars[0]
+	fput "loresing #{checkright}, of secret #{propertydb[0]} #{filler};I command!"
+	line = waitfor("You learn nothing new", "Roundtime\:")
+	if script.vars[1] =~ /1/
+		fput "speak common"
+		exit
+	end
+	waitrt?
+end
+if script.vars[1] =~ /2/ or !script.vars[0]
+	fput "loresing #{checkright}, of secret #{propertydb[1]} #{filler} ;I command!"
+	line = waitfor("You learn nothing new", "Roundtime\:")
+	if script.vars[1] =~ /2/ or line =~ /You learn nothing new/
+		fput "speak common"
+		exit
+	end
+	waitrt?
+end
+if script.vars[1] =~ /3/ or !script.vars[0]
+	fput "loresing #{checkright}, of secret #{propertydb[2]} #{filler};I command!"
+	line = waitfor("You learn nothing new", "Roundtime\:")
+	if script.vars[1] =~ /3/ or line =~ /You learn nothing new/
+		fput "speak common"
+		exit
+	end
+	waitrt?
+end
+if script.vars[1] =~ /4/ or !script.vars[0]
+	fput "loresing #{checkright}, of secret #{propertydb[3]} #{filler} ;I command!"
+	line = waitfor("You learn nothing new", "Roundtime\:")
+	if script.vars[1] =~ /4/ or line =~ /You learn nothing new/
+                fput "speak common"
+		exit
+	end
+	waitrt?
+end
+
+fput "speak common"

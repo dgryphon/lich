@@ -1,0 +1,103 @@
+Settings.load
+Settings[Char.name] ||= Hash.new
+gem_tasks         = Settings[Char.name]['gem_tasks']          || false
+herb_tasks        = Settings[Char.name]['herb_tasks']         || false
+bandit_tasks      = Settings[Char.name]['bandit_tasks']       || false
+cull_tasks        = Settings[Char.name]['cull_tasks']         || false
+grizzled_tasks    = Settings[Char.name]['grizzled_tasks']     || false
+skin_tasks        = Settings[Char.name]['skin_tasks']         || false
+heirloom_tasks    = Settings[Char.name]['heirloom_tasks']     || false
+cast_list     = Settings[Char.name]['cast_list']         || [ 101, 102, 103, 107, 115, 120, 202, 211, 215, 219, 303, 307, 310, 313, 401, 406, 414, 425, 430, 503, 507, 508, 509, 513, 520, 601, 602, 606, 613, 617, 618, 625, 640, 712, 905, 911, 913, 920, 1109, 1119, 1125, 1130, 1601, 1603, 1606, 1610, 1611, 1612, 1616 ]
+known_spells      = Spells.known.collect { |spell| spell.num }
+cast_list.delete_if { |spell| !(known_spells.include?(spell) and eval(Spell[spell].duration) > 0) }
+list_mode         = false
+
+
+	if HAVE_GTK and defined?(Gtk.queue)
+		window = window_action = nil
+		window_width  = Settings[Char.name]['window_width'] || 445
+		window_height = Settings[Char.name]['window_height'] || 490
+		Gtk.queue {
+
+			do_gem_option = Gtk::CheckButton.new('Gem Tasks')
+			do_gem_option.active = gem_tasks
+			do_herb_option = Gtk::CheckButton.new('Herb Tasks')
+			do_herb_option.active = herb_tasks
+			do_bandit_option = Gtk::CheckButton.new('Bandit Tasks')
+			do_bandit_option.active = bandit_tasks
+			do_cull_option = Gtk::CheckButton.new('Cull Tasks')
+			do_cull_option.active = cull_tasks
+			do_grizzled_option = Gtk::CheckButton.new('Grizzled Tasks')
+			do_grizzled_option.active = grizzled_tasks
+			do_skin_option = Gtk::CheckButton.new('Skin Tasks')
+			do_skin_option.active = skin_tasks
+			do_heirloom_option = Gtk::CheckButton.new('Heirloom Tasks')
+			do_heirloom_option.active = heirloom_tasks
+
+
+			option_box = Gtk::HBox.new(false, 0)
+			option_box.pack_start(do_gem_option, false, false, 4)
+			option_box.pack_start(do_herb_option, false, false, 4)
+			option_box.pack_start(do_bandit_option, false, false, 4)
+			option_box.pack_start(do_cull_option, false, false, 4)
+			option_box.pack_start(do_grizzled_option, false, false, 4)
+			option_box.pack_start(do_skin_option, false, false, 4)
+			option_box.pack_start(do_heirloom_option, false, false, 4)
+
+			option_frame = Gtk::Frame.new('Options')
+			option_box_spacer = Gtk::VBox.new
+			option_box_spacer.pack_start(option_box, false, false, 4)
+			option_frame.add(option_box_spacer)
+
+			save_button = Gtk::Button.new('Ok')
+			save_button.width_request = 75
+			cancel_button = Gtk::Button.new('Cancel')
+			cancel_button.width_request = 75
+			button_box = Gtk::HBox.new(false, 3)
+			button_box.pack_end(save_button, false, false, 4)
+			button_box.pack_end(cancel_button, false, false, 4)
+
+			main_box = Gtk::VBox.new(false, 4)
+			main_box.pack_start(option_frame, false, false, 0)
+			main_box.pack_start(button_box, false, false, 0)
+
+			window = Gtk::Window.new
+			window.title = 'waggle setup'
+			window.border_width = 5
+			window.add(main_box)
+			window.resize(window_width, window_height)
+
+			save_button.signal_connect('clicked') {
+				Gtk.queue {
+                              gem_tasks = do_gem_option.active?
+                              herb_tasks= do_herb_option.active?
+                              bandit_tasks = do_bandit_option.active?
+                              cull_tasks = do_cull_option.active?
+                              skin_tasks = do_skin_option.active?
+                              heirloom_tasks = do_heirloom_option.active?
+                              grizzled_tasks = do_grizzled_option.active?
+					window_width = window.allocation.width
+					window_height = window.allocation.height
+					window_action = :save
+				}
+                  }
+
+                  window.show_all
+            }
+		before_dying { Gtk.queue { window.destroy } }
+		wait_while { window_action.nil? }
+		undo_before_dying
+		Gtk.queue { window.destroy }
+
+		if window_action == :save
+
+			Settings[Char.name]['gem_tasks']      = gem_tasks
+			Settings[Char.name]['herb_tasks']     = herb_tasks
+			Settings[Char.name]['bandit_tasks']   = bandit_tasks
+			Settings[Char.name]['cull_tasks']     = cull_tasks
+			Settings[Char.name]['skin_tasks']     = skin_tasks
+			Settings[Char.name]['heirloom_tasks'] = heirloom_tasks
+			Settings[Char.name]['grizzled_tasks'] = grizzled_tasks
+		end
+		Settings.save
+	end	

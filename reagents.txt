@@ -1,0 +1,54 @@
+alchemy:
+   greater mana potion                   ranks: 44-62   cost: 41787   time: 0:56:48   includes: simmer, infuse   missing: glowing violet essence shard (12)
+   major sneezing powder                 ranks: 52-62   cost: 79185   time: 0:55:13   includes: simmer, boil, infuse   missing: some essence of fire (19)
+   mottled malachite talisman            ranks: 50-62   cost: 117735   time: 1:00:36   includes: boil, simmer, infuse, channel   missing: green malachite stone (12)
+   greater mana-well potion              ranks: 57-62   cost: 42470   time: 1:01:39   includes: simmer, infuse, channel   missing: cluster of t'ayanad crystals (12), some radiant crimson essence dust (12), cluster of s'ayanad crystals (3)
+   glowing moonstone talisman            ranks: 60-62   cost: 153230   time: 1:56:15   includes: boil, simmer, infuse, channel   missing: cluster of t'ayanad crystals (5), golden moonstone (12)
+   greater mana regeneration potion      ranks: 60-62   cost: 49355   time: 1:20:19   includes: simmer, infuse, channel   missing: cluster of t'ayanad crystals (6), radiant crimson mote of essence (11), cluster of s'ayanad crystals (3)
+   tiny vial of extra-strong skin glue   ranks: 60-62   cost: 31800   time: 0:14:12   includes: infuse, simmer   missing: some powdered iridescent tempest shell (12), some glowing violet essence dust (4), ruby lens (1), some essence of earth (24), some powdered deep blue mermaid's tear sapphire (12)
+
+
+green malachite stone
+
+
+alchemy:
+   mottled malachite talisman         ranks: 50-62   cost: 92655   time: 0:45:11   includes: boil, simmer, infuse, channel   missing: green malachite stone (10)
+   greater mana-well potion           ranks: 57-62   cost: 31470   time: 0:48:09   includes: simmer, infuse, channel   missing: cluster of t'ayanad crystals (11), cluster of s'ayanad crystals (2), some radiant crimson essence dust (10)
+   glowing moonstone talisman         ranks: 60-62   cost: 123470   time: 1:29:52   includes: boil, simmer, infuse, channel   missing: cluster of t'ayanad crystals (4), golden moonstone (10), cluster of s'ayanad crystals (1)
+   greater mana regeneration potion   ranks: 60-62   cost: 38155   time: 1:01:02   includes: simmer, infuse, channel   missing: cluster of t'ayanad crystals (5), radiant crimson mote of essence (9), cluster of s'ayanad crystals (3)
+
+
+
+
+
+
+   	greater mana potion
+		ingredient ayanad crystal (x1)
+		ingredient s'ayanad crystal (x2)
+		ingredient faintly glimmering dust (x1)
+		ingredient glowing essence shard (x1)
+  	major sneezing powder
+		ingredient rose quartz (x1)
+		ingredient essence of fire (x2)
+		ingredient pepperthorn root (x3)
+		ingredient s'ayanad crystal (x2)
+	mottled malachite talisman
+		ingredient ground tkaro root (x2)
+		ingredient luckbloom blossom (x2)
+		ingredient t'ayanad crystal (x1)
+		ingredient pristine sprite's hair (x1)
+		ingredient green malachite stone (x1)
+	greater mana-well potion
+		ingredient ground tkaro root (x1)
+		ingredient s'ayanad crystal (x1)
+		ingredient t'ayanad crystal (x1)
+		ingredient faintly radiant dust (x2)
+		ingredient radiant essence dust (x1)
+	greater mana regeneration potion	
+		water
+		ayana leaf
+		ground tkaro root
+		s'ayanad crystal
+		t'ayanad crystal
+		radiant mote of essence
+		faintly radiant dust

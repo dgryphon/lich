@@ -1,0 +1,151 @@
+rlandis@apexsystemsinc.com
+
+struts/ibmrad
+
+
+
+>Sluntty traces a sign that contorts in the air while he forcefully incants a dark invocation...
+>Sluntty gestures at you.
+As the tendril of swirling gray magic leaves Sluntty's hand, it is deflected away from you and dissipates harmlessly into the air.
+>[bigshot]>stance defensive
+...wait 1 seconds.
+>[bigshot]>stance defensive
+You are now in a defensive stance.
+>An uncontrollable urge to scratch the rash covering your body overcomes you, and you madly dig at it with your fingernails!
+
+You drop your warblade and shield!
+Roundtime: 5 sec.
+Roundtime changed to 2 seconds.
+>Sluntty picks up a bone-hilted vultite warblade.
+>Sluntty put a bone-hilted vultite warblade in his climbing pack.
+>Sluntty picks up a silvery vultite target shield.
+>Sluntty put a silvery vultite target shield in his climbing pack.
+
+
+loop {
+ 
+#Wait until cursed 
+wait_until { get? =~ /^You shiver slightly as an invisible rash covers your body\!  A feeling of defenselessness washes over you\!/ }
+#sleep 1
+stop_script( 'bigshot' )
+  
+  #stow everything away
+  fput "wear my greatshield"
+  fput "open my backpack"
+  fput "stow left"
+  fput "stow right"
+  fput "close my backpack"
+  
+  #Run to Icemule Voln
+  #start_script( 'go2', ['3365'] )
+  #wait_while { running?("go2") }
+  fput "symbol of return"
+  
+  #Heal down
+  start_script( 'herbheal', ['nobench'] )
+  wait_while { running?("herbheal") }
+  
+  #Recover at Nightowl pub, until curse resides
+  start_script( 'go2', ['3424'] )
+  wait_while { running?("go2") }
+    fput "go table"
+        if get =~ /^It seems as though all the tables here are occupied\./
+          start_script( 'go2', ['3408'] )
+          wait_while { running?("go2") }
+          fput "go table"
+            if get =~ /^It seems as though all the tables here are occupied\./
+              start_script( 'go2', ['3633'] )
+              wait_while { running?("go2") }
+              fput "lie"
+            end
+        end
+    fput "hide"
+  wait_until { get? =~ /^You no longer feel so defenseless and the rash seems to disappear\./ }
+  sleep 1
+  
+  #Restart Bigshot
+  start_script( 'bigshot', ['solo'] )
+  
+}
+
+
+
+password = 'irock'
+ 
+loop {
+#script is paused until character dies  
+wait_until { dead? }
+  stop_script("bigshot")
+  stop_script("307")
+  stop_script("310")
+  stop_script("211")
+  stop_script("215")
+  stop_script("115")
+  stop_script("117")
+  stop_script("weaponmonitor")
+ 
+
+#might reconsider leaving group open to just anyone
+  fput "group open"
+  
+#If rescued, ask for healing and a raise when prompted
+  if get? =~ /(.*) (?:says|whispers), "(.*)"/
+    
+    char = $1
+    message = $2.strip
+ 
+    if (message =~ /rezzyou/i and message =~ /#{password}/) 
+        fput "ask worker about raise"
+        fput "ask worker about raise confirm"
+    end
+    elsif (message =~ /healyou/i and message =~ /#{password}/) 
+        fput "ask Mirtag about heal"
+        fput "ask Mirtag about heal confirm"
+    end
+ 
+# Recovery activities that occur after character is brought back to life
+wait_until { !dead? }
+  
+  #Check Recent Deaths - if greater than 3 log out
+    fput "experience"
+    if get =~ /^Recent Deaths: 3/
+        fput "quit"
+    end
+  fput "group close"
+  
+  #heal down in case character was tend raised
+  start_script( 'herbheal', ['nobench'] )
+    wait_while { running?("herbheal") }
+  
+  #return to resting spot
+  start_script( 'go2', ['3633'] )
+    wait_while { running?("go2") }
+  
+  #secure the area with minor sanctuary
+  wait_until { checkmana >= 13 }
+  fput "incant 213"
+  
+  #empty hands
+  fput "open my backpack"
+  fput "stow right"
+  fput "wear my shield"
+  
+  #eat manna bread
+  start_script( 'bread' )
+    wait_while { running?("bread") }
+  
+  #ensure hands are empty
+  start_script( 'stow' )
+  
+  #spell back up  
+  start_script( 'waggle' )
+    wait_while { running?("waggle") }
+  
+  #wait for mana and spirit to return
+  fput "meditate"
+  wait_until { checkspirit >= 9 }
+  wait_until { percentcheckmana >= 100 }
+ 
+#Recovery over, start hunting again 
+start_script( 'bigshot', ['solo'] )
+}

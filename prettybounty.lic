@@ -1,0 +1,30 @@
+=begin
+
+	This script formats the output of the bounty verb, and keeps track of
+	how many tasks have been completed recently, and how many bounty points
+	have been gained recently.
+
+	tillmen@lichproject.org
+
+=end
+
+start_time = Time.now
+counter = Hash.new
+counter['start'] = Hash.new
+counter['now'] = Hash.new
+action = proc { |server_string|
+	if server_string =~ /^You have succeeded at the (.*?) task ([0-9]+) times?( and failed [0-9]+ times?)?\./
+		task = $1
+		counter['start'][task] ||= $2.to_i
+		counter['now'][task] = $2.to_i
+		fail = $3.slice(/[0-9]+/)
+		server_string = "You have succeeded at the #{task.dup.concat(' task:').ljust(29)} #{(counter['now'][task] - counter['start'][task]).to_s.rjust(3)} time#{'s' if (counter['now'][task] - counter['start'][task]) != 1} recently,#{' ' if (counter['now'][task] - counter['start'][task]) == 1}   #{counter['now'][task].to_s.rjust(3)} time#{'s' if counter['start'][task] != 1} total#{"   #{' ' if counter['start'][task] == 1}(#{fail} failures)" if fail}.\r\n"
+	elsif server_string =~ /^You have accumulated a total of ([0-9]+) lifetime bounty points\./
+		counter['start']['points'] ||= $1.to_i
+		counter['now']['points'] = $1.to_i
+		server_string = "You have accumulated #{counter['now']['points'] - counter['start']['points']} bounty points recently (#{((counter['now']['points'] - counter['start']['points'])/((Time.now - start_time)/3600.0)).to_i} pts/hr), #{counter['now']['points']} total.\r\n"
+	else
+		server_string
+	end
+}
+DownstreamHook.add('prettybounty', action) 

@@ -1,0 +1,12 @@
+=begin
+#alcatt.lic
+#attacks + skins with alchemy
+# --Dgry
+# email: dgry@hotmail.com
+=end
+
+loop { 
+     fput "attack savan"
+     waitrt
+}
+  

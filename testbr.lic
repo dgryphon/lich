@@ -1,0 +1,35 @@
+
+=begin
+# blah blah blah
+=end
+
+container = alchemy_sack_var = GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack.strip)}/i } || GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack).sub(' ', ' .*')}/i }
+reagents = /radiant crimson essence dust|glowing violet mote of essence|some essence of fire|pristine siren's hair|glowing violet essence shard|some essence of water|s'ayanad crystal|t'ayanad crystal/
+
+	if table = (GameObj.loot.to_a + GameObj.room_desc.to_a).find { |obj| obj.noun == 'table'}
+
+		count = Hash.new
+		status_tags
+		dothistimeout "look on ##{table.id}", 3, /^On the .* you see|On the table you see/
+		
+		
+		
+		echo table.contents
+		unless table.contents.empty?		
+
+			if table.contents.any? { |obj| echo obj.name;obj.name =~ reagents }
+				empty_hands
+				dothistimeout "get my note", 10, /^You remove|^You already have that\./
+				for obj in table.contents
+					if obj.name =~ reagents
+						unless count[obj.name]
+						dothis "buy ##{obj.id}", /decide to purchase the/
+						dothis "put #{obj.noun} in my #{container}", /^You put|^I could not find what you were referring to\./						
+					end
+				end		
+			end
+		end
+	end
+end
+#start_script 'alchemy', ['jar']
+

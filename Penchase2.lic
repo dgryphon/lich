@@ -1,0 +1,20 @@
+
+# plays pennant chase for you
+
+	
+#=end
+
+
+
+while true
+	# if pennant point it at the pennant	
+      # if people wave at every person
+        	line = get
+		if (line =~ /(.*)? pennant/ )
+			pen = $1 
+			fput "wave baton at #{pen} pennant"
+		end
+end
+#            if (line =~ /here: ((.*)[,|.])? /)
+
+#Also here: Shilaohra, Lady Syndie, Lord Javell.

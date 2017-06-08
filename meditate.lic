@@ -1,0 +1,7 @@
+=begin
+A script for meditating pre-waggle in bigshot
+by: Dgry
+=end
+
+fput "meditate"
+waitfor "You wake from your meditation"

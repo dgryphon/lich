@@ -1,0 +1,83 @@
+=begin
+I did not write this script, I used wiz_to_lich to convert an older eg digging script. 
+=end
+
+Settings.load
+sav = Settings['sav'] || String.new
+before_dying { Settings['sav'] = sav; Settings.save }
+
+
+dig:
+    waitrt?
+    clear
+    put "dig"
+    match "dig", "Roundtime"
+    match "dig", "wait"
+    match "strongbox", "strongbox from the soil\\."
+    match "box", "box from the soil\\."
+    match "crate", "crate from the soil\\."
+    match "chest", "chest from the soil\\."
+    match "coffer", "coffer from the soil\\."
+    match "trunk", "trunk from the soil\\."
+    match "new", "Grave Robber"
+    matchwait
+    
+box:
+    sav = "box"
+    goto "open"
+    
+chest:
+    sav = "chest"
+    goto "open"
+    
+crate:
+    sav = "crate"
+    goto "open"
+    
+coffer:
+    sav = "coffer"
+    goto "open"
+    
+strongbox:
+    sav = "strongbox"
+    goto "open"
+    
+trunk:
+    sav = "trunk"
+    goto "open"
+    
+open:
+    waitrt?
+    clear
+    put "open my #{sav}"
+    waitrt?
+    clear
+    put "get coins from my #{sav}"
+    waitrt?
+    clear
+    put "look in my #{sav}"
+    goto "trash"
+    
+trash:
+    echo "**Type TRASH when you're ready**"
+    match "trash2", "Trash"
+    match "trash2", "There is nothing in there\\."
+    matchwait
+    
+trash2:
+    waitrt?
+    clear
+    put "put my #{sav} in hole"
+    goto "new"
+    
+new:
+    waitrt?
+    clear
+    put "get my shovel"
+    match "dig", "You remove"
+    match "done", "Get what\\?"
+    matchwait
+    
+done:
+    echo "* * You're out of shovels! * *"
+    exit

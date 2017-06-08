@@ -1,0 +1,140 @@
+require "ftools"
+no_kill_all
+no_pause_all
+#hide_me
+
+filename = $script_dir + "enchantnotes.csv"
+filename2 = $script_dir + "enchantnotes.tmp"
+name = ''
+
+=begin
+A passive script for tracking enchant temper times, it makes a note anytime you pour a temper potion on an item.
+Add to favorites so that it's always running - ;fav add global enchantnotes.
+Usage: ;enchants - will show list of current projects for all characters you have access to
+by: Dgry (suggestions/bugs) dgry@hotmail.com
+known bugs: 
+=end
+
+
+action = proc { |client_string|
+	if client_string =~ /^(?:<c>)?#{$lich_char}((?:enchants).*)/i
+		if scr = (Script.running + Script.hidden).find { |val| val.name == 'enchantnotes' }
+			scr.downstream_buffer.shove("#{$clean_lich_char}#{$1}")
+		else
+			UpstreamHook.remove('enchantnotes')
+		end
+		nil
+	else
+		client_string
+	end
+}
+UpstreamHook.add('enchantnotes', action)
+
+while line = get
+
+	if line =~ /should be ready to enchant in about ([0-9]+) to ([0-9]+) days?/
+		daysleft = $1.to_i
+		daysleft2 = $2.to_i
+		calcTime = Time.now + daysleft*24*60*60
+		calcTime2 = Time.now + daysleft2*24*60*60
+		if GameObj.right_hand.name =~ /potion/ || righthand == nil
+			encItem = GameObj.left_hand.name
+			encItemID = GameObj.left_hand.id
+		else
+			encItem = GameObj.right_hand.name
+			encItemID = GameObj.right_hand.id
+		end
+		File.open(filename, "a") { |f| f.puts "#{Char.name},#{encItem},#{encItemID},#{calcTime},#{calcTime2},#{Time.now}"}
+		respond
+		respond "A note has been saved to enchantnotes file!"
+		respond
+	elsif line =~ /should be ready to enchant ([0-9]+) to ([0-9]+) hours?/
+		daysleft = $1.to_i
+		daysleft2 = $2.to_i
+		calcTime = Time.now + daysleft*60*60
+		calcTime2 = Time.now + daysleft2*60*60
+		if GameObj.right_hand.name =~ /potion/ || righthand == nil
+			encItem = GameObj.left_hand.name
+			encItemID = GameObj.left_hand.id
+		else
+			encItem = GameObj.right_hand.name
+			encItemID = GameObj.right_hand.id
+		end
+		File.open(filename, "a") { |f| f.puts "#{Char.name},#{encItem},#{encItemID},#{calcTime},#{calcTime2},#{Time.now}"}
+		respond
+		respond "A note has been saved to enchantnotes file!"
+		respond
+      elsif line =~ /^#{$lich_char}enchants$/
+		file = File.open(filename, "r")
+		while (line = file.gets)
+		name, encItem, encItemID, calcTime, calcTime2, pouredDay = line.split(",")
+			if Time.now > Time.parse(calcTime2)
+				ready = "Ready!"
+			elsif Time.now > Time.parse(calcTime)
+				ready = "Might be ready!"
+			else
+				ready = "Not ready."
+			end
+			readySoonestm = ([0, (Time.parse(calcTime) - Time.now) / (60) - 1].max % 60).round
+			readySoonesth = ([0, (Time.parse(calcTime) - Time.now) / (60*60) -1].max % 24).round
+			readySoonestd = ([0, (Time.parse(calcTime) - Time.now) / (24*60*60) ].max).round
+			readyLatestm  = ([0, (Time.parse(calcTime2) - Time.now) / (60)-1].max % 60).round
+ 			readyLatesth  = ([0, (Time.parse(calcTime2) - Time.now) / (60*60)-1].max % 24).round 
+			readyLatestd  = ([0, (Time.parse(calcTime2) - Time.now) / (24*60*60)].max).round 
+			echo "#{name} is enchanting a #{encItem}, earliest: #{readySoonestd} days #{readySoonesth} hours #{readySoonestm} mins, latest: #{readyLatestd} days #{readyLatesth} hours #{readyLatestm} mins, status: #{ready}"
+		end
+		file.close
+	elsif line =~ /your sure gestures guiding them to slowly coalesce into a pair of small softly glowing runic symbols|your sure gestures guiding them to slowly coalesce into small softly glowing runic symbols/                
+		if GameObj.right_hand.name =~ /potion/ || righthand == nil
+			encItem = GameObj.left_hand.name
+			encItemID = GameObj.left_hand.id
+		else
+			encItem = GameObj.right_hand.name
+			encItemID = GameObj.right_hand.id
+		end
+		# open file
+		# find entry
+		# delete entry
+		# if entry not found, echo error
+		file = File.open(filename, "r")
+		while (tline = file.gets)
+			name, encItem3, encItemID2, calcTime, calcTime2, pouredDay = tline.split(",")
+			if encItem == encItem3
+				if Time.now > Time.parse(calcTime2)
+					ready = "Ready!"
+				elsif Time.now > Time.parse(calcTime)
+					ready = "Might be ready!"
+				else
+					ready = "Not ready."
+				end
+				readySoonestm = ([0, (Time.parse(calcTime) - Time.now) / (60) - 1].max % 60).round
+				readySoonesth = ([0, (Time.parse(calcTime) - Time.now) / (60*60) -1].max % 24).round
+				readySoonestd = ([0, (Time.parse(calcTime) - Time.now) / (24*60*60) -1].max).round
+				readyLatestm  = ([0, (Time.parse(calcTime2) - Time.now) / (60)-1].max % 60).round
+ 				readyLatesth  = ([0, (Time.parse(calcTime2) - Time.now) / (60*60)-1].max % 24).round 
+				readyLatestd  = ([0, (Time.parse(calcTime2) - Time.now) / (24*60*60)-1].max).round 
+#				echo "#{name} is enchanting a #{encItem}, earliest: #{readySoonestd} days #{readySoonesth} hours #{readySoonestm} mins, latest: #{readyLatestd} days #{readyLatesth} hours #{readyLatestm} mins, status: #{ready}"
+				respond
+				respond "#{encItem3}, earliest: #{readySoonestd} days #{readySoonesth} hours #{readySoonestm} mins, latest: #{readyLatestd} days #{readyLatesth} hours #{readyLatestm} mins, status: #{ready}" 
+				respond "Delete this entry?"
+                        respond "(;send y for yes or ;send n for no)"	
+				respond
+				#Pause
+				line = nil
+				line = get until line.strip =~ /^y$|^n$/i
+				if line =~ /^n$/
+					File.open(filename2, "a") { |f| f.puts tline}
+				else	
+					respond
+					respond "A note for #{encItem} was removed."
+					respond
+				end
+			else
+				File.open(filename2, "a") { |f| f.puts tline}
+			end
+		end
+		file.close
+		File.copy(filename2, filename)
+		File.delete(filename2)
+	end
+end

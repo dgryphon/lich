@@ -1,0 +1,47 @@
+
+# plays pennant chase for you
+
+	
+#=end
+
+
+echo 'here 2'
+while true
+	# if pennant point it at the pennant	
+      # if people wave at every person
+        	line = get
+		if (line =~ /You also see a (.*)? pennant / )
+			pen = $1
+			fput "wave baton at #{pen} pennant"
+		end
+
+#            if (line =~ /here: ((.*)[,|.])? /)
+            if (line =~ /Also here: / )
+			#| You also see/)
+            	# process all people/items in the line
+			# GameObj.pcs - list of pcs
+		#Also here: Drazaa, Lady Yfonissa, Ikriim, Vinandra, Lord Rubytip, Pennant Chase Official Modrian
+		#example line to parse - take anything before coma
+
+			targets = line.split(',')
+			#targets = GameObj.npcs.find
+			#for person in targets
+        		for person in targets
+#			for question in [ $1, $2, $3, $4, $5, $6, $7, $8]
+				person = person.gsub(/Also here:/, "")
+				person = person.tr(".", "") 
+				person = person.tr(" ", "") 
+				person = person.gsub(/"/, "") 
+				person = person.gsub(/Lady/, "")
+				person = person.gsub(/Ambassador/, "")
+				person = person.gsub(/Lord/, "")
+#				echo person
+		      	fput "wave baton at #{person}"
+				#fput "wave baton at #{question}"
+			end
+		end
+end
+
+
+
+#Also here: Shilaohra, Lady Syndie, Lord Javell.

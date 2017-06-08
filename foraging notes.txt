@@ -1,0 +1,165 @@
+
+Name: Delvostien Race: Human  Profession: Warrior (not shown)
+Gender: Male    Age: 0    Expr: 698    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (25)    ...   90 (25)
+Constitution (CON):    90 (20)    ...   90 (20)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    90 (20)    ...   90 (20)
+  Discipline (DIS):    70 (10)    ...   70 (10)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):    40 (0)     ...   40 (0)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    20 (-15)   ...   20 (-15)
+
+
+-------------------------------------------------------------------------------------
+Highest failure: 76 Lowest Success: 77
+-------------------------------------------------------------------------------------
+
+>info
+Name: Delvostien Race: Human  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 135    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (25)    ...   90 (25)
+Constitution (CON):    90 (20)    ...   90 (20)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    90 (20)    ...   90 (20)
+  Discipline (DIS):    70 (10)    ...   70 (10)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):    40 (0)     ...   40 (0)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    20 (-15)   ...   20 (-15)
+Mana:  1   Silver: 578
+
+
+-------------------------------------------------------------------------------------
+Highest failure: 81 Lowest Success: 82
+-------------------------------------------------------------------------------------
+
+
+Increase
+Agility bonus
+Intuition bonus
+Survival skill*
+Perception skill*
+Kneeling position*
+Open hands*
+Ranger Base spell, Foraging (603)*
+Ranger Base spell, Assume Aspect (650), Aspect of the Yierka
+
+
+Name: Delvostien Race: Human  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 592    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (25)    ...   90 (25)
+Constitution (CON):    80 (15)    ...   80 (15)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):   100 (25)    ...  100 (25)
+  Discipline (DIS):    70 (10)    ...   70 (10)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):    40 (0)     ...   40 (0)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    20 (-15)   ...   20 (-15)
+Mana:  1   Silver: 578
+
+
+-------------------------------------------------------------------------------------
+Highest failure: 80 Lowest Success: 81
+-------------------------------------------------------------------------------------
+
+suggests every 5 agility increases it by 1
+
+
+>info
+Name: Delvostien Race: Human  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 610    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (25)    ...   90 (25)
+Constitution (CON):    80 (15)    ...   80 (15)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    30 (-10)   ...   30 (-10)
+  Discipline (DIS):    70 (10)    ...   70 (10)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):    40 (0)     ...   40 (0)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    90 (20)    ...   90 (20)
+Mana:  1   Silver: 578
+
+
+-------------------------------------------------------------------------------------
+Highest failure: 87 Lowest Success: 88
+-------------------------------------------------------------------------------------
+
+results: agil bonus /5 = bonus or it could be stat/10
+
+>info
+Name: Delvostien Race: Human  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 1465    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (25)    ...   90 (25)
+Constitution (CON):    80 (15)    ...   80 (15)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    30 (-10)   ...   30 (-10)
+  Discipline (DIS):    70 (10)    ...   70 (10)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):   100 (30)    ...  100 (30)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    30 (-10)   ...   30 (-10)
+Mana:  1   Silver: 578
+
+-------------------------------------------------------------------------------------
+Highest failure: 72 Lowest Success: 73
+-------------------------------------------------------------------------------------
+
+int is bonus/2
+
+>info
+Name: Delvostien Race: Erithian  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 448    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (15)    ...   90 (15)
+Constitution (CON):    80 (25)    ...   80 (25)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    30 (-10)   ...   30 (-10)
+  Discipline (DIS):    70 (15)    ...   70 (15)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):   100 (25)    ...  100 (25)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    30 (0)     ...   30 (0)
+Mana:  0   Silver: 974
+
+
+-------------------------------------------------------------------------------------
+Highest failure: 76 Lowest Success: 77
+-------------------------------------------------------------------------------------
+
+>info
+Name: Delvostien Race: Erithian  Profession: Monk (not shown)
+Gender: Male    Age: 0    Expr: 1447    Level:  0
+                  Normal (Bonus)  ...  Enhanced (Bonus)
+    Strength (STR):    90 (15)    ...   90 (15)
+Constitution (CON):    80 (25)    ...   80 (25)
+   Dexterity (DEX):    90 (20)    ...   90 (20)
+     Agility (AGI):    30 (-10)   ...   30 (-10)
+  Discipline (DIS):    70 (15)    ...   70 (15)
+        Aura (AUR):    70 (10)    ...   70 (10)
+       Logic (LOG):    50 (5)     ...   50 (5)
+   Intuition (INT):   100 (25)    ...  100 (25)
+      Wisdom (WIS):    50 (0)     ...   50 (0)
+   Influence (INF):    30 (0)     ...   30 (0)
+Mana:  1   Silver: 974
+
+-------------------------------------------------------------------------------------
+Highest failure: 75 Lowest Success: 76
+-------------------------------------------------------------------------------------
+
+Suggests int is int bonus/2
+
+

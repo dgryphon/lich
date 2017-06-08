@@ -1,0 +1,3 @@
+start room: 6970
+boundry: 6955, 6997, 6975
+

@@ -1,0 +1,508 @@
+=begin
+
+Use SETUP to choose the items you wish
+to sell. It uses some nouns, so be sure
+that prized possessions are MARKed or
+in a separate container.
+
+Uses ;settings--must have gemsack, lootsack,
+skinsack, and alchemysack set.
+
+USE AT YOUR OWN RISK!!!
+
+
+=end
+
+Settings.load
+
+$start_point = Room.current.id
+
+pawnrooms = [ 2464, 408, 16351, 644, 5711, 1885, 10949, 9477, 10379, 10066, 9272, 4683 ]
+
+shell 		 = [ "shell", "pinch of gold dust" ]
+gemitem 	 = [ "polished shark tooth", "slab of silver", "pinch of gold dust", "shell", "iridescent piece of mother-of-pearl", "sphene", "eostone", "green aventurine stone", "rock crystal", "quartz crystal", "agate", "amber", "amethyst", "blazestar", "faenor-bloom", "carbuncle", "chalcedony", "coral", "despanal", "diamond"  , "emerald"  , "feystone"  , "garnet"  , "gem"  , "glimaerstone"  , "heliodor"  , "hyacinth"  , "jacinth"  , "some blue lapis lazuli"  , "moonstone"  ,	 "obsidian"  , "opal"  , "onyx"  , "pearl"  , "quartz"  , "ruby"  , "sapphire"  , "shimmertine shard"  , "spinel"  , "polished jet stone"  , "green malachite stone"  , "light pink morganite stone"  ,	"pink rhodochrosite stone"  ,	"banded sardonyx stone"  , "turquoise stone"  , "topaz"  , "tourmaline"  ,	 "turquoise" ,  "zircon" ,  "peridot"  , "starstone" ,  "dreamstone"  , "deathstone"  , "peridot"  ,   "sunstone" ,  "sandsilver",   "bluerock" ,  "diopside"]
+furitem 	 = [ "ambergris", "fishscale", "horn", "ambergris", "antlers", "bone" , "faceted crystal crab shell", "beard" , "carapace" , "claw"  , "crest" , "ear" , "eye" , "eyeball" , "fang" , "feather" , "firethorn" , "heart"  , "hide" , "jawbone" , "knuckle", "leg" , "mandible" , "mane" , "nose" , "paw" , "pelt" , "pincer" , "scalp" , "scraping" , "skin" , "skull" ,"snout" , "stinger" , "tail" , "talon" , "thumb" , "toe" , "tongue" , "tusk" , "wing" ]
+alchemy      = [ "core", "air", "fire", "earth", "globe", "some essence of water", "pristine nymph's hair", "small troll tooth", "large troll tooth", "ayanad crystal", "glowing violet essence shard", "radiant crimson mote of essence", "glimmering blue mote of essence", "glimmering blue mote of essence", "glimmering blue essence shard", "radiant mote of essence", " radiant crimson essence dust", "radiant essence dust","some glimmering blue essence dust", "some glowing violet essence dust", "tiny golden seed", "n\'ayanad crystal", "t\'ayanad crystal", "s\'ayanad crystal"]
+wanditem     = [ "amber wand", "thanot wand", "bone wand", "blue wand", "oaken wand", "aquamarine wand", "metal wand", "golden wand", "silver wand", "iron wand", "coral wand", "twisted wand", "bloodwood wand", "crystal wand", "glass wand"]
+scrollitem   = [ "scroll", "papyrus", "paper", "parchment", "palimpsest", "vellum" ]
+bluecrystal  = [ "blue crystal" ]
+blackcrystal = [ "black crystal", ]
+whitecrystal = [ "white crystal" ]
+orb          = [ "quartz orb"]
+cube         = [ "moonstone cube" ]
+camulet      = [ "crystal amulet",]
+statue       = [ "small statue", ]
+ramulet      = [ "ruby amulet",]
+flask        = [ "white flask",]
+square       = [ "bronze square",]
+triangle     = [ "granite triangle",]
+filings      = [ "filings"]
+coin         = [ "dull gold coin" ]
+lockpick     = [ "silver lockpick", "copper lockpick", "steel lockpick"]
+ring         = [ "plain gold ring", "braided gold ring", "bright gold ring", "dull gold ring", "flawless gold ring", "intricate gold ring", "polished gold ring", "thin gold ring", "twisted gold ring", "ornate gold ring", "dingy gold ring", "inlaid gold ring", "thick gold ring", "faded gold ring", "small gold ring", "large gold ring", "narrow gold ring", "shiny gold ring", "scratched gold ring", "exquisite gold ring", "wide gold ring" ]
+
+
+
+if(variable[0].nil?)
+
+if Script.exists?('transfer')
+	start_script 'transfer', [ 'all' ]
+	wait_while{running? ( 'transfer' ) }
+end
+
+
+
+	if (Settings[Char.name]['scroll_yes'])
+	echo "Looking in scrollsack"
+	result = dothistimeout "look in my #{Lich.scrollsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{scrollitem.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |scrollitem|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{scrollitem} from my #{Lich.scrollsack}"
+					fput "sell my #{scrollitem}"
+				#end
+			}
+		end
+		
+	end
+	
+
+
+result = dothistimeout "look in my #{Lich.magicsack}", 5, /In the .*? you see/
+	echo "Looking in magicsack"
+	if (Settings[Char.name]['wand_yes'])
+		contents = result.scan(/\b(?:#{wanditem.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |wanditem|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{wanditem} from my #{Lich.magicsack}"
+					fput "sell my #{wanditem}"
+				#end
+			}
+		end
+	end
+
+	
+	
+	if (Settings[Char.name]['filings_yes'])
+	#result = dothistimeout "look in my #{Lich.magicsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{filings.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |item|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{item} from my #{Lich.magicsack}"
+					fput "sell my #{item}"
+				#end
+			}
+		end
+	end
+	
+	
+	if (Settings[Char.name]['bluecrystal_yes'])
+	#result = dothistimeout "look in my #{Lich.magicsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{bluecrystal.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |item|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{item} from my #{Lich.magicsack}"
+					fput "sell my #{item}"
+				#end
+			}
+		end
+	end
+	
+	
+	if (Settings[Char.name]['blackcrystal_yes'])
+		contents = result.scan(/\b(?:#{blackcrystal.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |blackcrystal|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{blackcrystal} from my #{Lich.magicsack}"
+					fput "sell my #{blackcrystal}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['whitecrystal_yes'])
+	#result = dothistimeout "look in my #{Lich.magicsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{whitecrystal.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |whitecrystal|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{whitecrystal} from my #{Lich.magicsack}"
+					fput "sell my #{whitecrystal}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['orb_yes'])
+	#result = dothistimeout "look in my #{Lich.magicsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{orb.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |orb|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{orb} from my #{Lich.magicsack}"
+					fput "sell my #{orb}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['cube_yes'])
+		contents = result.scan(/\b(?:#{cube.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |cube|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{cube} from my #{Lich.magicsack}"
+					fput "sell my #{cube}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['camulet_yes'])
+		contents = result.scan(/\b(?:#{camulet.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |camulet|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{camulet} from my #{Lich.magicsack}"
+					fput "sell my #{camulet}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['statue_yes'])
+		contents = result.scan(/\b(?:#{statue.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |statue|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{statue} from my #{Lich.magicsack}"
+					fput "sell my #{statue}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['ramulet_yes'])
+		contents = result.scan(/\b(?:#{ramulet.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |ramulet|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+					fput "get #{ramulet} from my #{Lich.magicsack}"
+					fput "sell my #{ramulet}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['flask_yes'])
+		contents = result.scan(/\b(?:#{flask.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |flask|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{flask} from my #{Lich.magicsack}"
+					fput "sell my #{flask}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['square_yes'])
+		contents = result.scan(/\b(?:#{square.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |square|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{square} from my #{Lich.magicsack}"
+					fput "sell my #{square}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['triangle_yes'])
+		contents = result.scan(/\b(?:#{triangle.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |triangle|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{triangle} from my #{Lich.magicsack}"
+					fput "sell my #{triangle}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['lockpick_yes'])
+		contents = result.scan(/\b(?:#{lockpick.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |lockpick|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{lockpick} from my #{Lich.magicsack}"
+					fput "sell my #{lockpick}"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['ring_yes'])
+		contents = result.scan(/\b(?:#{ring.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |ring|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get #{ring.sub('gold ', '')}"
+					fput "sell my ring"
+				#end
+			}
+		end
+	end
+	
+	if (Settings[Char.name]['coin_yes'])
+		contents = result.scan(/\b(?:#{coin.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			contents.each { |coin|
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+				
+					fput "get gold coin from my #{Lich.magicsack}"
+					fput "sell my gold coin"
+				#end
+			}
+		end
+	end
+
+result = dothistimeout "look in my #{Lich.lootsack}", 5, /In the .*? you see/
+	echo "Looking in lootsack"
+		contents = result.scan(/\b(?:#{shell.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			start_script ( 'go2' ), [ 'gemshop' ] unless [ 9475, 9662, 1776, 1890, 10327, 1439, 10935, 17436, 2422, 4655, 9268 ].include?(Room.current.id)
+			wait_while {running? ( 'go2' )}
+				fput "remove my #{Lich.lootsack}"
+				fput "sell my #{Lich.lootsack}"
+				fput "wear my #{Lich.lootsack}"
+			end
+		
+material = ['feras', 'drake']
+
+if (Settings[Char.name]['drake_yes'])
+contents = GameObj.inv.find { |obj| obj.noun == "#{Lich.lootsack}" }.contents
+unless contents.nil? or contents.empty?
+					start_script 'go2', [ 'pawnshop' ] unless [5711, 12306, 9477, 408, 1885, 10379, 644, 10066, 10949, 2464, 12306, 4683, 9272, ].include?(Room.current.id)
+					wait_while{running?( 'go2' )}
+
+contents.find_all{|loot| material.any?{|item| loot.name =~ /\b#{item}\b/}}.each{|obj| 
+			fput "get ##{obj.id}"
+			fput "sell ##{obj.id}"
+							 }
+end
+end
+	
+	if (Settings[Char.name]['gems_yes'])
+	echo "Looking in gemsack"
+		fput "open my #{Lich.gemsack}"
+		result = dothistimeout "look in my #{Lich.gemsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{gemitem.join('|')})(?= and an? |,|\.)/)
+		unless contents.nil? or contents.empty?
+			start_script ( 'go2' ), [ 'gemshop' ] unless [ 9475, 9662, 1776, 1890, 10327, 1439, 10935, 17436, 2422, 4655, 9268 ].include?(Room.current.id)
+				wait_while{running?( 'go2' )}
+				fput "remove my #{Lich.gemsack}"
+				fput "sell my #{Lich.gemsack}"
+				fput "wear my #{Lich.gemsack}"
+		
+		end
+	end
+	
+	if (Settings[Char.name]['furs_yes'])
+	echo "Looking in skinsack"
+		fput "open my #{Lich.skinsack}"
+		result = dothistimeout "look in my #{Lich.skinsack}", 5, /In the .*? you see/
+		contents = result.scan(/\b(?:#{furitem.join('|')})(?= and an? |,|\.)/)
+			unless contents.nil? or contents.empty?
+				start_script 'go2', ['furrier'] unless [ 9471, 9654, 405, 1886, 4019, 10081, 13054, 10934, 2781, 17437, 2466, 12285, 9687, 9271 ].include?(Room.current.id)
+				wait_while{running?( 'go2' )}
+				fput "remove my #{Lich.skinsack}"
+				fput "sell my #{Lich.skinsack}"
+				fput "wear my #{Lich.skinsack}"
+				sleep 1
+			end
+		end
+
+	
+	if (Settings[Char.name]['alchemy_yes'])
+	echo "Looking in alchemysack"
+		fput "open my #{Lich.alchemysack}"
+		contents = GameObj.inv.find { |obj| obj.noun == "#{Lich.alchemysack}" }.contents 
+			unless contents.nil? or contents.empty?
+			start_script 'go2', ['consignment'] unless [ 9564, 6256, 13062, 10365, 13052, 9397, 11003, 13055, 16470, 9279,  ].include?(Room.current.id)
+			wait_while { running?('go2') }
+			contents.each{|item|
+				if alchemy.include? (item.name) || alchemy.include? (item.noun)
+					echo "#{contents}"
+					fput "get ##{item.id}"
+					fput "sell ##{item.id}"
+				end
+			}
+
+			end
+	end
+	
+	
+	if (Settings[Char.name][ 'bank_yes']) 
+		result = dothis "wealth", /^You have/
+			if result =~/^You have no silver/
+				start_script 'go2', [$start_point]
+				wait_while {running? 'go2'}
+				exit
+			else
+				start_script 'go2', ['bank']
+				wait_while {running? 'go2'}
+				fput "deposit all"
+				start_script 'go2', [$start_point]
+				wait_while {running? 'go2'}
+				exit
+			end
+		end
+	
+
+else
+
+#message ("Please be sure to read the comments about this script on the repo.")
+
+	char_settings = Settings[Char.name] || Hash.new
+	sell_setup_completed = false
+	window = nil
+	
+	Gtk.queue {
+
+		# Create window with box
+
+		window = Gtk::Window.new
+		window.title = "Selling Options"
+		window.set_border_width(5)
+		
+		# Boxes
+		sell_box1 = Gtk::VBox.new(false, 0)
+		sell_box2 = Gtk::VBox.new(false, 0)
+		
+		
+	   
+		# Notebook
+		sell_notebook = Gtk::Notebook.new
+		window.add(sell_notebook)
+		sell_notebook.append_page(sell_box1, Gtk::Label.new('Sell My...'))
+			
+		
+		# Hashes
+		sell_entry = Hash.new # For mapping entries to variables
+		sell_table_size = Hash.new # For mapping table sizes
+
+		# Add frames/tables
+
+		sell_table1 = Gtk::Table.new(6, 3, false)
+		sell_table1.row_spacings=3
+		sell_table1.column_spacings=3
+		sell_box1.pack_start(sell_table1, false, false, 0)
+		
+		sell_table2 = Gtk::Table.new(6, 3, false)
+		sell_table2.row_spacings=3
+		sell_table2.column_spacings=3
+		sell_box2.pack_start(sell_table2, false, false, 0)
+		
+		
+		
+		# Add box/checkboxes
+		add_checkbox = proc { |table, x_pos, y_pos, label, variable|
+			checkbox = Gtk::CheckButton.new label
+			checkbox.set_active(char_settings[variable])
+			table.attach(checkbox, x_pos, x_pos + 1, y_pos, y_pos + 1)
+			sell_entry[variable] = checkbox
+		}
+		
+		add_checkbox.call(sell_table1, 0, 2, 'Gems', 'gems_yes')
+		add_checkbox.call(sell_table1, 0, 4, 'Furs', 'furs_yes')
+		add_checkbox.call(sell_table1, 0, 6, 'Alchemy Components', 'alchemy_yes')
+		add_checkbox.call(sell_table1, 0, 8, 'Bank Deposit', 'bank_yes')
+		add_checkbox.call(sell_table1, 1, 2, 'Wands', 'wand_yes')
+		add_checkbox.call(sell_table1, 1, 4, 'Scrolls', 'scroll_yes')
+		add_checkbox.call(sell_table1, 1, 6, 'Crystal Amulets', 'camulet_yes')
+		add_checkbox.call(sell_table1, 1, 8, 'Ruby Amulets', 'ramulet_yes')
+		add_checkbox.call(sell_table1, 1, 10, 'Gold Coins', 'coin_yes' )
+		add_checkbox.call(sell_table1, 1, 12, 'White Flasks', 'flask_yes' )
+		add_checkbox.call(sell_table1, 1, 14, 'Small Statues', 'statue_yes' )
+		add_checkbox.call(sell_table1, 1, 16, 'Common Lockpicks', 'lockpick_yes' )
+		add_checkbox.call(sell_table1, 2, 2, 'Blue Crystals', 'bluecrystal_yes')
+		add_checkbox.call(sell_table1, 2, 4, 'Black Crystals', 'blackcrystal_yes')
+		add_checkbox.call(sell_table1, 2, 6, 'White Crystals', 'whitecrystal_yes')
+		add_checkbox.call(sell_table1, 2, 8, 'Heavy Quartz Orbs', 'orb_yes')
+		add_checkbox.call(sell_table1, 2, 10, 'Granite Triangles', 'triangle_yes')
+		add_checkbox.call(sell_table1, 2, 12, 'Bronze Squares', 'square_yes')
+		add_checkbox.call(sell_table1, 2, 14, 'Solid Moonstone Cubes', 'cube_yes')
+		add_checkbox.call(sell_table1, 2, 16, 'Gold Rings', 'ring_yes')
+		add_checkbox.call(sell_table1, 2, 18, 'Iron Filings', 'filings_yes')
+		add_checkbox.call(sell_table1, 2, 20, 'Drake and Feras', 'drake_yes')
+
+				
+		
+		
+		# Add signals
+
+		window.signal_connect("delete_event") {
+			Gtk.queue {
+				sell_entry.each_pair { |setting,value|
+					if(value.class.to_s =~ /CheckButton/)
+						char_settings[setting] = value.active?
+					else
+						char_settings[setting] = value.text
+					end
+				}
+				sell_setup_completed = true
+			}
+		}
+
+		# Show all
+		label = Gtk::Label.new
+		label.set_markup("<i>Note: Please read the script comments by typing ;repo info sell before use.</i>")
+		align = Gtk::Alignment.new(0, 0, 0, 0)
+		align.set_padding(50, 0, 0, 4)
+		align.add(label)
+		sell_box1.pack_start(align)
+		window.show_all
+	}
+
+	# Loop
+	sleep 0.1 until sell_setup_completed
+
+	Gtk.queue { window.destroy rescue() }
+
+	# Save settings
+	char_settings['not_first_time'] = true
+	Settings[Char.name] = char_settings
+	Settings.save
+end

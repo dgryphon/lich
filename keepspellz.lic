@@ -1,0 +1,28 @@
+=begin
+keepspellz by Snoopy
+recasts whatever spell drops..
+pretty simple
+enjoy!
+ps.. it casts all spells pretty much
+so if you dont want it keeping 140 or 640 etc up.. 
+take it out the script
+and if i missed anything, add it yourself!
+=end
+
+
+
+
+spells = ['1601', '1605', '1606', '1610', '1611', '1612', '1613', '1616', '1107', '1119', '1125', '1130', '1003', '1006', '1007', '1010', '1019', '101', '103', '107', '120', '202', '207', '211', '215', '219', '601', '602', '606', '613', '617', '640', '618', '401', '406', '414', '425', '430', '503', '507', '508', '509', '520', '540', '905', '911', '913']
+
+loop {
+	spells.each { |num|
+		if Spell[num].known? and Spell[num].affordable? and !Spell[num].active?
+			Spell[num].cast
+
+			
+			waitrt?
+			waitcastrt?
+		end
+	}
+sleep 1
+}

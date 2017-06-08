@@ -1,0 +1,96 @@
+=begin
+
+	This script does two things.  It opens your group when you die, and
+	closes it again when you get a life.  It also uses a list of names to
+	auto join, or hold hands, when they attempt to hold your hand or join
+	you, basically making your group open for only the specified people.
+
+	With the script running, use:
+		;group_ajar add <name>
+		;group_ajar del <name>
+		;group_ajar list
+
+	tillmen@lichproject.org
+
+=end
+
+hide_me
+
+CharSettings['allow'] ||= Array.new
+
+Thread.new {
+	loop {
+		begin
+			wait_until { dead? }
+			put 'group open'
+			wait_while { dead? }
+			put 'group close'
+		rescue
+			echo $!
+			puts $!.backtrace[0..1]
+		end
+	}
+}
+
+action = proc { |client_string|
+	begin
+		if client_string =~ /^(?:<c>)?#{$lich_char}#{script.name} (.*)/
+			script.downstream_buffer.push(client_string)
+			nil
+		else
+			client_string
+		end
+	rescue
+		UpstreamHook.remove(script.name)
+		client_string
+	end
+}
+before_dying { UpstreamHook.remove(script.name) }
+UpstreamHook.add(script.name, action)
+
+while line = get
+	if line =~ /^(?:<c>)?#{$lich_char}#{script.name} (.*)/
+		cmd, name = $1.split(' ')
+		cmd.downcase!
+		name.capitalize!
+		if cmd == 'add'
+			if CharSettings['allow'].include?(name)
+				echo "#{name} has already been added."
+			else
+				CharSettings['allow'].push(name)
+				echo "#{name} has been added."
+			end
+		elsif (cmd == 'del') or (cmd == 'delete')
+			if CharSettings['allow'].delete(name)
+				echo "#{name} has been deleted."
+			else
+				echo "#{name} was not found."
+			end
+		elsif cmd == 'list'
+			if CharSettings['allow'].empty?
+				echo '<empty>'
+			else
+				echo CharSettings['allow'].join(', ')
+			end
+		else
+			respond
+			respond 'Usage:'
+			respond "   #{$lich_char}#{script.name} add <name>"
+			respond "   #{$lich_char}#{script.name} del <name>"
+			respond "   #{$lich_char}#{script.name} list"
+			respond
+		end
+	elsif line =~ /^([A-Z][a-z]+) tried to join your group, but your group status is closed\./
+		if CharSettings['allow'].include?($1)
+			waitrt?
+			fput "hold #{$1}"
+			clear
+		end
+	elsif line =~ /^([A-Z][a-z]+) tried to hold your hand, but your group status is closed\./
+		if CharSettings['allow'].include?($1)
+			waitrt?
+			fput "join #{$1}"
+			clear
+		end
+	end
+end

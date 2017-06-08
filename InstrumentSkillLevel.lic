@@ -1,0 +1,31 @@
+# Will level your instrument skill while you rest
+# If you leave the room you started the script in, script will kill on the next PLAY attempt
+# Edit to config instrument
+
+##########
+# Config #
+##########
+
+instrument = "flute"
+
+styles = ["Joyful","Mournful","Soft","Fast","Slow","Intense","Jaunty","Flamboyant","Aimless","Somber","Inspiring"]
+
+##########
+##########
+##########
+
+echo "###########################################################"
+echo "###########################################################"
+echo "Leveling your #{instrument} skill until you leave this room"
+echo "###########################################################"
+echo "###########################################################"
+
+restRoomId = Room.current.id
+fput "stow all"
+fput "get my #{instrument}"
+style = 0;
+while Room.current.id == restRoomId
+	fput "play my #{instrument} #{styles[style]}" 
+	style = (style + 1) % styles.length
+	sleep 330
+end

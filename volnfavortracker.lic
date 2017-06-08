@@ -1,0 +1,357 @@
+=begin
+	Helpful for keeping track of how much favor you have.
+	
+	0.1 - Changed the settings so its for each character instead of by computer.
+	      Up to the first Voln-Fu manuevers is in, Haven't tested them so dont know if they will work correctly yet.
+	0.2 - Got the favor for each step working correctly
+	      Should also reset your favor when you complete a step
+	0.3 - Got voln-fu manuevers working correctly now
+	0.4 - Added lots of symbols, Still need a few more messages to get this script done
+	      visit http://forum.gsplayers.com/showthread.php?p=1297536 to help me out
+	0.5 - Reworked the code a bit
+	      Added Symbol of Retribution
+	0.6 - Reworked code again, may be a bit faster
+		  
+# Name: Voln Favor Tracker
+# Author: Tillek
+# Category: Society
+# Tags: Voln, Favor
+# Version: 0.6
+=end
+CharSettings.load
+CharSettings['volnfavor'] ||= Array.new
+CharSettings['volnfavor'] ||= 0
+undead = "ancient ghoul master|arch wight|baesrukha|banshee|barghest|bog wight|bog wraith|bone golem|carceris|crazed zombie|dark apparition|darkwoode|death dirge|decaying Citadel guardsman|dybbuk|eidolon|elder ghoul master|elder tree spirit|ethereal mage apprentice|ethereal triton sentry|firephantom|flesh golem|frozen corpse|gaunt spectral servant|ghost|ghost wolf|ghostly mara|ghostly pooka|ghostly warrior|ghoul master|greater ghoul|greater moor|wight|greater vruul|ice skeleton|ice wraith|lesser frost shade|lesser ghoul|lesser moor|wight|lesser mummy|lesser shade|lesser vruul|lich qyn'arj|lost soul|magru|mist wraith|moaning phantom|moaning spirit|monastic lich|n'ecare|naisirc|necrotic snake|nedum vereri|night mare|nightmare steed|nonomino|phantasma|phantasmal bestial swordsman|phantom|putrefied Citadel herald|revenant|rock troll zombie|rotting chimera|rotting Citadel arbalester|rotting corpse|rotting farmhand|rotting krolvin pirate|rotting woodsman|seeker|seraceris|shadow mare|shadow steed|shadowy specter|shadowy spectre|shrickhen|skeletal giant|skeletal ice|troll|skeletal lord|skeletal soldier|skeletal warhorse|skeleton|snow spectre|soul golem|specter|spectral fisherman|spectral lord|spectral miner|spectral monk|spectral shade|spectral triton defender|spectral warrior|spectral woodsman|spectre|tomb wight|tree spirit|troll wraith|vaespilon|vourkha|waern|water wyrd|warrior shade|werebear|wind wraith|wolfshade|wood wight|wraith|zombie|zombie rolton"
+res 			= nil
+oldres 			= nil
+step 			= nil
+attacking 		= nil
+
+if script.vars[1] =~ /list|favor/
+	respond
+	respond "Current Voln Favor:  #{CharSettings['volnfavor']}"
+	echo
+	exit
+elsif script.vars[1] == 'change'
+	CharSettings['volnfavor'] = variable[2].to_i
+	respond "Changed Voln Favor to #{CharSettings['volnfavor']}"
+	exit
+elsif script.vars[1] =~ /help|setup/
+	respond <<-instructions
+        
+        How to use:
+            First figure out what your favor is through the meditation room, or if your a master the globe in the master's hall
+            Set your favor by typing ;volnfavortracker change <number>
+            Then just run the script normally, It will output everytime you kill some undead or see one die.
+            Will also output when you type SOCIETY
+			
+            Ive put in six symbols and the combat manuevers, when I get the usage messaging for the others I will put them in.
+            
+        Options:
+            help/setup -   You're reading it
+			
+            change -       ;volnfavortracker change <number>
+            
+            favor/list -   Displays what your current favor is
+			
+        Bugs:
+            Email me at Hazado22@hotmail.com
+            Message me in game at Tillek
+
+    instructions
+    
+	exit
+	elsif not script.vars[1].nil?
+		echo
+		echo "You typed in an invalid option"
+		echo
+		exit
+end
+status_tags
+toggle_upstream
+volnfavor = proc { |server_string|
+	case server_string 
+		when /You hear a sound like a weeping child as a white glow separates itself from the <pushBold\/><a exist="\d+" noun=".+">(.+)'s.*(?:\.|!)/
+				res = $1
+				oldres = nil
+		when /(You are a member in the Order of Voln at step )(.+)\./
+				res = $1
+				step = $2
+				oldres = nil
+		when /(A wave of power flows outward from you towards)/
+				res = $1
+				oldres = nil
+		when /(You concentrate on the Symbol of Thought)/
+				res = $1
+				oldres = nil
+		when /(You feel the power of the symbol course through your body)/
+				res = $1
+				oldres = nil
+		when /(You feel more courageous)/
+				res = $1
+				oldres = nil
+		when /(You feel a layer of protection surround you)/
+				res = $1
+				oldres = nil
+		when /(You attempt to (?:throw|kick|punch)) <pushBold\/>(?:a|an) <a exist="\d+" noun=".+">(.+)<\/a><popBold\/>!/
+				res = $1
+				attacking = $2
+				oldres = nil
+		when /(Go now and (?:do the work of our Order|continue your work))/
+				res = $1
+				oldres = nil
+		when /(You draw a glowing pattern in the air before)/
+				res = $1
+				oldres = nil
+		#when /(.* does not seem to be affected)/
+				#res = $1
+				#oldres = nil
+		when /(You feel a surge of mana flow through you)/
+				res = $1
+				oldres = nil
+		when /(You concentrate(?:, but you can\'t seem to make the link work| on establishing the link and suddenly you see|, but no picture comes to mind))/
+				res = $1
+				oldres = nil
+		when /(You feel the power of the symbol project toward)/
+				res = $1
+				oldres = nil
+		when /(You concentrate on the Symbol of Need)/
+				res = $1
+				oldres = nil
+		when /((?:You feel suddenly tired and lie down for a nap|A tinge of nervousness makes going to sleep harder, but you manage))/
+				res = $1
+				oldres = nil
+		when /(Your surroundings blur into a white fog)/
+				res = $1
+				oldres = nil
+		when /(You close your eyes, lift your face and hands to the sky and from deep within you a rage burns upward and out your lips in a terrible scream of rage)/
+				res = $1
+				oldres = nil
+	end
+	server_string
+}
+DownstreamHook.remove('volnfavortracker')
+DownstreamHook.add('volnfavortracker', volnfavor)
+before_dying {DownstreamHook.remove('volnfavortracker')}
+
+start:
+wait_until{res != oldres}
+	case res
+		#Step Favor Check
+		when /You are a member in the Order of Voln at step /
+			stepcheck = (step.to_s.to_f)/3
+			if stepcheck.to_s =~ /\.[1234]+/
+				stepcheck = (stepcheck).round + 1
+			elsif stepcheck.to_s =~ /\.[56789]+/
+				stepcheck = (stepcheck).round
+			end
+			stepfavor = stepcheck.to_i * 600
+			respond "Favor needed for your next step: #{stepfavor}"
+		
+		#Symbol of Blessing|Symbol of Holiness
+		when /A wave of power flows outward from you towards/
+			if upstream_get =~ /sy of b|sym of b|symb of b|symbo of b|symbol of b|sy b|sym b|symb b|symbo b|symbol b/i
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 12
+			elsif upstream_get =~ /sy of h|sym of h|symb of h|symbo of h|symbol of h|sy h|sym h|symb h|symbo h|symbol h/i
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 108
+			end
+		
+		#Symbol of Thought
+		when /You concentrate on the Symbol of Thought/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 12
+			
+		#Symbol of Recovery
+		when /You feel the power of the symbol course through your body/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 24
+		
+		#Symbol of Courage
+		when /You feel more courageous/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 24
+		
+		#Symbol of Protection
+		when /You feel a layer of protection surround you/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 24
+		
+		#Voln-fu
+		when /You attempt to (?:throw|kick|punch)/
+			dontecho = true
+			if attacking !~ /#{undead}/
+				dontecho = false
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 6
+			end
+		
+		#Reset Favor when you get a new step
+		when /Go now and (?:do the work of our Order|continue your work)/
+			CharSettings['volnfavor'] = 0
+		
+		#Symbol of Calming|Symbol of Sleep|Symbol of Turning
+		when /You draw a glowing pattern in the air before/
+			if upstream_get =~ /sy of c|sym of c|symb of c|symbo of c|symbol of c|sy c|sym c|symb c|symbo c|symbol c/
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 48
+			elsif upstream_get =~ /sy of t|sym of t|symb of t|symbo of t|symbol of t|sy t|sym t|symb t|symbo t|symbol t/
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 72
+			elsif upstream_get =~ /sy of s|sym of s|symb of s|symbo of s|symbol of s|sy s|sym s|symb s|symbo s|symbol s/
+				#dontecho = true
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 60
+			end
+		
+		#Symbol of Sleep Failure Message
+		#when /.* does not seem to be affected/
+			#dontecho = false
+		
+		#Symbol of Mana
+		when /You feel a surge of mana flow through you/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 84
+		
+		#Symbol of Sight
+		when /You concentrate(?:, but you can\'t seem to make the link work| on establishing the link and suddenly you see|, but no picture comes to mind)/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 96
+		
+		#Symbol of Submission
+		when /You feel the power of the symbol project toward/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 108
+		
+		#Symbol of Need
+		when /You concentrate on the Symbol of Need/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 132
+		
+		#Symbol of Dreams
+		when /(?:You feel suddenly tired and lie down for a nap|A tinge of nervousness makes going to sleep harder, but you manage)/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 168
+		
+		#Symbol of Return
+		when /Your surroundings blur into a white fog/
+			if upstream_get =~ /sy of r|sym of r|symb of r|symbo of r|symbol of r|sy r|sym r|symb r|symbo r|symbol r/i
+				CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 204
+			end
+		
+		#Symbol of Retribution
+		when /You close your eyes, lift your face and hands to the sky and from deep within you a rage burns upward and out your lips in a terrible scream of rage/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i - 144
+			
+			
+		when /lesser ghoul|skeleton|zombie rolton/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 1
+		when /lesser frost shade|moaning phantom|ghost|lesser shade|phantom/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 2
+		when /greater ghoul|ice skeleton/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 3
+		when /revenant/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 4
+		when /mist wraith|dark apparition/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 5
+		when /spectral fisherman|lesser mummy|firephantom/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 6
+		when /bone golem/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 8
+		when /snow spectre|death dirge/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 9
+		when /werebear/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 10
+		when /darkwoode/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 13
+		when /shadowy spectre|spectre|shadowy specter|specter/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 14
+		when /wolfshade|tomb wight|wraith/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 15
+		when /ghoul master|ghost wolf/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 16
+		when /elder ghoul master|ghostly warrior|nedum vereri|rotting krolvin pirate/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 18
+		when /arch wight|wood wight/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 20
+		when /ancient ghoul master/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 21
+		when /zombie|nonomino|crazed zombie|rotting woodsman/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 23
+		when /spectral monk|carceris/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 25
+		when /tree spirit/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 26
+		when /monastic lich/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 27
+		when /moaning spirit/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 28
+		when /elder tree spirit/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 30
+		when /skeletal ice troll/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 31
+		when /ghostly mara|rotting farmhand|rotting corpse/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 32
+		when /skeletal giant|ghostly pooka/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 33
+		when /rock troll zombie|skeletal soldier|skeletal warrior|spectral warrior/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 34
+		when /troll wraith|spectral shade|barghest|spectral woodsman|water wyrd/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 35
+		when /spectral lord/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 36
+		when /magru|shadow mare|skeletal warhorse|lesser moor wight/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 37
+		when /shadow steed/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 38
+		when /vourkha|greater moor wight/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 39
+		when /spectral miner/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 40
+		when /bog wraith|skeletal lord/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 41
+		when /phantasma|baesrukha|frozen corpse/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 42
+		when /night mare/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 43
+		when /gaunt spectral servant|bog wight/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 44
+		when /ice wraith|lesser vruul/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 45
+		when /rotting chimera/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 46
+		when /dybbuk|necrotic snake|warrior shade/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 48
+		when /waern/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 49
+		when /banshee|flesh golem/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 50
+		when /seeker/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 52
+		when /ethereal mage apprentice/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 54
+		when /nightmare steed|eidolon/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 55
+		when /decaying Citadel guardsman/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 56
+		when /rotting Citadel arbalester/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 58
+		when /putrefied Citadel herald/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 60
+		when /phantasmal bestial swordsman/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 62
+		when /soul golem|wind wraith/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 63
+		when /greater vruul|naisirc/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 75
+		when /shrickhen/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 76
+		when /seraceris/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 78
+		when /lich qyn'arj/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 84
+		when /n'ecare/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 87
+		when /lost soul/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 91
+		when /vaespilon/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 93
+		when /spectral triton defender/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 98
+		when /ethereal triton sentry/
+			CharSettings['volnfavor'] = CharSettings['volnfavor'].to_s.to_i + 103
+	end
+	CharSettings.save
+	if dontecho == true
+		dontecho = false
+	else
+		respond "Current Voln Favor:  #{CharSettings['volnfavor']}"
+	end
+oldres = res
+goto "start"

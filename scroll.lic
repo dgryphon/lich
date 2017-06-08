@@ -1,0 +1,390 @@
+# scroll.lic - index scrolls & cast off them
+# http://forum.gsplayers.com/showthread.php?t=49352
+
+def main()
+
+	# check if we're getting any parameters
+	
+	if(variable[0] == nil)
+	
+		# nothing passed, indexing current scroll set
+
+		echo "indexing scrolls"	
+		scroll_info = index_scrolls()
+	
+	else
+
+		# something was passed, load the previous scroll index and see what's up
+	
+		scroll_info = load_settings()	
+		
+		split_params = variable[0].split(' ')
+		
+		if(split_params[0].to_i != 0)
+		
+			# legit spell as first parameter, find a scroll with it and cast it
+	
+			spell = split_params[0]
+			target = split_params[1]
+			cast_spell(spell, target, scroll_info)
+		
+		elsif(variable[0] =~ /disp|list/i)
+		
+			# display, check if verbose
+		
+			if(variable[0] =~ /v|full/i)
+			
+				# display w/ scroll ids
+		
+				display_scrolls(scroll_info, true)
+				
+			else
+			
+				# display w/o scroll ids
+			
+				display_scrolls(scroll_info, false)
+				
+			end
+			
+		elsif(variable[0] =~ /get/i)
+		
+			spell = split_params[1]
+		
+			if(spell.to_i != 0)
+		
+				# get the scroll
+				get_scroll(spell, scroll_info)
+				
+			end
+		
+		else
+		
+			# invalid spell and other bad things
+		
+			echo "Invalid spell #"
+		
+		end
+
+	end
+	
+	save_settings(scroll_info)
+
+end
+
+def load_settings()
+
+	Settings.load
+	scroll_info = Settings[Char.name]['scroll_info']
+	
+	return scroll_info
+
+end
+
+def save_settings(scroll_info)
+
+	Settings[Char.name] = Hash.new unless Settings[Char.name]
+	Settings[Char.name]['scroll_info'] = scroll_info
+	Settings.save
+
+end
+
+def index_scrolls()
+
+	inv = GameObj.inv
+	
+	scroll_info = Array.new
+	curr_scroll = 0
+	
+	# update these if necessary, i'm not a scientist
+	
+	containers = ["backpack", "greatcloak", "cloak", "sack", "bag", "satchel", "case", "robes", "harness", "tube", "cage"]
+	scrolls = ["paper", "scroll", "parchment", "papyrus", "palimpsest", "tome", "book", "vellum"]
+	
+	# iterate through inventory looking for containers
+	
+	inv.each { |item|
+	
+		if(containers.index(item.to_s))	
+		
+			opened = false
+
+			# found a container
+			fput "look in ##{item.id}"
+		
+			if(item.contents == nil)
+			
+				opened = true
+				fput "open ##{item.id}"
+				fput "look in ##{item.id}"
+			
+			end
+
+			sleep 0.25
+
+			item_inv = item.contents
+			
+			# iterate through container contents looking for scrolls
+			
+			item_inv.each { |iteminv|
+		
+				if(scrolls.index(iteminv.to_s))
+				
+					# found a scroll, read it
+				
+					scroll_ret = read_scroll(iteminv.id)
+					
+					scroll_ret.each { |spellitem|
+					
+						scroll_info[curr_scroll] = "#{iteminv.id}," + spellitem + "," + "#{item.id}"
+						curr_scroll = curr_scroll + 1
+					
+					}
+				
+				end
+				
+			
+			}
+			
+			if(opened)
+			
+				fput "close ##{item.id}"
+			
+			end
+		
+		end
+	
+	}
+	
+	# sort the spells for easier readout
+	
+	scroll_info.sort! { |a,b|
+	
+		a.split(',')[1].to_i <=> b.split(',')[1].to_i
+	
+	}
+
+	display_scrolls(scroll_info, false)
+	
+	return scroll_info
+
+end
+
+def display_scrolls(scroll_info,verbose)
+
+	bean = 0
+	
+	spells = ""
+	
+	counter = 200
+	
+	scroll_info.each { |info|
+	
+		splitter = info.split(',')
+		scroll_id = splitter[0]
+		spell = splitter[1].to_i
+		spell_name = splitter[2]
+		container_id = splitter[3]
+		
+		if(spell > counter)
+			
+			counter = spell + (100 - (spell % 100))
+			puts ""
+				
+		end
+		
+		if(verbose)
+		
+			puts "(#{spell}) #{spell_name}  -  ##{scroll_id}"
+		
+		else
+		
+			puts "(#{spell}) #{spell_name}"
+			
+		end
+	
+	}
+
+end
+
+def read_scroll(scroll_id)
+
+	reading_scroll = true
+	max_lines = 7
+	curr_lines = 0
+	curr_spell = 0
+	curr_scroll_info = Array.new
+	first = true
+	
+	fput "read ##{scroll_id}"
+	
+	waitfor "you see"
+	line = ""
+	
+	while(reading_scroll)
+	
+		# wait 1s for next scroll line
+	
+		line = matchtimeout 1, "\\(", "unreadable"
+		
+		if(line =~ /\(|unreadable/)
+		
+			#echo "got line: #{line}"
+		
+			spell = line[/\(([0-9]+)\)| ([0-9]*) unreadable/, 1]
+			spell_name = line[/\([0-9]+\) (.*)/, 1]
+
+			spell = spell.to_i
+
+			if(spell < 100 && spell > 1) 
+
+				spell_name = "unreadable spells"
+
+			elsif(spell < 100 && spell < 2)
+
+				spell_name = "unreadable spell"
+
+			end
+			
+			if(spell != nil && spell_name != nil)
+		
+				#echo "found a spell: #{spell}, #{spell_name}"
+			
+				spell_info = "#{spell},#{spell_name}"
+				
+				curr_scroll_info[curr_spell] = spell_info
+			
+				curr_spell = curr_spell + 1
+			
+			end
+		
+		else
+		
+			reading_scroll = false
+		
+		end
+	
+	end
+	
+	return curr_scroll_info
+
+end
+
+def get_scroll(spell, scroll_info)
+
+	# locate the scroll the spell is on
+	
+	scr_spell = ""
+	scroll_id = ""
+	container_id = ""
+	
+	scroll_info.each { |info|
+		
+		splitter = info.split(',')
+		scroll_id = splitter[0]
+		scr_spell = splitter[1]
+		scr_spell_name = splitter[2]
+		container_id = splitter[3]
+
+		#echo "checking #{scroll_id}, #{scr_spell} against #{spell}"
+		
+		break if spell == scr_spell
+			
+	}
+		
+	if(spell == scr_spell)
+
+		# check hands are clear, get scroll
+		left_item = 0
+		right_item = 0
+		
+		if(checkright != nil)
+		
+			right_item = GameObj.right_hand.id
+			fput "stow right"
+		
+		end
+		
+		if(checkleft != nil)
+		
+			left_item = GameObj.left_hand.id
+			fput "stow left"
+		
+		end
+		
+		fput "get ##{scroll_id}"	
+
+		gotted = waitfor "You remove", "Get what"
+		
+		if(gotted =~ /Get what/)
+		
+			fput "open ##{container_id}"
+			fput "get ##{scroll_id}"
+		
+		end
+		
+		found_scroll = "#{scroll_id},#{container_id},#{right_item},#{left_item}"
+	
+	else
+	
+		echo "I could not find that spell in your scrolls!"
+		found_scroll = "-1,-1,-1,-1"
+		
+	end
+	
+	return found_scroll
+
+end
+
+def cast_spell(spell, target, scroll_info)
+
+	echo "casting #{spell} on #{target}"
+
+	# get the scroll for this spell
+	
+	scroll_ret = get_scroll(spell, scroll_info)
+	scroll_split = scroll_ret.split(',')
+	scroll_id = scroll_split[0]
+	container_id = scroll_split[1]
+	right_item = scroll_split[2].to_i
+	left_item = scroll_split[3].to_i
+	
+	if(scroll_id.to_i != -1)
+			
+		# invoke it
+		
+		fput "invoke #{spell}"
+	
+		# cast
+		
+		if(target == spell)
+			
+			fput "cast #{checkname}"
+		
+		else
+		
+			fput "cast #{target}"
+		
+		end
+		
+		fput "put ##{scroll_id} into ##{container_id}"
+		sleep 0.25
+		
+		if(right_item > 0)
+		
+			fput "get ##{right_item}"
+		
+		end
+		
+		if(left_item > 0)
+		
+			fput "get ##{left_item}"
+		
+		end
+			
+	end
+
+end
+
+main
+
+# was that wrong?  should i not have done that?

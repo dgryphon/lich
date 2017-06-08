@@ -1,0 +1,88 @@
+# settings
+# container for herbs
+# forage
+# wait on banker
+
+
+
+
+
+start_script("go2", [ "2787", '_disable_confirm_' ])
+wait_while { running?("go2")}
+# step here to wait for npc
+fputs "ask banker for 20000 silvers"
+waitfor "The banker nods"
+
+start_script("go2", [ "2782", '_disable_confirm_' ])
+wait_while { running?("go2")}
+
+emptyhands
+fput "order 1"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 2"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 3"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 4"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 5"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 6"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 7"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 8"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 9"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 10"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 11"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 12"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 13"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 14"
+fput "put tea in my cloak"
+waitfor "You put"
+fput "order 15"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 16"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 17"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 18"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 19"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 20"
+fput "put pot in my cloak"
+waitfor "You put"
+fput "order 21"
+fput "put pot in my cloak"
+waitfor "You put"
+
+start_script("go2", [ "2635", '_disable_confirm_' ])
+wait_while { running?("go2")}
+
+
+

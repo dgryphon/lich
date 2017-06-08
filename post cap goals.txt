@@ -1,0 +1,54 @@
+
+   Skill              |Ranks at goal      |Exp. to goal       |Level at goal      |
+================================================================================
+ 1. twoweaponcombat    |202                |852678             |145                
+ 2. armoruse           |303                |260000             |147                
+ 4. combatmaneuvers    |202                |0                  |158                
+ 5. edgedweapons       |202                |1302500            |167                
+ 7. twohandedweapons   |202                |0                  |179                
+10. polearmweapons     |202                |3030000            |233                
+18. spellaiming        |101                |2525000            |283                
+20. emc                |101                |1262500            |293                
+21. mmc                |101                |1262500            |299                
+24. slblessings        |202                |2462500            |320                
+25. sldemonology       |101                |3030000            |334                
+26. mldivination       |101                |3367500            |348                
+              
+
+Exp to goal completion: 58320178
+Total exp at goal completion: 70712500
+--- Lich: postcapgoal has exited.
+
+
+
+13. multiopponentcombat|101                |660000             |255                
+14. physicalfitness    |202                |270000             |256                
+15. dodging            |202                |2165000            |267                             
+
+37. spell              |202                |9180000            |425  
+
+
+16. arcanesymbols      |101                |422500             |269                
+17. magicitemuse       |101                |255000             |271                
+22. smc                |101                |380000             |301                
+19. harnesspower       |202                |840000             |287                
+32. climbing           |202                |647500             |379                
+33. swimming           |202                |420000             |381                
+27. survival           |202                |1010000            |352   
+12. ambush             |101                |1095000            |251     
+31. perception         |202                |1365000            |376                
+
+
+ 3. shielduse          |202                |1515000            |158                
+ 9. thrownweapons      |202                |2777500            |216                           
+
+
+23. elair              |101                |1685000            |309                
+28. disarmingtraps     |101                |1010000            |356                
+29. pickinglocks       |202                |2525000            |367                
+30. stalkingandhiding  |101                |1010000            |371                
+ 6. bluntweapons       |202                |1767500            |179                
+ 8. rangedweapons      |202                |3167500            |199                
+35. trading            |202                |1515000            |386                
+36. pickpocketing      |101                |1010000            |390                
+11. brawling           |202                |2272500            |245                

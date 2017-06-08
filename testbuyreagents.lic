@@ -1,0 +1,57 @@
+
+=begin
+# blah blah blah
+=end
+
+container = alchemy_sack_var = GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack.strip)}/i } || GameObj.inv.find { |obj| obj.name =~ /#{Regexp.escape(UserVars.alchemysack).sub(' ', ' .*')}/i }
+reagents = /radiant crimson essence dust|radiant crimson mote of essence|pristine sprite's hair|some essence of water|s'ayanad crystal|t'ayanad crystal/
+
+			empty_hands
+			dothistimeout "get my note", 10, /^You remove|^You already have that\./
+
+	if table = (GameObj.loot.to_a + GameObj.room_desc.to_a).find { |obj| obj.noun == 'table'}
+		count = Hash.new
+		#dothistimeout "look on ##{table.id}", 3, /On the|On the table you see/
+		
+		status_tags		
+		fput "look on ##{table.id}"
+		
+		contents_string = get
+		until (contents_string =~ /On the (.*) table you see (.*)|(.*)noun="table"(.*)/)
+			contents_string = get
+		end				
+					        
+        ## parse contents_string and create items
+        contents = contents_string.scan(/<a.*?<\/a>/)
+        contents.each { |item|
+            id, noun, name = nil
+            if(item =~ /exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>/) # normal format
+                id, noun, name = /exist=\"(.*?)\"\s*noun=["'](.*?)["'].*?>(.*?)<\/a>/.match(item).captures
+            else # simu display bug format
+                id, name = /exist=\"(.*?)\">(.*?)<\/a>/.match(item).captures
+                noun = name.split(" ")[-1]
+            end
+            
+            ## Create item_object
+            if(id.nil? || noun.nil? || name.nil?)
+                error_message = "Error: Item in container #{@name} not created because of id, noun, or name being nil: #{id.nil?}, #{noun.nil?}, #{name.nil?}"
+                message( error_message )
+            else
+                #@items.push( Item_Object.new(id, noun, name) )
+				if name =~ reagents
+					echo #{noun}
+					dothis "buy ##{id}", /decide to purchase the/
+					dothis "put #{noun} in my #{container}", /You put|I could not find what you were referring to\./					
+				end
+            end
+        }
+
+		
+		
+		
+		
+				
+end
+
+
+

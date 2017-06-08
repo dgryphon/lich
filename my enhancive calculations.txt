@@ -1,0 +1,17 @@
+[(TWC Ranks + trunc(STR/4) + trunc(DEX/4) + enchant bonus/2) * Stance modifier] + (5 or 15, depending on training)
+
+ 1 + 25/4 + 50/4 + 10
+
+ (1 + 6 + 12 + 10) * .1 + 5 = ~ 10 points
+
++10 badge
++6  vambraces
++3  bracers
++3  bracers
++18 armor/shield/paingrip
+
++40 total - not sure about the shield though
+
+how much dex
++4 bonus vambraces
++4 bonus bracers (2)

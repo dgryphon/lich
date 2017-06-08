@@ -1,0 +1,89 @@
+=begin
+
+	This script will display the contents of your containers in categories
+	when you look in them.
+
+	tillmen@lichproject.org
+
+=end
+
+if defined?(GameObj.type_data)
+	GameObj.load_data if GameObj.type_data.empty? or GameObj.type_data.nil?
+	if GameObj.type_data.nil?
+		wait_while { running?('updater') }
+		wait_while { running?('repository') }
+		start_script 'repository', [ 'download', 'gameobj-data.xml' ]
+		wait_while { running?('repository') }
+		wait_while { running?('updater') }
+		start_script 'updater', [ 'add', 'gameobj-data.xml' ]
+		wait_while { running?('updater') }
+		GameObj.load_data
+		exit if GameObj.type_data.nil?
+	end
+end
+
+script.want_downstream = false
+script.want_downstream_xml = true
+hide_me
+
+begin
+	action = proc { |server_string|
+		if server_string =~ /^(<container.*inv>|<exposeContainer.*inv>)[IO]n the .*?exist=".*?".*? you see .*?\./
+			$1
+		else
+			server_string
+		end
+	}
+	DownstreamHook.add('sorter', action)
+	loop {
+		if get =~ /^(?:<container.*inv>|<exposeContainer.*inv>)([IO]n the .*?) you see .*?\./
+			container = $1
+			if container =~ /exist="(.*?)"/
+				container_id = $1
+				if contents = GameObj.containers[container_id]
+					sorted_contents = Hash.new
+					for item in contents
+						category_name = item.type || 'other'
+						sorted_contents[category_name] ||= Hash.new
+						if item.full_name =~ /^a crystalline flask containing/
+							item_name = item.full_name.sub(/^a crystalline flask containing /, '')
+						else
+							item_name = item.full_name.sub(/containing (.*)$/) { "(#{$1})" }
+						end
+						if sorted_contents[category_name][item_name].nil?
+							sorted_contents[category_name][item_name] = Hash.new
+							sorted_contents[category_name][item_name]['noun'] = item.noun
+							sorted_contents[category_name][item_name]['exist'] = item.id
+							sorted_contents[category_name][item_name]['count'] = 1
+						else
+							sorted_contents[category_name][item_name]['count'] += 1
+						end
+					end
+					output = "#{container}:\n"
+					for category_name, contents in sorted_contents
+						count = 0
+						contents.values.each { |value| count += value['count'] }
+						output.concat "#{monsterbold_start}#{category_name} (#{count}):#{monsterbold_end} "
+						contents = contents.sort { |a,b| a[0].split(/\s/).last <=>  b[0].split(/\s/).last }
+						for item_name, item_info in contents
+							if item_info['count'] > 1
+								output.concat "<a exist=\"#{item_info['exist']}\" noun=\"#{item_info['noun']}\">#{item_name}</a> (#{item_info['count']}), "
+							else
+								output.concat "<a exist=\"#{item_info['exist']}\" noun=\"#{item_info['noun']}\">#{item_name}</a>, "
+							end
+						end
+						output.chop!
+						output.chop!
+						output.concat ".\n"
+					end
+					output.gsub!(/<.*?>/, '') unless $frontend == 'stormfront'
+					puts output
+				else
+					echo 'fixme'
+				end
+			end
+		end
+	}
+ensure
+	DownstreamHook.remove('sorter')
+end

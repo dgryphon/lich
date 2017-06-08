@@ -1,0 +1,541 @@
+#quiet
+=begin
+
+	Provides a GUI for looking at the repository.
+	
+	spiffyjr@gmail.com
+	
+=end
+
+unless $SAFE == 0
+	echo "this script must be trusted to work (;trust #{script.name})"
+	exit
+end
+
+scripts = {
+	'1605'				=> { :tags => [ 'paladin' ] },
+	'702'				=> { :tags => [ 'sorcerer' ] },
+	'703'				=> { :tags => [ 'sorcerer' ] },
+	'711'				=> { :tags => [ 'sorcerer' ] },
+	'730'				=> { :tags => [ 'sorcerer' ] },
+	'alchemy'			=> { :tags => [ 'artisan','sorcerer','empath','wizard','cleric' ] },
+	'autowar'			=> { :tags => [ 'warrior' ] },
+	'armor'				=> { :tags => [ 'information' ] },
+	'autocomp'			=> { :tags => [ 'ranger' ] },
+	'autovine'			=> { :tags => [ 'ranger' ] },
+	'bigshot' 			=> { :tags => [ 'hunting' ] },
+	'booty'		 		=> { :tags => [ 'loot' ] },
+	'circle' 			=> { :tags => [ 'information' ] },
+	'c_lib' 			=> { :tags => [ 'library' ] },
+	'death_potions'		=> { :tags => [ 'death' ] },
+	'deathrecover'		=> { :tags => [ 'death' ] },
+	'instrument' 		=> { :tags => [ 'bard' ] },
+	'group_ajar' 		=> { :tags => [ 'group', 'utility' ] },
+	'keepalive' 		=> { :tags => [ 'utility' ] },
+	'krakii' 			=> { :tags => [ 'information' ] },
+	'infomon'			=> { :tags => [ 'lich' ] },
+	'lnet'				=> { :tags => [ 'lich' ] },
+	'loot-be-gone' 		=> { :tags => [ 'loot' ] },
+	'lootit' 			=> { :tags => [ 'loot' ] },
+	'metal' 			=> { :tags => [ 'information' ] },
+	'sbounty' 			=> { :tags => [ 'utility', 'bounties' ] },
+	'sammu'				=> { :tags => [ 'utility', 'artisan' ] },
+	'sloot' 			=> { :tags => [ 'loot' ] },
+	'slib' 				=> { :tags => [ 'library' ] },
+	'starscream' 		=> { :tags => [ 'hunting' ] },
+	'svoln' 			=> { :tags => [ 'utility', 'voln' ] },
+	'uberbar' 			=> { :tags => [ 'utility' ] },
+	'updater'			=> { :tags => [ 'lich' ] },
+	'twitter'			=> { :tags => [ 'utility' ] },
+	'useherbs'			=> { :tags => [ 'healing' ] },
+	'waggle' 			=> { :tags => [ 'spells' ] },
+	'wood'	 			=> { :tags => [ 'information' ] },
+}
+
+lich_server_list = [ 'lichproject.org' ]
+
+if XMLData.game == 'DR'
+	port = 7156
+else
+	port = 7153
+end
+
+get_lich_server = proc {
+	for server_name in lich_server_list
+		begin
+			server_addr = (UserVars['getaddress'][server_name] || TCPSocket.getaddress(server_name))
+			lich_server = TCPSocket.open(server_addr, port)
+			unless UserVars['getaddress'][server_name] == server_addr
+				UserVars['getaddress'][server_name] = server_addr
+			end
+			break
+		rescue
+			lich_server.close rescue()
+			lich_server = nil
+			if UserVars['getaddress'][server_name]
+				UserVars['getaddress'][server_name] = nil
+				retry
+			else
+				echo "error connecting to #{server_name}: #{$!}"
+				sleep 1
+				false
+			end
+		end
+	end
+	lich_server
+}
+
+get_script_list = proc {
+	lich_server = get_lich_server.call
+	lich_server.sync = true
+	lich_server.write('L')
+	list = Array.new
+	while inp = lich_server.gets
+		list.push(inp.chomp)
+	end
+	lich_server.close rescue()
+	list.collect! { |data| data.chomp.split(';;') }
+	
+	script_list = Hash.new
+	list.each { |name,size,time|
+		script_list[name] = Hash.new
+		script_list[name][:info] = Hash.new
+		script_list[name][:size] = size
+		script_list[name][:time] = time
+		
+		if info = scripts.find { |s| "#{s.first}.lic" == name }
+			script_list[name][:info] = info.last
+		end
+	}
+	
+	script_list
+}
+
+get_script_info = proc { |script|
+	lich_server = get_lich_server.call
+	lich_server.sync = true
+	lich_server.write('v')
+	lich_server.puts(script)
+	info = lich_server.readlines
+	lich_server.close
+	
+	info
+}
+
+get_tags_from_scripts = proc { |scripts|
+	tags = Array.new
+	
+	scripts.each_pair { |script,data|
+		tags += data[:info][:tags] unless data[:info][:tags].nil?
+	}
+	
+	tags.uniq!.sort
+}
+
+script_name = Script.self.name
+download_script = proc { |name|
+	echo "downloading \"#{name}\""
+	lich_server = get_lich_server.call
+	lich_server.sync = true
+	lich_server.write('d')
+	lich_server.puts(name.sub(/\.[A-z]{1,3}$/, ''))
+	rsp = lich_server.gets.chomp
+	if rsp == 'good'
+		fname = lich_server.gets.chomp
+		echo "   ... downloading #{fname} in 3 seconds... (;k #{script_name} to abort)"
+		sleep 3
+		echo '   ... starting download'
+		sleep 0.25
+		if fname =~ /\.dat$/
+			lich_server.binmode
+			data = lich_server.read
+			lich_server.close rescue()
+			File.open("#{$script_dir}#{fname}", 'wb') { |f| f.write(data) }
+			GC.start
+		else
+			data = lich_server.readlines
+			lich_server.close rescue()
+			File.open("#{$script_dir}#{fname}", 'w') { |file| file.puts(data.collect { |line| line.chomp }) }
+		end
+		echo '   ... complete!'
+	elsif rsp == 'none'
+		echo "   ... could not find \"#{name}\" on the server"
+	elsif rsp.nil?
+		echo '   ... server did not understand request'
+	else
+		echo '   ... unrecognized response from the server'
+	end
+}
+
+upload_script = proc { |name|
+	echo "uploading \"#{name}\""
+	key_dir = "#{$lich_dir}keys/"
+	Dir.mkdir(key_dir) unless File.exists?(key_dir)
+	name = script.vars[2]
+	list = Dir.entries($script_dir)
+	if File.exists?("#{$script_dir}#{name}.lic")
+		fname = "#{name}.lic"
+	else
+		fname = (list.find { |file| file =~ /^#{name}$/ } || list.find { |file| file =~ /^#{name}\.(?:lic|cmd|wiz|txt|dat)$/i }) || list.find { |file| file =~ /^#{name}[^.]+\.(?:lic|cmd|wiz|txt|dat)$/i }
+	end
+	unless fname.nil?
+		echo "   ... connecting to server"
+		lich_server = get_lich_server.call
+		lich_server.write('u')
+		lich_server.puts(fname)
+		rsp = lich_server.gets.chomp
+		if rsp == 'good'
+			echo "   ... uploading #{fname} in 3 seconds... (;k #{script.name} to abort)"
+			sleep 3
+			echo '   ... starting upload...'
+			sleep 0.25
+			data = File.open("#{$script_dir}#{fname}") { |f| f.read }
+			lich_server.send("#{data.length}\n",0)
+			key = lich_server.gets.chomp
+			key_name = fname.sub(/\.[A-z]+$/i,'.key')
+			if File.exists?("#{key_dir}#{key_name}")
+				File.open("#{key_dir}#{key_name}", 'rb') { |infile|
+					File.open("#{$temp_dir}#{key_name}", 'wb') { |outfile|
+						outfile.write(infile.read)
+					}
+				}
+			end
+			File.open("#{key_dir}#{key_name}", 'wb') { |file| file.write(key) }
+			lich_server.write(data)
+			lich_server.close
+			echo '   ... complete!'
+		elsif rsp == 'exists'
+			echo "   ... updating #{fname} in 3 seconds... (;k #{script.name} to abort)"
+			sleep 3
+			key_name = fname.sub(/\.[A-z]+$/i,'.key')
+			if File.exists?("#{key_dir}#{key_name}")
+				key = File.open("#{key_dir}#{key_name}") { |file| file.read }
+				lich_server.puts(key)
+				keyresp = lich_server.gets.chomp
+				if keyresp == 'GOOD'
+					lich_server.close
+					sleep 1
+					lich_server = get_lich_server.call
+					lich_server.write('u')
+					lich_server.puts(fname)
+					rsp = lich_server.gets.chomp
+					if rsp == 'good'
+						sleep 0.25
+						data = File.open("#{$script_dir}#{fname}") { |f| f.read }
+						lich_server.send("#{data.length}\n",0)
+						key = lich_server.gets.chomp
+						key_name = fname.sub(/\.[A-z]+$/i,'.key')
+						if File.exists?("#{key_dir}#{key_name}")
+							File.open("#{key_dir}#{key_name}", 'rb') { |infile|
+								File.open("#{$temp_dir}#{key_name}", 'wb') { |outfile|
+									outfile.write(infile.read)
+								}
+							}
+						end
+						File.open("#{key_dir}#{key_name}", 'wb') { |file| file.write(key) }
+						lich_server.write(data)
+						lich_server.close
+						echo '   ... complete!'
+					elsif rsp == 'exists'
+						echo '   ... failed to remove the existing script from the server'
+					else
+						echo '   ... unrecognized response from the server'
+					end
+				elsif keyresp == 'NOKEY'
+					echo '   ... server reported there is no key for that file'
+				else
+					echo '   ... invalid key'
+				end
+			else
+				echo '   ... script exists on the server, and the key to update it was not found'
+				lich_server.close unless lich_server.closed?
+			end
+		else
+			echo '   ... unrecognized response from the server'
+		end
+	else
+		echo "   ... failed to find local script \"#{name}\""
+	end
+}
+
+delete_script = proc { |name|
+	echo "removing\"#{name}\""
+	key_dir = "#{$lich_dir}keys/"
+	Dir.mkdir(key_dir) unless File.exists?(key_dir)
+	name = script.vars[2]
+	list = Dir.entries($script_dir)
+	if File.exists?("#{$script_dir}#{name}.lic")
+		fname = "#{name}.lic"
+	else
+		fname = (list.find { |file| file =~ /^#{name}$/ } || list.find { |file| file =~ /^#{name}\.(?:lic|cmd|wiz|txt|dat)$/i }) || list.find { |file| file =~ /^#{name}[^.]+\.(?:lic|cmd|wiz|txt|dat)$/i }
+	end
+	unless fname.nil?
+		echo "   ... connecting to server"
+		lich_server = get_lich_server.call
+		lich_server.write('u')
+		lich_server.puts(fname)
+		rsp = lich_server.gets.chomp
+		if rsp == 'good'
+			echo '   ... file does not exist on the server'
+			lich_server.close rescue()
+		elsif rsp == 'exists'
+			echo "   ... removing #{fname} in 3 seconds... (;k #{script.name} to abort)"
+			sleep 3
+			key_name = fname.sub(/\.[A-z]+$/i,'.key')
+			if File.exists?("#{key_dir}#{key_name}")
+				key = File.open("#{key_dir}#{key_name}") { |file| file.read }
+				lich_server.puts(key)
+				keyresp = lich_server.gets.chomp
+				if keyresp == 'GOOD'
+					lich_server.close
+					echo '   ... complete!'
+				elsif keyresp == 'NOKEY'
+					echo '   ... server reported there is no key for that file'
+				else
+					echo '   ... invalid key'
+				end
+				lich_server.close rescue()
+			else
+				lich_server.close rescue()
+				echo '   ... key was not found'
+			end
+		else
+			lich_server.close rescue()
+			echo '   ... unrecognized response from the server'
+		end
+	else
+		lich_server.close rescue()
+		echo "   ... failed to find local script \"#{name}\""
+	end
+}
+
+create_gui = proc {
+	settings = CharSettings.to_hash
+	window = window_action = nil
+	window_height = CharSettings['window_height'] || 490
+	window_width = CharSettings['window_width'] || 445
+	
+	scripts = get_script_list.call
+	tags = get_tags_from_scripts.call(scripts)
+		
+	Gtk.queue {
+		renderer = Gtk::CellRendererText.new
+		renderer.background = 'white'
+		
+		filter_label = Gtk::Label.new('Tags: ')
+		filter_align = Gtk::Alignment.new 1, 1, 0, 1
+		filter_align.add(filter_label)
+		filter_combo = Gtk::ComboBox.new
+		filter_combo.width_request = 200
+		
+		filter_box = Gtk::HBox.new(false)
+		filter_box.border_width = 5
+		filter_box.pack_start(filter_align, false, false)
+		filter_box.pack_start(filter_combo, false, false)
+		
+		# List of files from the repository
+		scripts_ls = Gtk::ListStore.new(String, String, String, String)
+		scripts_ls.set_sort_column_id(0, Gtk::SORT_ASCENDING)
+		scripts_tv = Gtk::TreeView.new(scripts_ls)
+		scripts_tv.headers_visible = true
+		scripts_tv.height_request = 150
+		scripts_tv.append_column(Gtk::TreeViewColumn.new('Name', renderer, :text => 0, :background_set => 2))
+		scripts_tv.append_column(Gtk::TreeViewColumn.new('Size', renderer, :text => 1, :background_set => 2))
+		scripts_tv.append_column(Gtk::TreeViewColumn.new('Tags', renderer, :text => 2, :background_set => 2))
+		scripts_tv.append_column(Gtk::TreeViewColumn.new('Timestamp', renderer, :text => 3, :background_set => 2))
+		scripts_sw = Gtk::ScrolledWindow.new
+		scripts_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+		scripts_sw.add(scripts_tv)
+		
+		script_info = Gtk::TextView.new
+		script_info.editable = false
+		scripts_info_sw = Gtk::ScrolledWindow.new
+		scripts_info_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+		scripts_info_sw.add(script_info)
+		
+		script_info_frame = Gtk::Frame.new('Information')
+		script_info_frame.add(scripts_info_sw)
+		
+		info_button = Gtk::Button.new('Information')
+		download_button = Gtk::Button.new('Download')
+		
+		options_box = Gtk::HBox.new(false)
+		options_box.pack_start(info_button, false, true)
+		options_box.pack_start(download_button, false, true)
+		
+		options_frame = Gtk::Frame.new('Options')
+		options_frame.add(options_box)
+				
+		# Add tags to ComboBox
+		filter_combo.append_text('all')
+		filter_combo.append_text('tagged')
+		filter_combo.append_text('untagged')
+		tags.each { |tag| filter_combo.append_text(tag) }
+		filter_combo.active = 1
+		
+		# Create primary GTK window
+		window = Gtk::Window.new
+		window.title = 'RepoGUI'
+		window.border_width = 3
+		window.resize(window_width, window_height)
+		
+		main_box = Gtk::VBox.new(false, 0)
+		main_box.border_width = 5
+		main_box.pack_start(filter_box, false, false, 0)
+		main_box.pack_start(scripts_sw, true, true, 5)
+		main_box.pack_start(script_info_frame, true, true, 3)
+		main_box.pack_start(options_frame, false, true, 5)
+		window.add(main_box)
+		
+		# Add scripts to ListStore based on tag
+		add_script_data = proc { |tag|
+=begin
+			if tag.nil? or tag.empty? or tag == 'all'
+				puts "#{monsterbold_start}-- RepoGUI: displaying all scripts#{monsterbold_end}\r\n"
+			elsif tag == 'untagged'
+				puts "#{monsterbold_start}-- RepoGUI: displaying untagged scripts#{monsterbold_end}\r\n"
+			elsif tag == 'tagged'
+				puts "#{monsterbold_start}-- RepoGUI: displaying tagged scripts#{monsterbold_end}\r\n"
+			else
+				puts "#{monsterbold_start}-- RepoGUI: filtering by tag \"#{tag}\"#{monsterbold_end}\r\n"
+			end
+=end
+				
+			scripts_ls.clear
+			
+			scripts.each { |script,data|
+				if tag.nil? or tag == 'all' or data[:info][:tags].include?(tag) or (data[:info][:tags].nil? and tag == 'untagged') or (!data[:info][:tags].nil? and tag == 'tagged')
+					iter = scripts_ls.append
+					iter[0] = script.gsub(/\.lic$/,'')
+					iter[1] = "#{(data[:size].to_i/1024.0).ceil}K"
+					iter[2] = data[:info][:tags].join(', ')
+					iter[3] = "#{Time.at(data[:time].to_i).strftime("%m-%d-%Y").gsub(/^0+/,'').gsub(/\-0+/,'-')}"
+				end
+			}
+		}
+		
+		filter_by_tag = proc { |tag| add_script_data.call(tag) }
+		
+		show_script_information = proc { |name|
+			if iter = scripts_tv.selection.selected
+				info = get_script_info.call(name)
+				
+				if info.nil? or info.empty?
+					script_info.buffer.text = "Woah! Slow down. You're spamming the server"
+				else
+					script_info.buffer.text = info.join
+				end
+			end
+		}
+		
+		download_button.signal_connect('clicked') {
+			Gtk.queue {
+				if iter = scripts_tv.selection.selected
+					download_script.call(iter[0])
+				end
+			}
+		}
+		
+		info_button.signal_connect('clicked') {
+			Gtk.queue {
+				if iter = scripts_tv.selection.selected
+					iter = scripts_tv.selection.selected
+					show_script_information.call(iter[0])
+				end
+			}
+		}
+		
+		filter_combo.signal_connect('changed') { 
+			Gtk.queue {
+				tag = filter_combo.active_text
+				filter_by_tag.call(tag)
+			}
+		}
+		
+		scripts_tv.signal_connect('button-press-event') { |who, event|
+			if (event.event_type == Gdk::Event::BUTTON2_PRESS) and (iter = scripts_tv.selection.selected)
+				Gtk.queue { show_script_information.call(iter[0]) }
+			end
+		}
+
+		window.signal_connect('delete_event') { 
+			window_height = window.allocation.height
+			window_width = window.allocation.width
+			window_action = :exit 
+		}
+		
+		add_script_data.call('tagged')
+		
+		window.show_all
+		window.keep_above = true
+	}
+	
+	before_dying { Gtk.queue { window.destroy} }
+	wait_while { window_action.nil? }
+	undo_before_dying
+	Gtk.queue { window.destroy }
+	CharSettings['window_height'] = window_height
+	CharSettings['window_width'] = window_width
+}
+
+if script.vars[1] =~ /^download$/i
+	download_script.call(script.vars[2])
+elsif script.vars[1] =~ /^upload$/i
+	upload_script.call(script.vars[2])
+elsif script.vars[1] =~ /^delete$/i
+	delete_script.call(script.vars[2])
+elsif script.vars[1] =~ /^list$|^sync$/i
+	echo 'connecting to the server...'
+	lich_server = get_lich_server.call
+	lich_server.sync = true
+	lich_server.write('L')
+	list = Array.new
+	while inp = lich_server.gets
+		list.push(inp.chomp)
+	end
+	lich_server.close rescue()
+	list.sort! { |x,y| x.downcase <=> y.downcase } if script.vars[2] =~ /alpha/i
+	fary = []
+	list.collect! { |data| data.chomp.split(';;') }
+	max_name_size = 0
+	list.each { |name,size,time| max_name_size = [name.length, max_name_size].max }
+	list.each { |name,size,time|
+		if File.exists?("#{$script_dir}#{name}")
+			if time.to_i > (File.mtime("#{$script_dir}#{name}").to_i + 10)
+				fary.push(" #{monsterbold_start}-#{monsterbold_end} #{name.ljust(max_name_size)} #{((size.to_i/1024.0).ceil).to_s.rjust(6)}K #{Time.at(time.to_i).strftime("%m-%d-%Y").gsub(/^0+/,'').gsub(/\-0+/,'-').rjust(10)} #{Time.at(time.to_i).strftime("%I:%M%p").downcase.gsub(/^0+/,'').rjust(7)} #{monsterbold_start}(updated)#{monsterbold_end} ")
+			elsif script.vars[1] !~ /sync/i
+				fary.push(" - #{name.ljust(max_name_size)} #{((size.to_i/1024.0).ceil).to_s.rjust(6)}K #{Time.at(time.to_i).strftime("%m-%d-%Y").gsub(/^0+/,'').gsub(/\-0+/,'-').rjust(10)} #{Time.at(time.to_i).strftime("%I:%M%p").downcase.gsub(/^0+/,'').rjust(7)}")
+			end
+		else
+			fary.push(" #{monsterbold_start}-#{monsterbold_end} #{name.ljust(max_name_size)} #{((size.to_i/1024.0).ceil).to_s.rjust(6)}K #{Time.at(time.to_i).strftime("%m-%d-%Y").gsub(/^0+/,'').gsub(/\-0+/,'-').rjust(10)} #{Time.at(time.to_i).strftime("%I:%M%p").downcase.gsub(/^0+/,'').rjust(7)}   #{monsterbold_start}(new)#{monsterbold_end} ")
+		end
+	}
+	str = fary.join("\r\n") + "\r\n"
+	str = "<output class=\"mono\"/>\r\n#{str}<output class=\"\"/>\r\n" unless $fake_stormfront
+	puts str
+elsif script.vars[1] =~ /^info$/i
+	echo 'connecting to the server...'
+	lich_server = get_lich_server.call
+	lich_server.sync = true
+	lich_server.write('v')
+	lich_server.puts(script.vars[2])
+	respond(lich_server.readlines)
+	lich_server.close
+elsif script.vars[1] =~ /^(?:help|\?)$/i
+	respond
+	respond 'Usage:'
+	respond
+	respond "   #{$clean_lich_char}#{script.name}                         shows the GUI repository client"
+	respond "   #{$clean_lich_char}#{script.name} info <script name>      shows the comments at the top of the script"
+	respond "   #{$clean_lich_char}#{script.name} download <script name>  downloads the script"
+	respond "   #{$clean_lich_char}#{script.name} upload <script name>    uploads the script"
+	respond "   #{$clean_lich_char}#{script.name} delete <script name>    deletes the script from the server"
+	respond "   #{$clean_lich_char}#{script.name} list                    list scripts on the repo"
+	respond
+	respond 'Scripts should include comments at the top describing the purpose of the script.  Scripts without comments at the top will not show up on the server.'
+	respond
+	respond "After uploading a script, a key that allows you to delete/update the script will be saved to #{$lich_dir}keys"
+	respond
+elsif script.vars[1].nil?
+	create_gui.call
+end

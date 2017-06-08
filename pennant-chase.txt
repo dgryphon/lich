@@ -1,0 +1,26 @@
+
+# plays pennant chase for you
+
+	
+#=end
+
+
+echo 'here 2'
+while true
+	@ if pennant point it at the pennant	
+      @ if people wave at every person
+        	line = get
+            if (line =~ /Also here: /)
+            	@ process all people/items in the line
+			@GameObj.pcs - list of pcs
+			targets = GameObj.pcs
+			for person in targets
+		      	fput "wave baton at #{person}"
+			end
+
+		end
+end
+
+
+
+@Also here: Shilaohra, Lady Syndie, Lord Javell.

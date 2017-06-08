@@ -1,0 +1,9 @@
+# Something to monitor for maximum item load
+
+before_dying { $bigshot_should_rest = nil }
+
+while( line = get )
+    if( line =~ /You are unable to handle the number of items/ )
+        $bigshot_should_rest = true
+    end
+end
